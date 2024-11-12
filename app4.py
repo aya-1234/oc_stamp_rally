@@ -4,7 +4,7 @@ from datetime import datetime
 import pytz
 from sqlalchemy.exc import SQLAlchemyError
 import pandas as pd
-from init import db, initialize_db, Login, Checkpoint, Quiz, Quiz_Response, Stamp, Survey, Survey_Choice, Survey_Response 
+from init4 import db, initialize_db, Login, Checkpoint, Quiz, Quiz_Response, Stamp, Survey, Survey_Choice, Survey_Response 
 from services.user_service import authenticate_user
 #やることは、全部のビジネスロジックと最低限のHTMLでべた付でいい。
 
@@ -70,70 +70,45 @@ def show_logins():
 #先に出ているエラーを直そう。
 #更新でデータが挿入されてしまうかも。
 #ユーザーのアカウント名表示は要るかも。
-#これ管理画面もかな、ログインテーブルのフラグ操作チェックポイントのフラグ操作とアンケートとクイズ一覧を見る。
+#これ管理画面もかな、ログインテーブルのフラグ操作チェックポイントのフラグ操作
 #なんか正解バグしてる
 #SURVEY_CHOICEを設定しない問題を作っておけば選択肢のない問題が作れて、見出しになって２階層になるのでは？？
-checkpoint_hash_dic = {'ajrwkhlkafsddfd': 1,
-                       'syflwdehkejhrsd1': 2, 
-                       'syflwehkejwhrsd2': 3, 
-                       'syflwehkejwhrsd3': 4, 
-                       'syflwehkejwhrsd4': 5, 
-                       'syflwehkejwhrsd5': 6, 
-                       'syflwehkejwhrsd6': 7, 
-                       'syflwehkejwhrsd7': 8, 
-                       'syflwehkejwhrsd8': 9,
-                       'syflwehkejwhrsd9': 10,  
-                       }
-hash_keys = list(checkpoint_hash_dic.keys())
-
-@app.route('/admin')
+@app.route('/')
 def hello():
-    output=f'''
+    output='''
 <h1>Hello World</h1>
 <ul>
 <li><a href="/logins">ログイン情報</a></li>
-<li><a href="/handle_checkpoint/{hash_keys[0]}">スタートポイントログイン</a></li>
-<li><a href="/handle_checkpoint/{hash_keys[1]}">チェックポイント地点１ログイン</a></li>
-<li><a href="/handle_checkpoint/{hash_keys[2]}">チェックポイント地点２ログイン</a></li>
-<li><a href="/handle_checkpoint/{hash_keys[3]}">チェックポイント地点３ログイン</a></li>
-<li><a href="/handle_checkpoint/{hash_keys[4]}">チェックポイント地点４ログイン</a></li>
-<li><a href="/handle_checkpoint/{hash_keys[5]}">チェックポイント地点５ログイン</a></li>
-<li><a href="/handle_checkpoint/{hash_keys[6]}">チェックポイント地点６ログイン</a></li>
-<li><a href="/handle_checkpoint/{hash_keys[7]}">チェックポイント地点７ログイン</a></li>
-<li><a href="/handle_checkpoint/{hash_keys[8]}">ゴールポイントログイン</a></li>
-<li><a href="/{hash_keys[9]}">管理画面</a></li>
+<li><a href="/handle_checkpoint/1">スタートポイントログイン</a></li>
+<li><a href="/handle_checkpoint/2">チェックポイント地点１ログイン</a></li>
+<li><a href="/handle_checkpoint/3">チェックポイント地点２ログイン</a></li>
+<li><a href="/handle_checkpoint/4">チェックポイント地点３ログイン</a></li>
+<li><a href="/handle_checkpoint/5">チェックポイント地点４ログイン</a></li>
+<li><a href="/handle_checkpoint/6">チェックポイント地点５ログイン</a></li>
+<li><a href="/handle_checkpoint/7">チェックポイント地点６ログイン</a></li>
+<li><a href="/handle_checkpoint/8">チェックポイント地点７ログイン</a></li>
+<li><a href="/handle_checkpoint/9">ゴールポイントログイン</a></li>
 </ul>
 '''
     return output
-#管理画面
-
-
-
-
 
 
 
 ####3つの共通処理
 
-
-
-@app.route('/handle_checkpoint/<string:checkpoint_id_hash>', methods=['GET', 'POST'])
-def handle_checkpoint(checkpoint_id_hash):
-    checkpoint_id = checkpoint_hash_dic[checkpoint_id_hash]
-    # チェックポイントの存在確認
-    checkpoint = Checkpoint.query.get_or_404(checkpoint_id)
-    
+# ３つのチェックポイントのログイン画面のルート
+@app.route('/handle_checkpoint/<int:checkpoint_id>', methods=['GET', 'POST'])
+def handle_checkpoint(checkpoint_id):
     if checkpoint_id == 1:
-        return login(checkpoint)  # チェックポイントオブジェクトを渡す
+        return login(checkpoint_id)  # IDが1の時はlogin関数を呼び出す
     elif 2 <= checkpoint_id <= 8:
-        return checkpoint_login(checkpoint)
+        return checkpoint_login(checkpoint_id)  # IDが2から7の時はcheckpoint_login関数を呼び出す
     elif checkpoint_id == 9:
-        return goal_login(checkpoint)
-    
-    return redirect(url_for('main_menu'))
+        return goal_login(checkpoint_id)
 
-# スタートポイントのログイン画面のルート
-def login(checkpoint):  # checkpoint_idの代わりにcheckpointオブジェクトを受け取る
+    
+    # スタートポイントのログイン画面のルート
+def login(checkpoint_id):
     if request.method == 'POST':
         account = request.form['account']
         user = Login.query.filter_by(account=account).first()
@@ -141,12 +116,12 @@ def login(checkpoint):  # checkpoint_idの代わりにcheckpointオブジェク�
         # アカウント存在チェック
         if not user:
             flash("アカウントが間違っています", 'error')
-            return render_template('login.html', title="ログイン", checkpoint=checkpoint)
+            return render_template('login.html', title="ログイン")
 
         # is_endedのチェック
         if user.is_ended:
             flash("もうスタンプラリーはゴールしています", 'error')
-            return render_template('login.html', title="ログイン", checkpoint=checkpoint)
+            return render_template('login.html', title="ログイン")
 
         # is_loggedinのチェック
         if user.is_loggedin:
@@ -160,13 +135,12 @@ def login(checkpoint):  # checkpoint_idの代わりにcheckpointオブジェク�
         # ユーザーIDをセッションに保存
         session['user_id'] = user.id
 
-        return redirect(url_for('agreement', login_id=user.id))
-
-    # GETメソッドの場合、チェックポイント情報とともにログイン画面を表示
-    return render_template('login.html', title="ログイン", checkpoint=checkpoint)
+        return redirect(url_for('agreement', login_id=user.id))  # 同意画面にリダイレクト
+    # GETメソッドの場合、チェックポイントIDを使用してログイン画面を表示
+    return render_template('login.html', title="ログイン", checkpoint_id=checkpoint_id)
 
 # チェックポイントのログイン画面のルート
-def checkpoint_login(checkpoint):
+def checkpoint_login(checkpoint_id):
     if request.method == 'POST':
         account = request.form['account']
         user = Login.query.filter_by(account=account).first()
@@ -174,64 +148,49 @@ def checkpoint_login(checkpoint):
         # アカウント存在チェック
         if not user:
             flash("アカウントが間違っています", 'error')
-            return render_template('login.html', title="ログイン", checkpoint=checkpoint)
+            return render_template('login.html', title="ログイン")
 
         # is_endedのチェック
         if user.is_ended:
             flash("もうスタンプラリーはゴールしています", 'error')
-            return render_template('login.html', title="ログイン", checkpoint=checkpoint)
+            return render_template('login.html', title="ログイン")
         
         # STAMPテーブル内で同じチェックポイントIDが存在するか確認
-        existing_stamp = Stamp.query.filter_by(
-            checkpoint_id=checkpoint.id,
-            login_id=user.id
-        ).first()
-        
+        existing_stamp = Stamp.query.filter_by(checkpoint_id=checkpoint_id, login_id=user.id).first()
         if existing_stamp:
             flash("もうスタンプを獲得しました。", 'error')
-            return render_template('login.html', title="ログイン", checkpoint=checkpoint)
+            return render_template('login.html', title="ログイン")
         
         # ユーザーIDをセッションに保存
         session['user_id'] = user.id
         # チェックポイント画面にリダイレクト
-        return redirect(url_for('checkpoint', checkpoint_id=checkpoint.id, login_id=user.id))
+        return redirect(url_for('checkpoint', checkpoint_id=checkpoint_id, login_id=user.id))
+    # GETメソッドの場合、チェックポイントIDを使用してログイン画面を表示
+    return render_template('login.html', title="ログイン", checkpoint_id=checkpoint_id)
 
-    # GETメソッドの場合、チェックポイント情報とともにログイン画面を表示
-    return render_template('login.html', title="ログイン", checkpoint=checkpoint)
-
-# ゴール画面のログイン画面のルート
-def goal_login(checkpoint):
+#ゴール画面のログイン画面のルート
+@app.route("/goal_login/<int:checkpoint_id>", methods=["GET", "POST"])
+def goal_login(checkpoint_id):
     if request.method == "POST":
         account = request.form["account"]
         user = Login.query.filter_by(account=account).first()
         
         if not user:
-            flash("アカウントが間違っています", 'error')
-            return render_template("login.html", title="ログイン", checkpoint=checkpoint)
+            flash("アカウントが間違っています")
+            return render_template("login.html", checkpoint_id=checkpoint_id)
         
         # ゴールチェック
         if user.is_ended:
-            flash("もうスタンプラリーはゴールしています", 'error')
+            flash("もうスタンプラリーはゴールしています")
             return render_template("end.html")
-
-        # 必要なチェックポイント（ID: 2-7）の確認
-        required_checkpoint_ids = set(range(2, 8))
-        obtained_stamps = {stamp.checkpoint_id for stamp in Stamp.query.filter_by(login_id=user.id).all()}
-        
-        if not required_checkpoint_ids.issubset(obtained_stamps):
-            missing_count = len(required_checkpoint_ids - obtained_stamps)
-            flash(f"ゴールするには、あと{missing_count}つのチェックポイントを回る必要があります。", 'error')
-            return render_template("login.html", title="ログイン", checkpoint=checkpoint)
 
         # ログイン状態確認
         if user.is_loggedin:
-            return redirect(url_for("show_stamps", user_id=user.id))
-            
+            return redirect(url_for("show_stamps",  user_id=user.id))
         # ユーザーIDをセッションに保存
         session['user_id'] = user.id
-        return render_template("login.html", title="ログイン", checkpoint=checkpoint)
 
-    return render_template("login.html", title="ログイン", checkpoint=checkpoint)
+    return render_template("login.html", checkpoint_id=checkpoint_id)
 
 
 # ３つのアンケート画面の表示と回答送信
@@ -261,67 +220,73 @@ def survey(checkpoint_id):
 
     user = Login.query.get_or_404(user_id)
 
-    # 質問と選択肢を一度に取得
+    # 質問と選択肢を一度に取得（N+1問題の回避）
     questions = Survey.query.filter_by(checkpoint_id=checkpoint_id)\
         .options(db.joinedload(Survey.survey_choices))\
         .order_by(Survey.survey_order).all()
     
-    #if not questions:
-    #    flash('アンケートが設定されていません。', 'error')
-    #    return redirect(url_for('main_menu', user=user.account))
+    if not questions:
+        flash('アンケートが設定されていません。', 'error')
+        return redirect(url_for('main_menu',user=user.account))
     
     if request.method == 'POST':
         try:
             responses = []
-            proceed = True
+            all_selected = True
 
             for question in questions:
-                # 選択肢の存在する質問に対してのみ処理を行う
-                if question.survey_choices:
-                    selected_choice_id = request.form.get(f'question_{question.id}')
-                    
-                    if not selected_choice_id:
-                        proceed = False
-                        flash(f"質問「{question.question}」に対する選択肢を選んでください。", 'error')
-                        break
-                    
-                    choice = Survey_Choice.query.filter_by(
-                        id=selected_choice_id,
-                        survey_id=question.id
-                    ).first()
-                    
-                    if not choice:
-                        proceed = False
-                        flash('無効な選択肢が選択されました。', 'error')
-                        break
+                selected_choice_id = request.form.get(f'question_{question.id}')
+                
+                # 選択肢が選ばれていない場合
+                if not selected_choice_id:
+                    all_selected = False
+                    flash(f"質問「{question.question}」に対する選択肢を選んでください。", 'error')
+                    break
+                
+                # 選択肢の妥当性を確認
+                choice = Survey_Choice.query.filter_by(
+                    id=selected_choice_id,
+                    survey_id=question.id
+                ).first()
+                
+                if not choice:
+                    all_selected = False
+                    flash('無効な選択肢が選択されました。', 'error')
+                    break
 
-                    responses.append(Survey_Response(
-                        login_id=user.id,
-                        survey_id=question.id,
-                        value=choice.value,
-                        created_at=datetime.now(pytz.timezone('Asia/Tokyo'))
-                    ))
+                responses.append(Survey_Response(
+                    login_id=user.id,
+                    survey_id=question.id,
+                    value=choice.value,
+                    created_at=datetime.now(pytz.timezone('Asia/Tokyo'))
+                ))
 
-            if proceed:
+            # すべての質問に対して選択肢が選ばれた場合
+            if all_selected:
+                # トランザクションとしてまとめて処理
                 db.session.add_all(responses)
+             #   db.session.add(Stamp(
+              #      checkpoint_id=checkpoint_id,
+               #     login_id=user.id,
+                #    created_at=datetime.now(pytz.timezone('Asia/Tokyo'))
+                #))
                 user.is_loggedin = True
                 db.session.commit()
 
                 flash('スタートアンケートが完了しました！', 'success')
-                return redirect(url_for('main_menu', user=user.account))
+                return redirect(url_for('main_menu',user=user.account))
 
         except SQLAlchemyError:
             db.session.rollback()
             flash('エラーが発生しました。もう一度お試しください。', 'error')
 
+    # GETリクエストまたはPOSTでエラーの場合
     return render_template(
         'survey.html',
         title="スタート時アンケート調査",
         questions=questions
     )
 
-
-# チェックポイントのアンケート画面のルート
 def checkpoint_survey(checkpoint_id):
     user_id = session.get('user_id')
     if not user_id:
@@ -405,36 +370,31 @@ def goal_survey(user_id, checkpoint_id):
     user = Login.query.get_or_404(user_id)
 
     if request.method == "POST":
-        questions = Survey.query.filter_by(checkpoint_id=checkpoint_id)\
-            .options(db.joinedload(Survey.survey_choices))\
-            .order_by(Survey.survey_order).all()
-        
+        questions = Survey.query.filter_by(checkpoint_id=checkpoint_id).order_by(Survey.survey_order).all()
         responses = []
-        proceed = True
+        all_answered = True
 
         for question in questions:
-            # 選択肢が存在する質問のみ処理
-            if question.survey_choices:
-                selected_choice_id = request.form.get(f'question_{question.id}')
-                if not selected_choice_id:
-                    flash(f"質問「{question.question}」に対する選択肢を選んでください。", 'error')
-                    proceed = False
-                    break
+            selected_choice_id = request.form.get(f'question_{question.id}')
+            if not selected_choice_id:
+                flash(f"質問「{question.question}」に対する選択肢を選んでください。", 'error')
+                all_answered = False
+                break
 
-                choice = Survey_Choice.query.get(selected_choice_id)
-                if not choice or choice.survey_id != question.id:
-                    flash('無効な選択肢が選択されました。', 'error')
-                    proceed = False
-                    break
+            choice = Survey_Choice.query.get(selected_choice_id)
+            if not choice or choice.survey_id != question.id:
+                flash('無効な選択肢が選択されました。', 'error')
+                all_answered = False
+                break
 
-                responses.append(Survey_Response(
-                    login_id=user_id,
-                    survey_id=question.id,
-                    value=choice.value,
-                    created_at=datetime.now(pytz.timezone('Asia/Tokyo'))
-                ))
+            responses.append(Survey_Response(
+                login_id=user_id,
+                survey_id=question.id,
+                value=choice.value,
+                created_at=datetime.now(pytz.timezone('Asia/Tokyo'))
+            ))
 
-        if proceed:
+        if all_answered:
             try:
                 # スタンプを追加
                 new_stamp = Stamp(
@@ -461,10 +421,6 @@ def goal_survey(user_id, checkpoint_id):
     questions = Survey.query.filter_by(checkpoint_id=checkpoint_id)\
         .options(db.joinedload(Survey.survey_choices))\
         .order_by(Survey.survey_order).all()
-    
-    if not questions:
-        flash('アンケートが設定されていません。', 'error')
-        return redirect(url_for('main_menu'))
     
     return render_template(
         "survey.html",
@@ -583,23 +539,12 @@ def view_stamps():
 #チェックポイントの詳細の表示
 @app.route('/checkpoint/<int:checkpoint_id>')
 def checkpoint(checkpoint_id):
-    user_id = session.get('user_id')
-    if not user_id:
-        flash('このページを見るにはログインが必要です。', 'error')
-        return redirect(url_for('login'))
-
-    # ユーザーの取得と確認
-    user = Login.query.get_or_404(user_id)
-    if not user.is_loggedin:
-        flash('スタートポイントでのアンケートを完了してからチェックポイントにアクセスしてください。', 'error')
-        return redirect(url_for('handle_checkpoint', checkpoint_id_hash=hash_keys[0]))  # スタートポイント（ID:1）のログイン画面へリダイレクト
+#    user_id = session.get('user_id')
+ #   if not user_id:
+  #      return redirect(url_for('login', checkpoint_id=checkpoint_id))
 
     checkpoint = Checkpoint.query.get_or_404(checkpoint_id)
-    return render_template(
-        'checkpoint.html', 
-        checkpoint=checkpoint,
-        user=user
-    )
+    return render_template('checkpoint.html', checkpoint=checkpoint)
 
 #クイズ画面の表示と回答処理
 @app.route('/quiz/<int:checkpoint_id>', methods=['GET', 'POST'])
@@ -688,6 +633,3 @@ def show_stamps(user_id):
 @app.route("/goal")
 def goal():
     return render_template("goal.html")
-
-# 管理画面
-

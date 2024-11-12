@@ -3,7 +3,6 @@ from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import CheckConstraint, Numeric
 from datetime import datetime
 import pytz
-import pandas as pd
 
 db = SQLAlchemy()
 
@@ -129,54 +128,38 @@ def initialize_db(app):
             db.session.add_all(test_logins)
             db.session.flush() 
 
-            db.session.commit()
-            quizzez_df=pd.read_csv("app/test_quiz.csv")
-            quizzez_df.to_sql('QUIZ',con=db.engine,if_exists="append",index=False)
-
-            #db.session.commit()
-            #quizzez_df=pd.read_csv("app/test_survey.csv")
-            #quizzez_df.to_sql('SURVEY',con=db.engine,if_exists="append",index=False)
-
-            #db.session.commit()
-            #quizzez_df=pd.read_csv("app/test_survey_choices.csv")
-            #quizzez_df.to_sql('SURVEY_CHOICE',con=db.engine,if_exists="append",index=False)
-
-            #db.session.commit()
-            #quizzez_df=pd.read_csv("app/test_logins.csv")
-            #quizzez_df.to_sql('LOGIN',con=db.engine,if_exists="append",index=False)
-
             test_quizzes = [
-            #    Quiz(checkpoint_id=test_checkpoints[1].id, quiz_order=1.0, content="テスト問題1", correct="選択肢1", answer_1="選択肢1", answer_2="選択肢2", answer_3="選択肢3"),
-            #    Quiz(checkpoint_id=test_checkpoints[1].id, quiz_order=2.0, content="テスト問題2", correct="選択肢2", answer_1="選択肢1", answer_2="選択肢2", answer_3="選択肢3"),
-            #    Quiz(checkpoint_id=test_checkpoints[1].id, quiz_order=3.0, content="テスト問題3", correct="選択肢3", answer_1="選択肢1", answer_2="選択肢2", answer_3="選択肢3"),
-            #    Quiz(checkpoint_id=test_checkpoints[2].id, quiz_order=1.0, content="テスト問題1", correct="選択肢1", answer_1="選択肢1", answer_2="選択肢2", answer_3="選択肢3"),
-            #    Quiz(checkpoint_id=test_checkpoints[2].id, quiz_order=2.0, content="テスト問題2", correct="選択肢2", answer_1="選択肢1", answer_2="選択肢2", answer_3="選択肢3"),
-            #    Quiz(checkpoint_id=test_checkpoints[2].id, quiz_order=3.0, content="テスト問題3", correct="選択肢3", answer_1="選択肢1", answer_2="選択肢2", answer_3="選択肢3"),
-            #    Quiz(checkpoint_id=test_checkpoints[3].id, quiz_order=1.0, content="テスト問題1", correct="選択肢1", answer_1="選択肢1", answer_2="選択肢2", answer_3="選択肢3"),
-            #    Quiz(checkpoint_id=test_checkpoints[3].id, quiz_order=2.0, content="テスト問題2", correct="選択肢2", answer_1="選択肢1", answer_2="選択肢2", answer_3="選択肢3"),
-            #    Quiz(checkpoint_id=test_checkpoints[3].id, quiz_order=3.0, content="テスト問題3", correct="選択肢3", answer_1="選択肢1", answer_2="選択肢2", answer_3="選択肢3"),
-            #    Quiz(checkpoint_id=test_checkpoints[4].id, quiz_order=1.0, content="テスト問題1", correct="選択肢1", answer_1="選択肢1", answer_2="選択肢2", answer_3="選択肢3"),
-            #    Quiz(checkpoint_id=test_checkpoints[4].id, quiz_order=2.0, content="テスト問題2", correct="選択肢2", answer_1="選択肢1", answer_2="選択肢2", answer_3="選択肢3"),
-            #    Quiz(checkpoint_id=test_checkpoints[4].id, quiz_order=3.0, content="テスト問題3", correct="選択肢3", answer_1="選択肢1", answer_2="選択肢2", answer_3="選択肢3"),
-            #    Quiz(checkpoint_id=test_checkpoints[5].id, quiz_order=1.0, content="テスト問題1", correct="選択肢1", answer_1="選択肢1", answer_2="選択肢2", answer_3="選択肢3"),
-            #    Quiz(checkpoint_id=test_checkpoints[5].id, quiz_order=2.0, content="テスト問題2", correct="選択肢2", answer_1="選択肢1", answer_2="選択肢2", answer_3="選択肢3"),
-            #    Quiz(checkpoint_id=test_checkpoints[5].id, quiz_order=3.0, content="テスト問題3", correct="選択肢3", answer_1="選択肢1", answer_2="選択肢2", answer_3="選択肢3"),
-            #    Quiz(checkpoint_id=test_checkpoints[6].id, quiz_order=1.0, content="テスト問題1", correct="選択肢1", answer_1="選択肢1", answer_2="選択肢2", answer_3="選択肢3"),
-            #    Quiz(checkpoint_id=test_checkpoints[6].id, quiz_order=2.0, content="テスト問題2", correct="選択肢2", answer_1="選択肢1", answer_2="選択肢2", answer_3="選択肢3"),
-            #    Quiz(checkpoint_id=test_checkpoints[6].id, quiz_order=3.0, content="テスト問題3", correct="選択肢3", answer_1="選択肢1", answer_2="選択肢2", answer_3="選択肢3"),
-            #    Quiz(checkpoint_id=test_checkpoints[7].id, quiz_order=1.0, content="テスト問題1", correct="選択肢1", answer_1="選択肢1", answer_2="選択肢2", answer_3="選択肢3"),
-            #    Quiz(checkpoint_id=test_checkpoints[7].id, quiz_order=2.0, content="テスト問題2", correct="選択肢2", answer_1="選択肢1", answer_2="選択肢2", answer_3="選択肢3"),
-            #    Quiz(checkpoint_id=test_checkpoints[7].id, quiz_order=3.0, content="テスト問題3", correct="選択肢3", answer_1="選択肢1", answer_2="選択肢2", answer_3="選択肢3")
+                Quiz(checkpoint_id=test_checkpoints[1].id, quiz_order=1.0, content="テスト問題1", correct="選択肢1", answer_1="選択肢1", answer_2="選択肢2", answer_3="選択肢3"),
+                Quiz(checkpoint_id=test_checkpoints[1].id, quiz_order=2.0, content="テスト問題2", correct="選択肢2", answer_1="選択肢1", answer_2="選択肢2", answer_3="選択肢3"),
+                Quiz(checkpoint_id=test_checkpoints[1].id, quiz_order=3.0, content="テスト問題3", correct="選択肢3", answer_1="選択肢1", answer_2="選択肢2", answer_3="選択肢3"),
+                Quiz(checkpoint_id=test_checkpoints[2].id, quiz_order=1.0, content="テスト問題1", correct="選択肢1", answer_1="選択肢1", answer_2="選択肢2", answer_3="選択肢3"),
+                Quiz(checkpoint_id=test_checkpoints[2].id, quiz_order=2.0, content="テスト問題2", correct="選択肢2", answer_1="選択肢1", answer_2="選択肢2", answer_3="選択肢3"),
+                Quiz(checkpoint_id=test_checkpoints[2].id, quiz_order=3.0, content="テスト問題3", correct="選択肢3", answer_1="選択肢1", answer_2="選択肢2", answer_3="選択肢3"),
+                Quiz(checkpoint_id=test_checkpoints[3].id, quiz_order=1.0, content="テスト問題1", correct="選択肢1", answer_1="選択肢1", answer_2="選択肢2", answer_3="選択肢3"),
+                Quiz(checkpoint_id=test_checkpoints[3].id, quiz_order=2.0, content="テスト問題2", correct="選択肢2", answer_1="選択肢1", answer_2="選択肢2", answer_3="選択肢3"),
+                Quiz(checkpoint_id=test_checkpoints[3].id, quiz_order=3.0, content="テスト問題3", correct="選択肢3", answer_1="選択肢1", answer_2="選択肢2", answer_3="選択肢3"),
+                Quiz(checkpoint_id=test_checkpoints[4].id, quiz_order=1.0, content="テスト問題1", correct="選択肢1", answer_1="選択肢1", answer_2="選択肢2", answer_3="選択肢3"),
+                Quiz(checkpoint_id=test_checkpoints[4].id, quiz_order=2.0, content="テスト問題2", correct="選択肢2", answer_1="選択肢1", answer_2="選択肢2", answer_3="選択肢3"),
+                Quiz(checkpoint_id=test_checkpoints[4].id, quiz_order=3.0, content="テスト問題3", correct="選択肢3", answer_1="選択肢1", answer_2="選択肢2", answer_3="選択肢3"),
+                Quiz(checkpoint_id=test_checkpoints[5].id, quiz_order=1.0, content="テスト問題1", correct="選択肢1", answer_1="選択肢1", answer_2="選択肢2", answer_3="選択肢3"),
+                Quiz(checkpoint_id=test_checkpoints[5].id, quiz_order=2.0, content="テスト問題2", correct="選択肢2", answer_1="選択肢1", answer_2="選択肢2", answer_3="選択肢3"),
+                Quiz(checkpoint_id=test_checkpoints[5].id, quiz_order=3.0, content="テスト問題3", correct="選択肢3", answer_1="選択肢1", answer_2="選択肢2", answer_3="選択肢3"),
+                Quiz(checkpoint_id=test_checkpoints[6].id, quiz_order=1.0, content="テスト問題1", correct="選択肢1", answer_1="選択肢1", answer_2="選択肢2", answer_3="選択肢3"),
+                Quiz(checkpoint_id=test_checkpoints[6].id, quiz_order=2.0, content="テスト問題2", correct="選択肢2", answer_1="選択肢1", answer_2="選択肢2", answer_3="選択肢3"),
+                Quiz(checkpoint_id=test_checkpoints[6].id, quiz_order=3.0, content="テスト問題3", correct="選択肢3", answer_1="選択肢1", answer_2="選択肢2", answer_3="選択肢3"),
+                Quiz(checkpoint_id=test_checkpoints[7].id, quiz_order=1.0, content="テスト問題1", correct="選択肢1", answer_1="選択肢1", answer_2="選択肢2", answer_3="選択肢3"),
+                Quiz(checkpoint_id=test_checkpoints[7].id, quiz_order=2.0, content="テスト問題2", correct="選択肢2", answer_1="選択肢1", answer_2="選択肢2", answer_3="選択肢3"),
+                Quiz(checkpoint_id=test_checkpoints[7].id, quiz_order=3.0, content="テスト問題3", correct="選択肢3", answer_1="選択肢1", answer_2="選択肢2", answer_3="選択肢3")
             ]
             db.session.add_all(test_quizzes)
             db.session.flush()
 
             test_surveys = [
-                 Survey(checkpoint_id=test_checkpoints[0].id, question="テストアンケートの質問1", survey_order=1.0),
-                 Survey(checkpoint_id=test_checkpoints[0].id, question="テストアンケートの質問2", survey_order=2.0),
-                 Survey(checkpoint_id=test_checkpoints[0].id, question="テストアンケートの質問3", survey_order=3.0),
-                 Survey(checkpoint_id=test_checkpoints[0].id, question="テストアンケートの質問4", survey_order=4.0),
-                 Survey(checkpoint_id=test_checkpoints[0].id, question="テストアンケートの質問5", survey_order=5.0),
+                Survey(checkpoint_id=test_checkpoints[0].id, question="テストアンケートの質問1", survey_order=1.0),
+                Survey(checkpoint_id=test_checkpoints[0].id, question="テストアンケートの質問2", survey_order=2.0),
+                Survey(checkpoint_id=test_checkpoints[0].id, question="テストアンケートの質問3", survey_order=3.0),
+                Survey(checkpoint_id=test_checkpoints[0].id, question="テストアンケートの質問4", survey_order=4.0),
+                Survey(checkpoint_id=test_checkpoints[0].id, question="テストアンケートの質問5", survey_order=5.0),
            #     Survey(checkpoint_id=test_checkpoints[0].id, question="テストアンケートの質問6", survey_order=6.0),
            #     Survey(checkpoint_id=test_checkpoints[0].id, question="テストアンケートの質問7", survey_order=7.0),
            #     Survey(checkpoint_id=test_checkpoints[0].id, question="テストアンケートの質問8_1", survey_order=8.0),
@@ -223,8 +206,8 @@ def initialize_db(app):
             test_survey_choices = [
                 Survey_Choice(survey_id=test_surveys[0].id, survey_choice="選択肢1", value=1),
                 Survey_Choice(survey_id=test_surveys[0].id, survey_choice="選択肢2", value=2),
-               # Survey_Choice(survey_id=test_surveys[1].id, survey_choice="選択肢1", value=1),
-               # Survey_Choice(survey_id=test_surveys[1].id, survey_choice="選択肢2", value=2),
+                Survey_Choice(survey_id=test_surveys[1].id, survey_choice="選択肢1", value=1),
+                Survey_Choice(survey_id=test_surveys[1].id, survey_choice="選択肢2", value=2),
                 Survey_Choice(survey_id=test_surveys[2].id, survey_choice="選択肢1", value=1),
                 Survey_Choice(survey_id=test_surveys[2].id, survey_choice="選択肢2", value=2),
                 Survey_Choice(survey_id=test_surveys[3].id, survey_choice="選択肢1", value=1),
@@ -249,8 +232,8 @@ def initialize_db(app):
                 Survey_Choice(survey_id=test_surveys[12].id, survey_choice="選択肢2", value=2),
                 Survey_Choice(survey_id=test_surveys[13].id, survey_choice="選択肢1", value=1),
                 Survey_Choice(survey_id=test_surveys[13].id, survey_choice="選択肢2", value=2),
-             #   Survey_Choice(survey_id=test_surveys[14].id, survey_choice="選択肢1", value=1),
-              #  Survey_Choice(survey_id=test_surveys[14].id, survey_choice="選択肢2", value=2),
+                Survey_Choice(survey_id=test_surveys[14].id, survey_choice="選択肢1", value=1),
+                Survey_Choice(survey_id=test_surveys[14].id, survey_choice="選択肢2", value=2),
                 Survey_Choice(survey_id=test_surveys[15].id, survey_choice="選択肢1", value=1),
                 Survey_Choice(survey_id=test_surveys[15].id, survey_choice="選択肢2", value=2),
                 Survey_Choice(survey_id=test_surveys[16].id, survey_choice="選択肢1", value=1),

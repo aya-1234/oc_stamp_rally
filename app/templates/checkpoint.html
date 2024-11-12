@@ -1,0 +1,9 @@
+<!DOCTYPE html>
+<html>
+<head><title>{{ checkpoint.name }}</title></head>
+<body>
+    <h1>{{ checkpoint.name }}</h1>
+    <p>{{ checkpoint.description }}</p>
+    <a href="{{ url_for('quiz', checkpoint_id=checkpoint.id) }}">クイズに回答する</a>
+</body>
+</html>

@@ -1,7 +1,7 @@
 import sqlite3
 #必要に応じてservices層の関数にはサポートに以下を追加する。
 
-#セッションを開くdb.session.commit()、閉じるdb.session.commit()。
+#セッションを開くdb.session.commit()、閉じるdb.session.close()。
 
 #エラーハンドリングtry,except,finally文
 #トランザクションのロールバック、Exceptでエラーの時などdb.session.rollback(),エラーログを出すロギング。
@@ -36,4 +36,6 @@ def authenticate_user(login_id):
         cursor = conn.cursor()
         cursor.execute('SELECT * FROM USER WHERE loginId = ?', (login_id,))
         user = cursor.fetchone()
-    return user  # ユーザー情報を返す
+    return user  
+
+# ユーザー情報を返す

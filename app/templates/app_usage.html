@@ -1,0 +1,13 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>{{ title }}</title>
+</head>
+<body>
+    <h1>{{ title }}</h1>
+    <p>スタンプラリーアプリの使い方についての説明文をここに記載します。</p>
+    <img src="{{ url_for('static', filename='images/usage.png') }}" alt="アプリの使い方">
+    <button onclick="location.href='{{ url_for('main_menu') }}'">メインメニューに戻る</button>
+</body>
+</html>

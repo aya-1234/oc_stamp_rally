@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>{{ title }}</h1>
+<form method="post">
+    {% for question in questions %}
+        <div>
+            <p>{{ question.question }}</p>
+            {% for choice in question.survey_choices %}
+                <input type="radio" name="question_{{ question.id }}" value="{{ choice.id }}" required>
+                <label>{{ choice.survey_choice }}</label><br>
+            {% endfor %}
+        </div>
+    {% endfor %}
+    <button type="submit">送信</button>
+</form>
+{% endblock %}

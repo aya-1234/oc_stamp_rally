@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>{{ title }}</title>
+</head>
+<body>
+    <h1>{{ title }}</h1>
+    
+    {% if user %}
+        <p>ようこそ、{{ user.account }}さん</p>
+    {% endif %}
+    
+    <ul>
+        <li><a href="{{ url_for('participation_guide') }}">スタンプラリーの参加方法</a></li>
+        <li><a href="{{ url_for('app_usage') }}">スタンプラリーアプリの使い方</a></li>
+        <li><a href="{{ url_for('view_stamps') }}">ゲット済みのスタンプを確認する</a></li>
+    </ul>
+</body>
+</html>

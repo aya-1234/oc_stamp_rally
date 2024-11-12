@@ -1,0 +1,94 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>{{ title }}</h1>
+
+<div class="stamps-container">
+    {% for checkpoint in checkpoints %}
+        <div class="checkpoint-card {% if checkpoint.is_obtained %}obtained{% endif %}">
+            <h3>{{ checkpoint.name }}</h3>
+            
+            {% if checkpoint.is_obtained %}
+                <div class="stamp-info">
+                    <p class="status obtained">スタンプ取得済み</p>
+                    <p class="visit-count">訪問回数: {{ checkpoint.visit_count }}回</p>
+                    <p class="latest-visit">最終訪問: {{ checkpoint.latest_stamp.strftime('%Y/%m/%d %H:%M') }}</p>
+                </div>
+            {% else %}
+                <p class="status not-obtained">未取得</p>
+            {% endif %}
+
+            {% if checkpoint.type == 'start' %}
+                <span class="badge start">スタート</span>
+            {% elif checkpoint.type == 'goal' %}
+                <span class="badge goal">ゴール</span>
+            {% endif %}
+
+            <p class="description">{{ checkpoint.description }}</p>
+        </div>
+    {% endfor %}
+</div>
+<a href="/main_menu" class="menu-button">メインメニューに戻る</a>
+
+<style>
+    .stamps-container {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 1rem;
+        padding: 1rem;
+    }
+
+    .checkpoint-card {
+        border: 1px solid #ddd;
+        padding: 1rem;
+        border-radius: 8px;
+        background: #f8f8f8;
+    }
+
+    .checkpoint-card.obtained {
+        background: #e8f5e9;
+        border-color: #81c784;
+    }
+
+    .status {
+        font-weight: bold;
+        margin: 0.5rem 0;
+    }
+
+    .status.obtained {
+        color: #2e7d32;
+    }
+
+    .status.not-obtained {
+        color: #c62828;
+    }
+
+    .badge {
+        display: inline-block;
+        padding: 0.25rem 0.5rem;
+        border-radius: 4px;
+        font-size: 0.8rem;
+        margin-right: 0.5rem;
+    }
+
+    .badge.start {
+        background: #2196f3;
+        color: white;
+    }
+
+    .badge.goal {
+        background: #f44336;
+        color: white;
+    }
+
+    .stamp-info {
+        margin: 0.5rem 0;
+        font-size: 0.9rem;
+    }
+
+    .description {
+        margin-top: 0.5rem;
+        font-size: 0.9rem;
+        color: #666;
+    }
+</style>
+{% endblock %}

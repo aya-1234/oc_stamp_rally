@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html>
+<head><title>クイズ</title></head>
+<body>
+    <h1>{{ quiz.content }}</h1>
+    <form method="POST">
+        <input type="radio" name="answer" value="{{ quiz.answer_1 }}" required>{{ quiz.answer_1 }}<br>
+        <input type="radio" name="answer" value="{{ quiz.answer_2 }}" required>{{ quiz.answer_2 }}<br>
+        <input type="radio" name="answer" value="{{ quiz.answer_3 }}" required>{{ quiz.answer_3 }}<br>
+        <button type="submit">送信する</button>
+    </form>
+    {% with messages = get_flashed_messages() %}
+        {% if messages %}
+            <p>{{ messages[0] }}</p>
+        {% endif %}
+    {% endwith %}
+</body>
+</html>

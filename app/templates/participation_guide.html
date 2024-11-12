@@ -1,0 +1,13 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>{{ title }}</title>
+</head>
+<body>
+    <h1>{{ title }}</h1>
+    <p>スタンプラリーの参加方法についての説明文をここに記載します。</p>
+    <img src="{{ url_for('static', filename='images/map.png') }}" alt="地図">
+    <button onclick="location.href='{{ url_for('main_menu') }}'">メインメニューに戻る</button>
+</body>
+</html>
