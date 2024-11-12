@@ -1,4 +1,4 @@
-from flask import Flask, request, render_template, flash, url_for, session, redirect
+from flask import Flask, request, render_template, flash, url_for, session, redirect, jsonify
 import sqlite3
 from datetime import datetime
 import pytz
@@ -6,7 +6,16 @@ from sqlalchemy.exc import SQLAlchemyError
 import pandas as pd
 from init import db, initialize_db, Login, Checkpoint, Quiz, Quiz_Response, Stamp, Survey, Survey_Choice, Survey_Response 
 from services.user_service import authenticate_user
-#やることは、全部のビジネスロジックと最低限のHTMLでべた付でいい。
+from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required
+from flask_wtf import CSRFProtect
+from functools import wraps
+import os
+from sqlalchemy import or_
+
+#以下をpipインストールしてください。
+#pip install Flask-Login
+#pip install Flask-WTF
+
 
 #フォルダの下に写真を入れる。
 # Flaskアプリケーションのインスタンスを作成
@@ -70,9 +79,12 @@ def show_logins():
 #先に出ているエラーを直そう。
 #更新でデータが挿入されてしまうかも。
 #ユーザーのアカウント名表示は要るかも。
-#これ管理画面もかな、ログインテーブルのフラグ操作チェックポイントのフラグ操作とアンケートとクイズ一覧を見る。
 #なんか正解バグしてる
 #SURVEY_CHOICEを設定しない問題を作っておけば選択肢のない問題が作れて、見出しになって２階層になるのでは？？
+#これ管理画面もかな、ログインテーブルのフラグ操作チェックポイントのフラグ操作とアンケートとクイズ一覧を見る。
+#アンケートとクイズの質問も管理画面から見れた方がいいかなあ。べた付パスワードで。
+#ゴール画面が質素、かなぁ。。
+
 checkpoint_hash_dic = {'ajrwkhlkafsddfd': 1,
                        'syflwdehkejhrsd1': 2, 
                        'syflwehkejwhrsd2': 3, 
@@ -105,13 +117,297 @@ def hello():
 </ul>
 '''
     return output
-#管理画面
 
+# 管理画面
+# 管理画面のメインページ
+@app.route(f'/{hash_keys[9]}')
+def admin_panel():
+    # ページネーションのパラメータを取得
+    page = request.args.get('page', 1, type=int)
+    per_page = 10  # 1ページあたりの表示数
+    search_query = request.args.get('search', '')
 
+    # ユーザー検索クエリの構築
+    user_query = Login.query
+    if search_query:
+        user_query = user_query.filter(Login.account.like(f'%{search_query}%'))
+    
+    # ページネーション適用
+    users_pagination = user_query.order_by(Login.id).paginate(
+        page=page, 
+        per_page=per_page,
+        error_out=False
+    )
 
+    # チェックポイントデータの取得
+    checkpoints = Checkpoint.query.order_by(Checkpoint.checkpoint_order).all()
+    
+    # アンケートデータの取得
+    surveys = db.session.query(
+        Survey, 
+        Checkpoint.name.label('checkpoint_name')
+    ).join(
+        Checkpoint
+    ).order_by(
+        Survey.checkpoint_id, 
+        Survey.survey_order
+    ).all()
+    
+    # アンケート選択肢の取得
+    survey_choices = {}
+    for survey, _ in surveys:
+        choices = Survey_Choice.query.filter_by(survey_id=survey.id).all()
+        survey_choices[survey.id] = choices
+    
+    # クイズデータの取得
+    quizzes = db.session.query(
+        Quiz,
+        Checkpoint.name.label('checkpoint_name')
+    ).join(
+        Checkpoint
+    ).order_by(
+        Quiz.checkpoint_id,
+        Quiz.quiz_order
+    ).all()
+    
+    return render_template(
+        'admin/panel.html',
+        users_pagination=users_pagination,  # users から users_pagination に変更
+        checkpoints=checkpoints,
+        surveys=surveys,
+        survey_choices=survey_choices,
+        quizzes=quizzes,
+        admin_hash=hash_keys[9],
+        search_query=search_query
+    )
 
+# ログインフラグの更新API
+@app.route(f'/{hash_keys[9]}/update_login', methods=['POST'])
+def update_login_flag():
+    login_id = request.form.get('login_id')
+    flag_name = request.form.get('flag')
+    
+    if not login_id or not flag_name:
+        return jsonify({'error': 'Missing parameters'}), 400
+        
+    user = Login.query.get_or_404(login_id)
+    
+    flags = ['is_used', 'is_loggedin', 'is_agree', 'is_ended']
+    if flag_name not in flags:
+        return jsonify({'error': 'Invalid flag name'}), 400
+        
+    setattr(user, flag_name, not getattr(user, flag_name))
+    db.session.commit()
+    
+    return jsonify({
+        'success': True,
+        'new_value': getattr(user, flag_name)
+    })
 
+# チェックポイントタイプの更新API
+@app.route(f'/{hash_keys[9]}/update_checkpoint', methods=['POST'])
+def update_checkpoint_type():
+    checkpoint_id = request.form.get('checkpoint_id')
+    new_type = request.form.get('type')
+    
+    if not checkpoint_id or not new_type:
+        return jsonify({'error': 'Missing parameters'}), 400
+        
+    checkpoint = Checkpoint.query.get_or_404(checkpoint_id)
+    
+    if new_type not in ['normal', 'start', 'goal']:
+        return jsonify({'error': 'Invalid checkpoint type'}), 400
+        
+    checkpoint.checkpoint_type = new_type
+    db.session.commit()
+    
+    return jsonify({
+        'success': True,
+        'new_type': new_type
+    })
 
+@app.route(f'/{hash_keys[9]}/add_survey', methods=['POST'])
+def add_survey():
+    try:
+        checkpoint_id = request.form.get('checkpoint_id')
+        question = request.form.get('question')
+        survey_order = request.form.get('survey_order')
+        
+        if not all([checkpoint_id, question, survey_order]):
+            return jsonify({'error': 'Missing required fields'}), 400
+            
+        # 新しいアンケートを作成
+        new_survey = Survey(
+            checkpoint_id=checkpoint_id,
+            question=question,
+            survey_order=float(survey_order)
+        )
+        db.session.add(new_survey)
+        db.session.flush()  # IDを取得するためにflush
+        
+        # 選択肢の処理
+        choices = request.form.getlist('choices[]')
+        values = request.form.getlist('values[]')
+        
+        if len(choices) != len(values):
+            return jsonify({'error': 'Choices and values must match'}), 400
+            
+        for choice, value in zip(choices, values):
+            new_choice = Survey_Choice(
+                survey_id=new_survey.id,
+                survey_choice=choice,
+                value=int(value)
+            )
+            db.session.add(new_choice)
+        
+        db.session.commit()
+        return jsonify({
+            'success': True,
+            'message': 'Survey added successfully',
+            'survey_id': new_survey.id
+        })
+        
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': str(e)}), 500
+
+# アンケート削除のAPI
+@app.route(f'/{hash_keys[9]}/delete_survey/<int:survey_id>', methods=['POST'])
+def delete_survey(survey_id):
+    try:
+        survey = Survey.query.get_or_404(survey_id)
+        
+        # 関連する選択肢を削除
+        Survey_Choice.query.filter_by(survey_id=survey_id).delete()
+        
+        # アンケートを削除
+        db.session.delete(survey)
+        db.session.commit()
+        
+        return jsonify({
+            'success': True,
+            'message': 'Survey deleted successfully'
+        })
+        
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': str(e)}), 500
+    
+
+# スタンプ管理のための追加ルート
+
+# ユーザー検索API
+@app.route(f'/{hash_keys[9]}/search_users', methods=['GET'])
+def search_users():
+    search_query = request.args.get('query', '')
+    if not search_query:
+        return jsonify({'users': []})
+        
+    try:
+        users = Login.query.filter(
+            Login.account.like(f'%{search_query}%')
+        ).limit(10).all()  # 最大10件まで表示
+        
+        users_data = [{
+            'id': user.id,
+            'account': user.account,
+            'is_used': user.is_used,
+            'is_loggedin': user.is_loggedin,
+            'is_ended': user.is_ended
+        } for user in users]
+        
+        return jsonify({'users': users_data})
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+    
+
+# スタンプ記録の取得API
+@app.route(f'/{hash_keys[9]}/get_stamps', methods=['GET'])
+def get_stamps():
+    user_id = request.args.get('user_id')
+    if not user_id:
+        return jsonify({'error': 'User ID is required'}), 400
+    
+    try:
+        stamps = db.session.query(
+            Stamp,
+            Login.account.label('user_account'),
+            Checkpoint.name.label('checkpoint_name')
+        ).join(
+            Login, Stamp.login_id == Login.id
+        ).join(
+            Checkpoint, Stamp.checkpoint_id == Checkpoint.id
+        ).filter(
+            Stamp.login_id == user_id
+        ).order_by(
+            Stamp.created_at.desc()
+        ).all()
+        
+        stamps_data = [{
+            'id': stamp.Stamp.id,
+            'user_account': stamp.user_account,
+            'checkpoint_name': stamp.checkpoint_name,
+            'created_at': stamp.Stamp.created_at.strftime('%Y-%m-%d %H:%M:%S')
+        } for stamp in stamps]
+        
+        return jsonify({'stamps': stamps_data})
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+# スタンプ追加API
+@app.route(f'/{hash_keys[9]}/add_stamp', methods=['POST'])
+def add_stamp():
+    try:
+        login_id = request.form.get('login_id')
+        checkpoint_id = request.form.get('checkpoint_id')
+        
+        if not all([login_id, checkpoint_id]):
+            return jsonify({'error': 'Missing required fields'}), 400
+        
+        # 既存のスタンプをチェック
+        existing_stamp = Stamp.query.filter_by(
+            login_id=login_id,
+            checkpoint_id=checkpoint_id
+        ).first()
+        
+        if existing_stamp:
+            return jsonify({'error': 'Stamp already exists'}), 400
+        
+        new_stamp = Stamp(
+            login_id=login_id,
+            checkpoint_id=checkpoint_id,
+            created_at=datetime.now(pytz.timezone('Asia/Tokyo'))
+        )
+        
+        db.session.add(new_stamp)
+        db.session.commit()
+        
+        return jsonify({
+            'success': True,
+            'message': 'Stamp added successfully',
+            'stamp_id': new_stamp.id
+        })
+    
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': str(e)}), 500
+
+# スタンプ削除API
+@app.route(f'/{hash_keys[9]}/delete_stamp/<int:stamp_id>', methods=['POST'])
+def delete_stamp(stamp_id):
+    try:
+        stamp = Stamp.query.get_or_404(stamp_id)
+        db.session.delete(stamp)
+        db.session.commit()
+        
+        return jsonify({
+            'success': True,
+            'message': 'Stamp deleted successfully'
+        })
+        
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': str(e)}), 500
 
 ####3つの共通処理
 
@@ -688,6 +984,4 @@ def show_stamps(user_id):
 @app.route("/goal")
 def goal():
     return render_template("goal.html")
-
-# 管理画面
 

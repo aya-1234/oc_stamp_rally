@@ -1,0 +1,772 @@
+<!-- templates/admin/panel.html -->
+<!DOCTYPE html>
+<html>
+<head>
+    <title>管理画面</title>
+    <style>
+        .section {
+            margin: 20px;
+            padding: 20px;
+            border: 1px solid #ccc;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        .toggle-button {
+            cursor: pointer;
+            padding: 5px 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="section">
+        <h2>ログイン管理</h2>
+        
+        <!-- 検索フォーム -->
+        <div class="search-form">
+            <form method="GET" action="/{{ admin_hash }}">
+                <input type="text" 
+                       name="search" 
+                       value="{{ search_query }}" 
+                       placeholder="アカウント名で検索..."
+                       class="search-input">
+                <button type="submit" class="search-button">検索</button>
+            </form>
+        </div>
+    
+        <table>
+            <tr>
+                <th>ID</th>
+                <th>アカウント</th>
+                <th>使用状態</th>
+                <th>ログイン状態</th>
+                <th>同意状態</th>
+                <th>終了状態</th>
+            </tr>
+            {% for user in users_pagination.items %}
+            <tr>
+                <td>{{ user.id }}</td>
+                <td>{{ user.account }}</td>
+                <td>
+                    <button class="toggle-button" 
+                            onclick="updateLoginFlag({{ user.id }}, 'is_used')"
+                            data-userid="{{ user.id }}" 
+                            data-flag="is_used">
+                        {{ user.is_used }}
+                    </button>
+                </td>
+                <td>
+                    <button class="toggle-button" 
+                            onclick="updateLoginFlag({{ user.id }}, 'is_loggedin')"
+                            data-userid="{{ user.id }}" 
+                            data-flag="is_loggedin">
+                        {{ user.is_loggedin }}
+                    </button>
+                </td>
+                <td>
+                    <button class="toggle-button" 
+                            onclick="updateLoginFlag({{ user.id }}, 'is_agree')"
+                            data-userid="{{ user.id }}" 
+                            data-flag="is_agree">
+                        {{ user.is_agree }}
+                    </button>
+                </td>
+                <td>
+                    <button class="toggle-button" 
+                            onclick="updateLoginFlag({{ user.id }}, 'is_ended')"
+                            data-userid="{{ user.id }}" 
+                            data-flag="is_ended">
+                        {{ user.is_ended }}
+                    </button>
+                </td>
+            </tr>
+            {% endfor %}
+        </table>
+    
+        <!-- ページネーション -->
+        <div class="pagination">
+            {% if users_pagination.has_prev %}
+                <a href="{{ url_for('admin_panel', page=users_pagination.prev_num, search=search_query) }}">&laquo; 前へ</a>
+            {% endif %}
+    
+            {% for page_num in users_pagination.iter_pages(left_edge=2, left_current=2, right_current=2, right_edge=2) %}
+                {% if page_num %}
+                    {% if page_num == users_pagination.page %}
+                        <span class="current-page">{{ page_num }}</span>
+                    {% else %}
+                        <a href="{{ url_for('admin_panel', page=page_num, search=search_query) }}">{{ page_num }}</a>
+                    {% endif %}
+                {% else %}
+                    <span class="ellipsis">...</span>
+                {% endif %}
+            {% endfor %}
+    
+            {% if users_pagination.has_next %}
+                <a href="{{ url_for('admin_panel', page=users_pagination.next_num, search=search_query) }}">次へ &raquo;</a>
+            {% endif %}
+        </div>
+    </div>
+    
+    <style>
+        .search-form {
+            margin-bottom: 20px;
+        }
+    
+        .search-input {
+            padding: 8px;
+            width: 200px;
+            margin-right: 10px;
+        }
+    
+        .search-button {
+            padding: 8px 15px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+    
+        .search-button:hover {
+            background-color: #45a049;
+        }
+    
+        .pagination {
+            margin-top: 20px;
+            text-align: center;
+        }
+    
+        .pagination a {
+            color: black;
+            padding: 8px 16px;
+            text-decoration: none;
+            transition: background-color .3s;
+            border: 1px solid #ddd;
+            margin: 0 4px;
+        }
+    
+        .pagination a:hover {
+            background-color: #ddd;
+        }
+    
+        .current-page {
+            background-color: #4CAF50;
+            color: white;
+            padding: 8px 16px;
+            border: 1px solid #4CAF50;
+            margin: 0 4px;
+        }
+    
+        .ellipsis {
+            padding: 8px 16px;
+            margin: 0 4px;
+        }
+    
+        .section {
+            margin: 20px;
+            padding: 20px;
+            border: 1px solid #ccc;
+        }
+    
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+    
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+    
+        th {
+            background-color: #f2f2f2;
+        }
+    
+        .toggle-button {
+            cursor: pointer;
+            padding: 5px 10px;
+        }
+    </style>
+
+<!-- templates/admin/panel.html に追加 -->
+<!-- templates/admin/panel.html のスタンプ管理セクションを修正 -->
+<div class="section">
+    <h2>スタンプ管理</h2>
+    
+    <!-- ユーザー検索フォーム -->
+    <div class="stamp-form">
+        <h3>ユーザー検索</h3>
+        <div class="search-box">
+            <input 
+                type="text" 
+                id="userSearchInput" 
+                placeholder="ユーザーアカウントを検索..." 
+                oninput="searchUsers(this.value)"
+            >
+        </div>
+        <div id="searchResults" class="search-results"></div>
+    </div>
+
+    <!-- 選択されたユーザー情報 -->
+    <div id="selectedUserInfo" class="selected-user-info" style="display: none;">
+        <h3>選択されたユーザー:</h3>
+        <p id="selectedUserText"></p>
+    </div>
+
+    <!-- スタンプ追加フォーム -->
+    <div class="stamp-add-form" id="stampAddForm" style="display: none;">
+        <h3>新規スタンプ追加</h3>
+        <form onsubmit="return addStamp(event)">
+            <input type="hidden" id="selectedUserId" name="login_id">
+            <div class="form-group">
+                <label>チェックポイント:</label>
+                <select name="checkpoint_id" required>
+                    {% for checkpoint in checkpoints %}
+                    <option value="{{ checkpoint.id }}">{{ checkpoint.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <button type="submit">スタンプを追加</button>
+        </form>
+    </div>
+
+    <!-- スタンプ記録一覧 -->
+    <div id="stampsList">
+        <table id="stampsTable" style="display: none;">
+            <thead>
+                <tr>
+                    <th>ユーザー</th>
+                    <th>チェックポイント</th>
+                    <th>訪問日時</th>
+                    <th>操作</th>
+                </tr>
+            </thead>
+            <tbody>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<style>
+.search-box {
+    margin-bottom: 15px;
+}
+
+.search-box input {
+    width: 100%;
+    padding: 10px;
+    border: 2px solid #ddd;
+    border-radius: 4px;
+    font-size: 16px;
+}
+
+.search-results {
+    max-height: 200px;
+    overflow-y: auto;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    display: none;
+}
+
+.search-result-item {
+    padding: 10px;
+    cursor: pointer;
+    border-bottom: 1px solid #eee;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.search-result-item:hover {
+    background-color: #f5f5f5;
+}
+
+.search-result-item .user-status {
+    font-size: 0.9em;
+    color: #666;
+}
+
+.selected-user-info {
+    background: #e8f4f8;
+    padding: 15px;
+    margin: 15px 0;
+    border-radius: 4px;
+    border-left: 4px solid #4CAF50;
+}
+
+.status-indicator {
+    display: inline-block;
+    padding: 2px 6px;
+    border-radius: 3px;
+    font-size: 0.8em;
+    margin-left: 5px;
+}
+
+.status-active {
+    background-color: #4CAF50;
+    color: white;
+}
+
+.status-inactive {
+    background-color: #f44336;
+    color: white;
+}
+
+/* 既存のスタイルは維持 */
+</style>
+
+<script>
+let searchTimeout = null;
+
+async function searchUsers(query) {
+    const searchResults = document.getElementById('searchResults');
+    
+    // 検索文字列が空の場合
+    if (!query.trim()) {
+        searchResults.style.display = 'none';
+        return;
+    }
+    
+    // デバウンス処理
+    if (searchTimeout) {
+        clearTimeout(searchTimeout);
+    }
+    
+    searchTimeout = setTimeout(async () => {
+        try {
+            const response = await fetch(`/{{ admin_hash }}/search_users?query=${encodeURIComponent(query)}`);
+            const data = await response.json();
+            
+            if (data.users && data.users.length > 0) {
+                searchResults.innerHTML = data.users.map(user => `
+                    <div class="search-result-item" onclick="selectUser(${user.id}, '${user.account}')">
+                        <div class="user-info">
+                            ${user.account}
+                            ${user.is_used ? 
+                                '<span class="status-indicator status-active">使用中</span>' : 
+                                '<span class="status-indicator status-inactive">未使用</span>'
+                            }
+                            ${user.is_ended ? 
+                                '<span class="status-indicator status-active">ゴール済</span>' : 
+                                '<span class="status-indicator status-inactive">未ゴール</span>'
+                            }
+                        </div>
+                    </div>
+                `).join('');
+                searchResults.style.display = 'block';
+            } else {
+                searchResults.innerHTML = '<div class="search-result-item">該当するユーザーが見つかりません</div>';
+                searchResults.style.display = 'block';
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            searchResults.innerHTML = '<div class="search-result-item">検索中にエラーが発生しました</div>';
+            searchResults.style.display = 'block';
+        }
+    }, 300); // 300ミリ秒のデバウンス
+}
+
+function selectUser(userId, userAccount) {
+    document.getElementById('selectedUserId').value = userId;
+    document.getElementById('selectedUserText').textContent = `${userAccount}`;
+    document.getElementById('selectedUserInfo').style.display = 'block';
+    document.getElementById('searchResults').style.display = 'none';
+    document.getElementById('stampAddForm').style.display = 'block';
+    
+    loadUserStamps(userId);
+}
+
+// 既存のloadUserStamps, addStamp, deleteStamp関数は維持
+</script>
+
+<script>
+async function loadUserStamps(userId) {
+    if (!userId) {
+        document.getElementById('stampsTable').style.display = 'none';
+        document.getElementById('stampAddForm').style.display = 'none';
+        return;
+    }
+    
+    try {
+        const response = await fetch(`/{{ admin_hash }}/get_stamps?user_id=${userId}`);
+        const data = await response.json();
+        
+        if (data.stamps) {
+            const tbody = document.querySelector('#stampsTable tbody');
+            tbody.innerHTML = '';
+            
+            data.stamps.forEach(stamp => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${stamp.user_account}</td>
+                    <td>${stamp.checkpoint_name}</td>
+                    <td>${stamp.created_at}</td>
+                    <td>
+                        <button class="delete-button" onclick="deleteStamp(${stamp.id})">削除</button>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+            
+            document.getElementById('stampsTable').style.display = 'table';
+            document.getElementById('stampAddForm').style.display = 'block';
+            document.getElementById('selectedUserId').value = userId;
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        alert('スタンプ記録の取得に失敗しました');
+    }
+}
+
+async function addStamp(event) {
+    event.preventDefault();
+    const formData = new FormData(event.target);
+    
+    try {
+        const response = await fetch(`/{{ admin_hash }}/add_stamp`, {
+            method: 'POST',
+            body: formData
+        });
+        
+        const data = await response.json();
+        if (data.success) {
+            alert('スタンプが追加されました');
+            loadUserStamps(document.getElementById('selectedUserId').value);
+        } else {
+            alert('エラー: ' + data.error);
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        alert('スタンプの追加に失敗しました');
+    }
+    
+    return false;
+}
+
+async function deleteStamp(stampId) {
+    if (!confirm('このスタンプ記録を削除してもよろしいですか？')) {
+        return;
+    }
+    
+    try {
+        const response = await fetch(`/{{ admin_hash }}/delete_stamp/${stampId}`, {
+            method: 'POST'
+        });
+        
+        const data = await response.json();
+        if (data.success) {
+            alert('スタンプ記録が削除されました');
+            loadUserStamps(document.getElementById('selectedUserId').value);
+        } else {
+            alert('エラー: ' + data.error);
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        alert('スタンプの削除に失敗しました');
+    }
+}
+</script>
+
+    <div class="section">
+        <h2>チェックポイント管理</h2>
+        <table>
+            <tr>
+                <th>ID</th>
+                <th>順序</th>
+                <th>名前</th>
+                <th>説明</th>
+                <th>タイプ</th>
+            </tr>
+            {% for checkpoint in checkpoints %}
+            <tr>
+                <td>{{ checkpoint.id }}</td>
+                <td>{{ checkpoint.checkpoint_order }}</td>
+                <td>{{ checkpoint.name }}</td>
+                <td>{{ checkpoint.description }}</td>
+                <td>
+                    <select onchange="updateCheckpointType({{ checkpoint.id }}, this.value)">
+                        <option value="normal" {% if checkpoint.checkpoint_type == 'normal' %}selected{% endif %}>Normal</option>
+                        <option value="start" {% if checkpoint.checkpoint_type == 'start' %}selected{% endif %}>Start</option>
+                        <option value="goal" {% if checkpoint.checkpoint_type == 'goal' %}selected{% endif %}>Goal</option>
+                    </select>
+                </td>
+            </tr>
+            {% endfor %}
+        </table>
+    </div>
+
+    <div class="section">
+        <h2>アンケート管理</h2>
+        
+        <!-- アンケート追加フォーム -->
+        <div class="survey-form">
+            <h3>新規アンケート追加</h3>
+            <form id="addSurveyForm" onsubmit="return addSurvey(event)">
+                <div class="form-group">
+                    <label>チェックポイント:</label>
+                    <select name="checkpoint_id" required>
+                        {% for checkpoint in checkpoints %}
+                        <option value="{{ checkpoint.id }}">{{ checkpoint.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label>質問:</label>
+                    <input type="text" name="question" required>
+                </div>
+                
+                <div class="form-group">
+                    <label>表示順序:</label>
+                    <input type="number" name="survey_order" step="0.01" required>
+                </div>
+                
+                <div id="choicesContainer">
+                    <h4>選択肢</h4>
+                    <div class="choice-group">
+                        <input type="text" name="choices[]" placeholder="選択肢" required>
+                        <input type="number" name="values[]" placeholder="値" required>
+                        <button type="button" onclick="removeChoice(this)">削除</button>
+                    </div>
+                </div>
+                
+                <button type="button" onclick="addChoice()">選択肢を追加</button>
+                <button type="submit">アンケートを保存</button>
+            </form>
+        </div>
+    
+        <!-- アンケート一覧 -->
+        <table>
+            <tr>
+                <th>チェックポイント</th>
+                <th>順序</th>
+                <th>質問</th>
+                <th>選択肢</th>
+                <th>操作</th>
+            </tr>
+            {% for survey, checkpoint_name in surveys %}
+            <tr id="survey-{{ survey.id }}">
+                <td>{{ checkpoint_name }}</td>
+                <td>{{ survey.survey_order }}</td>
+                <td>{{ survey.question }}</td>
+                <td>
+                    {% if survey.id in survey_choices %}
+                        <ul>
+                        {% for choice in survey_choices[survey.id] %}
+                            <li>{{ choice.survey_choice }} (値: {{ choice.value }})</li>
+                        {% endfor %}
+                        </ul>
+                    {% endif %}
+                </td>
+                <td>
+                    <button onclick="deleteSurvey({{ survey.id }})">削除</button>
+                </td>
+            </tr>
+            {% endfor %}
+        </table>
+    </div>
+    
+    <style>
+    .survey-form {
+        background: #f9f9f9;
+        padding: 20px;
+        margin-bottom: 20px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+    }
+    
+    .form-group {
+        margin-bottom: 15px;
+    }
+    
+    .form-group label {
+        display: block;
+        margin-bottom: 5px;
+    }
+    
+    .choice-group {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 10px;
+        align-items: center;
+    }
+    
+    .choice-group input {
+        padding: 5px;
+    }
+    
+    button {
+        padding: 5px 10px;
+        margin: 5px;
+        cursor: pointer;
+    }
+    
+    button[type="submit"] {
+        background-color: #4CAF50;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        margin-top: 10px;
+    }
+    
+    button[type="button"] {
+        background-color: #f0f0f0;
+        border: 1px solid #ddd;
+    }
+    
+    .error {
+        color: red;
+        margin-top: 5px;
+    }
+    </style>
+    
+    <script>
+    // 選択肢の追加
+    function addChoice() {
+        const container = document.getElementById('choicesContainer');
+        const newChoice = document.createElement('div');
+        newChoice.className = 'choice-group';
+        newChoice.innerHTML = `
+            <input type="text" name="choices[]" placeholder="選択肢" required>
+            <input type="number" name="values[]" placeholder="値" required>
+            <button type="button" onclick="removeChoice(this)">削除</button>
+        `;
+        container.appendChild(newChoice);
+    }
+    
+    // 選択肢の削除
+    function removeChoice(button) {
+        button.parentElement.remove();
+    }
+    
+    // アンケートの追加
+    async function addSurvey(event) {
+        event.preventDefault();
+        const form = event.target;
+        const formData = new FormData(form);
+        
+        try {
+            const response = await fetch(`/{{ admin_hash }}/add_survey`, {
+                method: 'POST',
+                body: formData
+            });
+            
+            const data = await response.json();
+            if (data.success) {
+                alert('アンケートが追加されました');
+                location.reload();  // ページを更新して新しいアンケートを表示
+            } else {
+                alert('エラー: ' + data.error);
+            }
+        } catch (error) {
+            alert('エラーが発生しました');
+            console.error('Error:', error);
+        }
+    }
+    
+    // アンケートの削除
+    async function deleteSurvey(surveyId) {
+        if (!confirm('このアンケートを削除してもよろしいですか？')) {
+            return;
+        }
+        
+        try {
+            const response = await fetch(`/{{ admin_hash }}/delete_survey/${surveyId}`, {
+                method: 'POST'
+            });
+            
+            const data = await response.json();
+            if (data.success) {
+                const element = document.getElementById(`survey-${surveyId}`);
+                element.remove();
+                alert('アンケートが削除されました');
+            } else {
+                alert('エラー: ' + data.error);
+            }
+        } catch (error) {
+            alert('エラーが発生しました');
+            console.error('Error:', error);
+        }
+    }
+    </script>
+
+    <div class="section">
+        <h2>クイズ一覧</h2>
+        <table>
+            <tr>
+                <th>チェックポイント</th>
+                <th>順序</th>
+                <th>問題</th>
+                <th>選択肢</th>
+                <th>正解</th>
+            </tr>
+            {% for quiz, checkpoint_name in quizzes %}
+            <tr>
+                <td>{{ checkpoint_name }}</td>
+                <td>{{ quiz.quiz_order }}</td>
+                <td>{{ quiz.content }}</td>
+                <td>
+                    <ul>
+                        <li>1: {{ quiz.answer_1 }}</li>
+                        <li>2: {{ quiz.answer_2 }}</li>
+                        <li>3: {{ quiz.answer_3 }}</li>
+                    </ul>
+                </td>
+                <td>{{ quiz.correct }}</td>
+            </tr>
+            {% endfor %}
+        </table>
+    </div>
+
+    <script>
+        async function updateLoginFlag(userId, flag) {
+            try {
+                const response = await fetch(`/{{ admin_hash }}/update_login`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: `login_id=${userId}&flag=${flag}`
+                });
+                
+                const data = await response.json();
+                if (data.success) {
+                    const button = document.querySelector(`button[data-userid="${userId}"][data-flag="${flag}"]`);
+                    button.textContent = data.new_value;
+                }
+            } catch (error) {
+                console.error('Error:', error);
+            }
+        }
+
+        async function updateCheckpointType(checkpointId, newType) {
+            try {
+                const response = await fetch(`/{{ admin_hash }}/update_checkpoint`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: `checkpoint_id=${checkpointId}&type=${newType}`
+                });
+                
+                const data = await response.json();
+                if (!data.success) {
+                    alert('更新に失敗しました');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+            }
+        }
+    </script>
+</body>
+</html>

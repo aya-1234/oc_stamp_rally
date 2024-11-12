@@ -21,7 +21,7 @@ class Checkpoint(db.Model):
 class Login(db.Model):#Update処理で。
     __tablename__ = 'LOGIN'
     id = db.Column(db.Integer, primary_key=True, autoincrement=True, nullable=False)
-    is_used = db.Column(db.Boolean, nullable=False)#デフォルト値をFalseにしないと
+    is_used = db.Column(db.Boolean, nullable=False,default=False)#デフォルト値をFalseにしないと
     account = db.Column(db.String(20), unique=True, nullable=False)
     is_loggedin = db.Column(db.Boolean, nullable=False)
     is_agree = db.Column(db.Boolean, nullable=False)
@@ -61,6 +61,9 @@ class Stamp(db.Model):
 
     # Checkpointとのリレーションシップ
     checkpoint = db.relationship('Checkpoint', backref='stamps', lazy=True)
+    def __init__(self, login_id, checkpoint_id):
+        self.login_id = login_id
+        self.checkpoint_id = checkpoint_id
 
 class Survey(db.Model):
     __tablename__ = 'SURVEY'
@@ -113,39 +116,47 @@ def initialize_db(app):
             db.session.add_all(test_checkpoints)
             db.session.flush() 
 
-            test_logins = [#account名は全角にした方がいい。
-                Login(is_used=False, account="test_user1", is_loggedin=False, is_agree=False, is_ended=False),
-                Login(is_used=False, account="test_user2", is_loggedin=False, is_agree=False, is_ended=False),
-                Login(is_used=False, account="test_user3", is_loggedin=False, is_agree=False, is_ended=False),
-                Login(is_used=False, account="test_user4", is_loggedin=False, is_agree=False, is_ended=False),
-                Login(is_used=False, account="test_user5", is_loggedin=False, is_agree=False, is_ended=False),
-                Login(is_used=False, account="test_user6", is_loggedin=False, is_agree=False, is_ended=False),
-                Login(is_used=False, account="test_user7", is_loggedin=False, is_agree=False, is_ended=False),
-                Login(is_used=False, account="test_user8", is_loggedin=False, is_agree=False, is_ended=False),
-                Login(is_used=False, account="test_user9", is_loggedin=False, is_agree=False, is_ended=False),
-                Login(is_used=False, account="test_user10", is_loggedin=False, is_agree=False, is_ended=False),
-                Login(is_used=False, account="test_user11", is_loggedin=False, is_agree=False, is_ended=False)
-            ]
-            db.session.add_all(test_logins)
+           # test_logins = [#account名は全角にした方がいい。
+        #    Login(is_used=False, account="test_user1", is_loggedin=False, is_agree=False, is_ended=False),
+         #       Login(is_used=False, account="test_user2", is_loggedin=False, is_agree=False, is_ended=False),
+          #      Login(is_used=False, account="test_user3", is_loggedin=False, is_agree=False, is_ended=False),
+           #     Login(is_used=False, account="test_user4", is_loggedin=False, is_agree=False, is_ended=False),
+            #    Login(is_used=False, account="test_user5", is_loggedin=False, is_agree=False, is_ended=False),
+            #    Login(is_used=False, account="test_user6", is_loggedin=False, is_agree=False, is_ended=False),
+            #    Login(is_used=False, account="test_user7", is_loggedin=False, is_agree=False, is_ended=False),
+            #    Login(is_used=False, account="test_user8", is_loggedin=False, is_agree=False, is_ended=False),
+            #    Login(is_used=False, account="test_user9", is_loggedin=False, is_agree=False, is_ended=False),
+            #    Login(is_used=False, account="test_user10", is_loggedin=False, is_agree=False, is_ended=False),
+            #    Login(is_used=False, account="test_user11", is_loggedin=False, is_agree=False, is_ended=False)
+            #]
+            #db.session.add_all(test_logins)
             db.session.flush() 
 
             db.session.commit()
             quizzez_df=pd.read_csv("app/test_quiz.csv")
             quizzez_df.to_sql('QUIZ',con=db.engine,if_exists="append",index=False)
 
-            #db.session.commit()
-            #quizzez_df=pd.read_csv("app/test_survey.csv")
-            #quizzez_df.to_sql('SURVEY',con=db.engine,if_exists="append",index=False)
+            db.session.commit()
+            surveys_df=pd.read_csv("app/test_survey.csv")
+            surveys_df.to_sql('SURVEY',con=db.engine,if_exists="append",index=False)
 
-            #db.session.commit()
-            #quizzez_df=pd.read_csv("app/test_survey_choices.csv")
-            #quizzez_df.to_sql('SURVEY_CHOICE',con=db.engine,if_exists="append",index=False)
+            db.session.commit()
+            survey_choices_df=pd.read_csv("app/test_survey_choices.csv")
+            survey_choices_df.to_sql('SURVEY_CHOICE',con=db.engine,if_exists="append",index=False)
 
-            #db.session.commit()
-            #quizzez_df=pd.read_csv("app/test_logins.csv")
-            #quizzez_df.to_sql('LOGIN',con=db.engine,if_exists="append",index=False)
+            db.session.commit()
+            logins_df = pd.read_csv("app/test_logins.csv")
 
-            test_quizzes = [
+            # 現在の日時を取得
+            current_time = datetime.now(pytz.timezone('Asia/Tokyo'))
+
+            # issued_atカラムを追加し、現在の日時を設定
+            logins_df['issued_at'] = current_time
+
+            # データをデータベースに挿入
+            logins_df.to_sql('LOGIN', con=db.engine, if_exists="append", index=False)
+
+            #test_quizzes = [
             #    Quiz(checkpoint_id=test_checkpoints[1].id, quiz_order=1.0, content="テスト問題1", correct="選択肢1", answer_1="選択肢1", answer_2="選択肢2", answer_3="選択肢3"),
             #    Quiz(checkpoint_id=test_checkpoints[1].id, quiz_order=2.0, content="テスト問題2", correct="選択肢2", answer_1="選択肢1", answer_2="選択肢2", answer_3="選択肢3"),
             #    Quiz(checkpoint_id=test_checkpoints[1].id, quiz_order=3.0, content="テスト問題3", correct="選択肢3", answer_1="選択肢1", answer_2="選択肢2", answer_3="選択肢3"),
@@ -167,16 +178,16 @@ def initialize_db(app):
             #    Quiz(checkpoint_id=test_checkpoints[7].id, quiz_order=1.0, content="テスト問題1", correct="選択肢1", answer_1="選択肢1", answer_2="選択肢2", answer_3="選択肢3"),
             #    Quiz(checkpoint_id=test_checkpoints[7].id, quiz_order=2.0, content="テスト問題2", correct="選択肢2", answer_1="選択肢1", answer_2="選択肢2", answer_3="選択肢3"),
             #    Quiz(checkpoint_id=test_checkpoints[7].id, quiz_order=3.0, content="テスト問題3", correct="選択肢3", answer_1="選択肢1", answer_2="選択肢2", answer_3="選択肢3")
-            ]
-            db.session.add_all(test_quizzes)
-            db.session.flush()
+           # ]
+           # db.session.add_all(test_quizzes)
+           # db.session.flush()
 
-            test_surveys = [
-                 Survey(checkpoint_id=test_checkpoints[0].id, question="テストアンケートの質問1", survey_order=1.0),
-                 Survey(checkpoint_id=test_checkpoints[0].id, question="テストアンケートの質問2", survey_order=2.0),
-                 Survey(checkpoint_id=test_checkpoints[0].id, question="テストアンケートの質問3", survey_order=3.0),
-                 Survey(checkpoint_id=test_checkpoints[0].id, question="テストアンケートの質問4", survey_order=4.0),
-                 Survey(checkpoint_id=test_checkpoints[0].id, question="テストアンケートの質問5", survey_order=5.0),
+           # test_surveys = [
+           #      Survey(checkpoint_id=test_checkpoints[0].id, question="テストアンケートの質問1", survey_order=1.0),
+           #      Survey(checkpoint_id=test_checkpoints[0].id, question="テストアンケートの質問2", survey_order=2.0),
+           #      Survey(checkpoint_id=test_checkpoints[0].id, question="テストアンケートの質問3", survey_order=3.0),
+           #      Survey(checkpoint_id=test_checkpoints[0].id, question="テストアンケートの質問4", survey_order=4.0),
+           #      Survey(checkpoint_id=test_checkpoints[0].id, question="テストアンケートの質問5", survey_order=5.0),
            #     Survey(checkpoint_id=test_checkpoints[0].id, question="テストアンケートの質問6", survey_order=6.0),
            #     Survey(checkpoint_id=test_checkpoints[0].id, question="テストアンケートの質問7", survey_order=7.0),
            #     Survey(checkpoint_id=test_checkpoints[0].id, question="テストアンケートの質問8_1", survey_order=8.0),
@@ -191,18 +202,18 @@ def initialize_db(app):
            #     Survey(checkpoint_id=test_checkpoints[0].id, question="テストアンケートの質問8_10", survey_order=17.0),
            #     Survey(checkpoint_id=test_checkpoints[0].id, question="テストアンケートの質問8_11", survey_order=18.0),
            #     Survey(checkpoint_id=test_checkpoints[0].id, question="テストアンケートの質問8_12", survey_order=19.0),
-                Survey(checkpoint_id=test_checkpoints[1].id, question="テストアンケートの質問_地点1番", survey_order=20.0),
-                Survey(checkpoint_id=test_checkpoints[2].id, question="テストアンケートの質問_地点2番", survey_order=21.0),
-                Survey(checkpoint_id=test_checkpoints[3].id, question="テストアンケートの質問_地点3番", survey_order=22.0),
-                Survey(checkpoint_id=test_checkpoints[4].id, question="テストアンケートの質問_地点4番", survey_order=23.0),
-                Survey(checkpoint_id=test_checkpoints[5].id, question="テストアンケートの質問_地点5番", survey_order=24.0),
-                Survey(checkpoint_id=test_checkpoints[6].id, question="テストアンケートの質問_地点6番", survey_order=25.0), 
-                Survey(checkpoint_id=test_checkpoints[7].id, question="テストアンケートの質問_地点7番", survey_order=26.0),                 
-                Survey(checkpoint_id=test_checkpoints[8].id, question="ゴールテストアンケートの質問1", survey_order=27.0),
-                Survey(checkpoint_id=test_checkpoints[8].id, question="ゴールテストアンケートの質問2", survey_order=28.0),
-                Survey(checkpoint_id=test_checkpoints[8].id, question="ゴールテストアンケートの質問3", survey_order=29.0),
-                Survey(checkpoint_id=test_checkpoints[8].id, question="ゴールテストアンケートの質問4", survey_order=30.0),
-                Survey(checkpoint_id=test_checkpoints[8].id, question="ゴールテストアンケートの質問5", survey_order=31.0)
+           #     Survey(checkpoint_id=test_checkpoints[1].id, question="テストアンケートの質問_地点1番", survey_order=20.0),
+           #     Survey(checkpoint_id=test_checkpoints[2].id, question="テストアンケートの質問_地点2番", survey_order=21.0),
+           #     Survey(checkpoint_id=test_checkpoints[3].id, question="テストアンケートの質問_地点3番", survey_order=22.0),
+           #     Survey(checkpoint_id=test_checkpoints[4].id, question="テストアンケートの質問_地点4番", survey_order=23.0),
+           #     Survey(checkpoint_id=test_checkpoints[5].id, question="テストアンケートの質問_地点5番", survey_order=24.0),
+           #     Survey(checkpoint_id=test_checkpoints[6].id, question="テストアンケートの質問_地点6番", survey_order=25.0), 
+           #     Survey(checkpoint_id=test_checkpoints[7].id, question="テストアンケートの質問_地点7番", survey_order=26.0),                 
+           #     Survey(checkpoint_id=test_checkpoints[8].id, question="ゴールテストアンケートの質問1", survey_order=27.0),
+           #     Survey(checkpoint_id=test_checkpoints[8].id, question="ゴールテストアンケートの質問2", survey_order=28.0),
+           #     Survey(checkpoint_id=test_checkpoints[8].id, question="ゴールテストアンケートの質問3", survey_order=29.0),
+           #     Survey(checkpoint_id=test_checkpoints[8].id, question="ゴールテストアンケートの質問4", survey_order=30.0),
+           #     Survey(checkpoint_id=test_checkpoints[8].id, question="ゴールテストアンケートの質問5", survey_order=31.0)
              #   Survey(checkpoint_id=test_checkpoints[8].id, question="ゴールテストアンケートの質問6", survey_order=32.0),
              #   Survey(checkpoint_id=test_checkpoints[8].id, question="ゴールテストアンケートの質問7_1", survey_order=33.0),
              #   Survey(checkpoint_id=test_checkpoints[8].id, question="ゴールテストアンケートの質問7_2", survey_order=34.0),
@@ -216,45 +227,45 @@ def initialize_db(app):
              #   Survey(checkpoint_id=test_checkpoints[8].id, question="ゴールテストアンケートの質問7_10", survey_order=42.0),
              #   Survey(checkpoint_id=test_checkpoints[8].id, question="ゴールテストアンケートの質問7_11", survey_order=43.0),
              #   Survey(checkpoint_id=test_checkpoints[8].id, question="ゴールテストアンケートの質問7_12", survey_order=44.0)
-            ]
-            db.session.add_all(test_surveys)
-            db.session.flush()  
+           # ]
+            #db.session.add_all(test_surveys)
+            #db.session.flush()  
 
-            test_survey_choices = [
-                Survey_Choice(survey_id=test_surveys[0].id, survey_choice="選択肢1", value=1),
-                Survey_Choice(survey_id=test_surveys[0].id, survey_choice="選択肢2", value=2),
+           # test_survey_choices = [
+            #    Survey_Choice(survey_id=test_surveys[0].id, survey_choice="選択肢1", value=1),
+            #    Survey_Choice(survey_id=test_surveys[0].id, survey_choice="選択肢2", value=2),
                # Survey_Choice(survey_id=test_surveys[1].id, survey_choice="選択肢1", value=1),
                # Survey_Choice(survey_id=test_surveys[1].id, survey_choice="選択肢2", value=2),
-                Survey_Choice(survey_id=test_surveys[2].id, survey_choice="選択肢1", value=1),
-                Survey_Choice(survey_id=test_surveys[2].id, survey_choice="選択肢2", value=2),
-                Survey_Choice(survey_id=test_surveys[3].id, survey_choice="選択肢1", value=1),
-                Survey_Choice(survey_id=test_surveys[3].id, survey_choice="選択肢2", value=2),
-                Survey_Choice(survey_id=test_surveys[4].id, survey_choice="選択肢1", value=1),
-                Survey_Choice(survey_id=test_surveys[4].id, survey_choice="選択肢2", value=2),
-                Survey_Choice(survey_id=test_surveys[5].id, survey_choice="選択肢1", value=1),
-                Survey_Choice(survey_id=test_surveys[5].id, survey_choice="選択肢2", value=2),
-                Survey_Choice(survey_id=test_surveys[6].id, survey_choice="選択肢1", value=1),
-                Survey_Choice(survey_id=test_surveys[6].id, survey_choice="選択肢2", value=2),
-                Survey_Choice(survey_id=test_surveys[7].id, survey_choice="選択肢1", value=1),
-                Survey_Choice(survey_id=test_surveys[7].id, survey_choice="選択肢2", value=2),
-                Survey_Choice(survey_id=test_surveys[8].id, survey_choice="選択肢1", value=1),
-                Survey_Choice(survey_id=test_surveys[8].id, survey_choice="選択肢2", value=2),
-                Survey_Choice(survey_id=test_surveys[9].id, survey_choice="選択肢1", value=1),
-                Survey_Choice(survey_id=test_surveys[9].id, survey_choice="選択肢2", value=2),
-                Survey_Choice(survey_id=test_surveys[10].id, survey_choice="選択肢1", value=1),
-                Survey_Choice(survey_id=test_surveys[10].id, survey_choice="選択肢2", value=2),
-                Survey_Choice(survey_id=test_surveys[11].id, survey_choice="選択肢1", value=1),
-                Survey_Choice(survey_id=test_surveys[11].id, survey_choice="選択肢2", value=2),
-                Survey_Choice(survey_id=test_surveys[12].id, survey_choice="選択肢1", value=1),
-                Survey_Choice(survey_id=test_surveys[12].id, survey_choice="選択肢2", value=2),
-                Survey_Choice(survey_id=test_surveys[13].id, survey_choice="選択肢1", value=1),
-                Survey_Choice(survey_id=test_surveys[13].id, survey_choice="選択肢2", value=2),
+            #    Survey_Choice(survey_id=test_surveys[2].id, survey_choice="選択肢1", value=1),
+            #    Survey_Choice(survey_id=test_surveys[2].id, survey_choice="選択肢2", value=2),
+            #    Survey_Choice(survey_id=test_surveys[3].id, survey_choice="選択肢1", value=1),
+            #    Survey_Choice(survey_id=test_surveys[3].id, survey_choice="選択肢2", value=2),
+            #    Survey_Choice(survey_id=test_surveys[4].id, survey_choice="選択肢1", value=1),
+            #    Survey_Choice(survey_id=test_surveys[4].id, survey_choice="選択肢2", value=2),
+            #    Survey_Choice(survey_id=test_surveys[5].id, survey_choice="選択肢1", value=1),
+            #    Survey_Choice(survey_id=test_surveys[5].id, survey_choice="選択肢2", value=2),
+            #    Survey_Choice(survey_id=test_surveys[6].id, survey_choice="選択肢1", value=1),
+            #    Survey_Choice(survey_id=test_surveys[6].id, survey_choice="選択肢2", value=2),
+            #    Survey_Choice(survey_id=test_surveys[7].id, survey_choice="選択肢1", value=1),
+            #    Survey_Choice(survey_id=test_surveys[7].id, survey_choice="選択肢2", value=2),
+            #    Survey_Choice(survey_id=test_surveys[8].id, survey_choice="選択肢1", value=1),
+            #    Survey_Choice(survey_id=test_surveys[8].id, survey_choice="選択肢2", value=2),
+            #    Survey_Choice(survey_id=test_surveys[9].id, survey_choice="選択肢1", value=1),
+            #    Survey_Choice(survey_id=test_surveys[9].id, survey_choice="選択肢2", value=2),
+            #    Survey_Choice(survey_id=test_surveys[10].id, survey_choice="選択肢1", value=1),
+            #    Survey_Choice(survey_id=test_surveys[10].id, survey_choice="選択肢2", value=2),
+            #    Survey_Choice(survey_id=test_surveys[11].id, survey_choice="選択肢1", value=1),
+            #    Survey_Choice(survey_id=test_surveys[11].id, survey_choice="選択肢2", value=2),
+            #    Survey_Choice(survey_id=test_surveys[12].id, survey_choice="選択肢1", value=1),
+            #    Survey_Choice(survey_id=test_surveys[12].id, survey_choice="選択肢2", value=2),
+            #    Survey_Choice(survey_id=test_surveys[13].id, survey_choice="選択肢1", value=1),
+            #    Survey_Choice(survey_id=test_surveys[13].id, survey_choice="選択肢2", value=2),
              #   Survey_Choice(survey_id=test_surveys[14].id, survey_choice="選択肢1", value=1),
               #  Survey_Choice(survey_id=test_surveys[14].id, survey_choice="選択肢2", value=2),
-                Survey_Choice(survey_id=test_surveys[15].id, survey_choice="選択肢1", value=1),
-                Survey_Choice(survey_id=test_surveys[15].id, survey_choice="選択肢2", value=2),
-                Survey_Choice(survey_id=test_surveys[16].id, survey_choice="選択肢1", value=1),
-                Survey_Choice(survey_id=test_surveys[16].id, survey_choice="選択肢2", value=2)
+            #    Survey_Choice(survey_id=test_surveys[15].id, survey_choice="選択肢1", value=1),
+            #    Survey_Choice(survey_id=test_surveys[15].id, survey_choice="選択肢2", value=2),
+            #    Survey_Choice(survey_id=test_surveys[16].id, survey_choice="選択肢1", value=1),
+            #    Survey_Choice(survey_id=test_surveys[16].id, survey_choice="選択肢2", value=2)
             #   Survey_Choice(survey_id=test_surveys[17].id, survey_choice="選択肢1", value=1),
             #    Survey_Choice(survey_id=test_surveys[17].id, survey_choice="選択肢2", value=2),
             #    Survey_Choice(survey_id=test_surveys[18].id, survey_choice="選択肢1", value=1),
@@ -271,20 +282,20 @@ def initialize_db(app):
             #    Survey_Choice(survey_id=test_surveys[29].id, survey_choice="選択肢2", value=2),
             #    Survey_Choice(survey_id=test_surveys[30].id, survey_choice="選択肢1", value=1),
             #    Survey_Choice(survey_id=test_surveys[30].id, survey_choice="選択肢2", value=2)     
-            ]
-            db.session.add_all(test_survey_choices)
-            db.session.flush()  
+            #]
+            #db.session.add_all(test_survey_choices)
+            #db.session.flush()  
 
             test_stamps = [
-                Stamp(login_id=test_logins[0].id, checkpoint_id=test_checkpoints[0].id),
-                Stamp(login_id=test_logins[1].id, checkpoint_id=test_checkpoints[0].id),
-                Stamp(login_id=test_logins[1].id, checkpoint_id=test_checkpoints[1].id),
-                Stamp(login_id=test_logins[1].id, checkpoint_id=test_checkpoints[2].id),
-                Stamp(login_id=test_logins[1].id, checkpoint_id=test_checkpoints[3].id),
-                Stamp(login_id=test_logins[1].id, checkpoint_id=test_checkpoints[4].id),
-                Stamp(login_id=test_logins[1].id, checkpoint_id=test_checkpoints[5].id),
-                Stamp(login_id=test_logins[1].id, checkpoint_id=test_checkpoints[6].id),
-                Stamp(login_id=test_logins[1].id, checkpoint_id=test_checkpoints[7].id)
+                Stamp(1, checkpoint_id=test_checkpoints[0].id),
+                Stamp(2, checkpoint_id=test_checkpoints[0].id),
+                Stamp(2, checkpoint_id=test_checkpoints[1].id),
+                Stamp(2, checkpoint_id=test_checkpoints[2].id),
+                Stamp(2, checkpoint_id=test_checkpoints[3].id),
+                Stamp(2, checkpoint_id=test_checkpoints[4].id),
+                Stamp(2, checkpoint_id=test_checkpoints[5].id),
+                Stamp(2, checkpoint_id=test_checkpoints[6].id),
+                Stamp(2, checkpoint_id=test_checkpoints[7].id)
             ]
             db.session.add_all(test_stamps)
             db.session.flush()  
