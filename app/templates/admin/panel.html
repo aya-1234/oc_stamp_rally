@@ -28,9 +28,14 @@
     </style>
 </head>
 <body>
+    <!-- ログイン管理セクション -->
     <div class="section">
-        <h2>ログイン管理</h2>
-        
+        <div class="section-header">
+            <h2>ログイン管理</h2>
+            <button onclick="window.location.href='/{{ admin_hash }}/export/users'" class="download-button">
+                CSVダウンロード
+            </button>
+        </div>
         <!-- 検索フォーム -->
         <div class="search-form">
             <form method="GET" action="/{{ admin_hash }}">
@@ -477,8 +482,15 @@ async function deleteStamp(stampId) {
 }
 </script>
 
+    <!-- チェックポイント管理セクション -->
+    <!-- チェックポイント管理セクション -->
     <div class="section">
-        <h2>チェックポイント管理</h2>
+        <div class="section-header">
+            <h2>チェックポイント管理</h2>
+            <button onclick="window.location.href='/{{ admin_hash }}/export/checkpoints'" class="download-button">
+                CSVダウンロード
+            </button>
+        </div>
         <table>
             <tr>
                 <th>ID</th>
@@ -505,9 +517,14 @@ async function deleteStamp(stampId) {
         </table>
     </div>
 
-<!-- templates/admin/panel.html の該当部分を修正 -->
-<div class="section">
-    <h2>アンケート管理</h2>
+    <!-- アンケート管理セクション -->
+    <div class="section">
+        <div class="section-header">
+            <h2>アンケート管理</h2>
+            <button onclick="window.location.href='/{{ admin_hash }}/export/surveys'" class="download-button">
+                CSVダウンロード
+            </button>
+        </div>
     
     <!-- アンケート追加フォーム -->
     <div class="survey-form">
@@ -750,8 +767,14 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 </script>
 
+    <!-- クイズ管理セクション -->
     <div class="section">
-        <h2>クイズ一覧</h2>
+        <div class="section-header">
+            <h2>クイズ管理</h2>
+            <button onclick="window.location.href='/{{ admin_hash }}/export/quizzes'" class="download-button">
+                CSVダウンロード
+            </button>
+        </div>
         <table>
             <tr>
                 <th>チェックポイント</th>
@@ -777,6 +800,37 @@ document.addEventListener('DOMContentLoaded', function() {
             {% endfor %}
         </table>
     </div>
+
+    <!-- 追加のスタイル -->
+    <style>
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .download-button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .download-button:hover {
+            background-color: #0056b3;
+        }
+        
+        .download-button::before {
+            content: "⭳";  /* ダウンロードアイコン */
+            font-size: 1.2em;
+        }
+        </style>
 
     <script>
         async function updateLoginFlag(userId, flag) {

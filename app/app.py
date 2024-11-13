@@ -11,6 +11,10 @@ from flask_wtf import CSRFProtect
 from functools import wraps
 import os
 from sqlalchemy import or_
+import csv
+from io import StringIO  # StringIOからBytesIOに変更
+from flask import send_file
+from flask import make_response
 
 #以下をpipインストールしてください。
 #pip install Flask-Login
@@ -412,6 +416,104 @@ def delete_stamp(stamp_id):
     except Exception as e:
         db.session.rollback()
         return jsonify({'error': str(e)}), 500
+
+# CSVエクスポート用の関数を追加
+@app.route(f'/{hash_keys[9]}/export/<table_name>')
+def export_csv(table_name):
+    try:
+        # 一時的にStringIOを使用してCSVを作成
+        si = StringIO()
+        writer = csv.writer(si)
+        
+        if table_name == 'users':
+            # ユーザーデータのエクスポート
+            users = Login.query.all()
+            writer.writerow(['ID', 'アカウント', '使用状態', 'ログイン状態', '同意状態', '終了状態', '発行日時'])
+            for user in users:
+                writer.writerow([
+                    user.id,
+                    user.account,
+                    user.is_used,
+                    user.is_loggedin,
+                    user.is_agree,
+                    user.is_ended,
+                    user.issued_at.strftime('%Y-%m-%d %H:%M:%S')
+                ])
+            filename = "users.csv"
+            
+        elif table_name == 'checkpoints':
+            # チェックポイントデータのエクスポート
+            checkpoints = Checkpoint.query.order_by(Checkpoint.checkpoint_order).all()
+            writer.writerow(['ID', '順序', '名前', '説明', 'タイプ'])
+            for cp in checkpoints:
+                writer.writerow([
+                    cp.id,
+                    cp.checkpoint_order,
+                    cp.name,
+                    cp.description,
+                    cp.checkpoint_type
+                ])
+            filename = "checkpoints.csv"
+            
+        elif table_name == 'surveys':
+            # アンケートデータのエクスポート
+            surveys = db.session.query(
+                Survey,
+                Checkpoint.name.label('checkpoint_name')
+            ).join(Checkpoint).order_by(Survey.checkpoint_id, Survey.survey_order).all()
+            
+            writer.writerow(['ID', 'チェックポイント', '質問', '順序', '選択肢'])
+            for survey, checkpoint_name in surveys:
+                # 選択肢を取得
+                choices = Survey_Choice.query.filter_by(survey_id=survey.id).all()
+                choices_str = '; '.join([f"{c.survey_choice}(値:{c.value})" for c in choices])
+                
+                writer.writerow([
+                    survey.id,
+                    checkpoint_name,
+                    survey.question,
+                    survey.survey_order,
+                    choices_str
+                ])
+            filename = "surveys.csv"
+            
+        elif table_name == 'quizzes':
+            # クイズデータのエクスポート
+            quizzes = db.session.query(
+                Quiz,
+                Checkpoint.name.label('checkpoint_name')
+            ).join(Checkpoint).order_by(Quiz.checkpoint_id, Quiz.quiz_order).all()
+            
+            writer.writerow(['ID', 'チェックポイント', '順序', '問題', '選択肢1', '選択肢2', '選択肢3', '正解'])
+            for quiz, checkpoint_name in quizzes:
+                writer.writerow([
+                    quiz.id,
+                    checkpoint_name,
+                    quiz.quiz_order,
+                    quiz.content,
+                    quiz.answer_1,
+                    quiz.answer_2,
+                    quiz.answer_3,
+                    quiz.correct
+                ])
+            filename = "quizzes.csv"
+        else:
+            return 'Invalid table name', 400
+
+        # StringIOの内容を取得してUTF-8でエンコード
+        output = si.getvalue().encode('utf-8-sig')  # BOM付きUTF-8でエンコード
+        
+        # レスポンスの作成
+        response = make_response(output)
+        response.headers["Content-Disposition"] = f"attachment; filename={filename}"
+        response.headers["Content-type"] = "text/csv; charset=utf-8"
+        
+        return response
+        
+    except Exception as e:
+        print(f"Error during CSV export: {str(e)}")
+        return str(e), 500
+
 
 ####3つの共通処理
 
