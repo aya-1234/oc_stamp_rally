@@ -505,200 +505,250 @@ async function deleteStamp(stampId) {
         </table>
     </div>
 
-    <div class="section">
-        <h2>アンケート管理</h2>
-        
-        <!-- アンケート追加フォーム -->
-        <div class="survey-form">
-            <h3>新規アンケート追加</h3>
-            <form id="addSurveyForm" onsubmit="return addSurvey(event)">
-                <div class="form-group">
-                    <label>チェックポイント:</label>
-                    <select name="checkpoint_id" required>
-                        {% for checkpoint in checkpoints %}
-                        <option value="{{ checkpoint.id }}">{{ checkpoint.name }}</option>
-                        {% endfor %}
-                    </select>
-                </div>
-                
-                <div class="form-group">
-                    <label>質問:</label>
-                    <input type="text" name="question" required>
-                </div>
-                
-                <div class="form-group">
-                    <label>表示順序:</label>
-                    <input type="number" name="survey_order" step="0.01" required>
-                </div>
-                
-                <div id="choicesContainer">
-                    <h4>選択肢</h4>
-                    <div class="choice-group">
-                        <input type="text" name="choices[]" placeholder="選択肢" required>
-                        <input type="number" name="values[]" placeholder="値" required>
-                        <button type="button" onclick="removeChoice(this)">削除</button>
-                    </div>
-                </div>
-                
-                <button type="button" onclick="addChoice()">選択肢を追加</button>
-                <button type="submit">アンケートを保存</button>
-            </form>
-        </div>
+<!-- templates/admin/panel.html の該当部分を修正 -->
+<div class="section">
+    <h2>アンケート管理</h2>
     
-        <!-- アンケート一覧 -->
-        <table>
-            <tr>
-                <th>チェックポイント</th>
-                <th>順序</th>
-                <th>質問</th>
-                <th>選択肢</th>
-                <th>操作</th>
-            </tr>
-            {% for survey, checkpoint_name in surveys %}
-            <tr id="survey-{{ survey.id }}">
-                <td>{{ checkpoint_name }}</td>
-                <td>{{ survey.survey_order }}</td>
-                <td>{{ survey.question }}</td>
-                <td>
-                    {% if survey.id in survey_choices %}
-                        <ul>
-                        {% for choice in survey_choices[survey.id] %}
-                            <li>{{ choice.survey_choice }} (値: {{ choice.value }})</li>
-                        {% endfor %}
-                        </ul>
-                    {% endif %}
-                </td>
-                <td>
-                    <button onclick="deleteSurvey({{ survey.id }})">削除</button>
-                </td>
-            </tr>
-            {% endfor %}
-        </table>
+    <!-- アンケート追加フォーム -->
+    <div class="survey-form">
+        <h3>新規アンケート追加</h3>
+        <form id="addSurveyForm" onsubmit="return addSurvey(event)">
+            <div class="form-group">
+                <label>チェックポイント:</label>
+                <select name="checkpoint_id" required>
+                    {% for checkpoint in checkpoints %}
+                    <option value="{{ checkpoint.id }}">{{ checkpoint.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label>質問/見出し:</label>
+                <input type="text" name="question" required>
+            </div>
+            
+            <div class="form-group">
+                <label>表示順序:</label>
+                <input type="number" name="survey_order" step="0.01" required>
+            </div>
+            
+            <div class="form-group">
+                <label>
+                    <input type="checkbox" id="hasChoices" checked onchange="toggleChoices()">
+                    選択肢あり
+                </label>
+            </div>
+            
+            <div id="choicesContainer">
+                <h4>選択肢</h4>
+                <div class="choice-group">
+                    <input type="text" name="choices[]" placeholder="選択肢" required>
+                    <input type="number" name="values[]" placeholder="値" required>
+                    <button type="button" onclick="removeChoice(this)">削除</button>
+                </div>
+            </div>
+            
+            <div class="button-group">
+                <button type="button" onclick="addChoice()" id="addChoiceButton">選択肢を追加</button>
+                <button type="submit" class="submit-button">アンケートを保存</button>
+            </div>
+        </form>
     </div>
+
+    <!-- アンケート一覧 -->
+    <table>
+        <tr>
+            <th>チェックポイント</th>
+            <th>順序</th>
+            <th>質問/見出し</th>
+            <th>種類</th>
+            <th>選択肢</th>
+            <th>操作</th>
+        </tr>
+        {% for survey, checkpoint_name in surveys %}
+        <tr id="survey-{{ survey.id }}">
+            <td>{{ checkpoint_name }}</td>
+            <td>{{ survey.survey_order }}</td>
+            <td>{{ survey.question }}</td>
+            <td>
+                {% if survey.id in survey_choices and survey_choices[survey.id] %}
+                    選択式
+                {% else %}
+                    見出し
+                {% endif %}
+            </td>
+            <td>
+                {% if survey.id in survey_choices %}
+                    <ul>
+                    {% for choice in survey_choices[survey.id] %}
+                        <li>{{ choice.survey_choice }} (値: {{ choice.value }})</li>
+                    {% endfor %}
+                    </ul>
+                {% else %}
+                    -
+                {% endif %}
+            </td>
+            <td>
+                <button onclick="deleteSurvey({{ survey.id }})" class="delete-button">削除</button>
+            </td>
+        </tr>
+        {% endfor %}
+    </table>
+</div>
+
+<style>
+.survey-form {
+    background: #f9f9f9;
+    padding: 20px;
+    margin-bottom: 20px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
+
+.form-group {
+    margin-bottom: 15px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 5px;
+}
+
+.form-group input[type="checkbox"] {
+    margin-right: 5px;
+}
+
+.choice-group {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 10px;
+    align-items: center;
+}
+
+.choice-group input {
+    padding: 5px;
+}
+
+.button-group {
+    margin-top: 15px;
+}
+
+.submit-button {
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+}
+
+.delete-button {
+    background-color: #ff4444;
+    color: white;
+    border: none;
+    padding: 5px 10px;
+}
+
+button {
+    cursor: pointer;
+    margin: 5px;
+    padding: 5px 10px;
+}
+
+.hidden {
+    display: none;
+}
+</style>
+
+<script>
+// 選択肢の表示/非表示を切り替え
+function toggleChoices() {
+    const hasChoices = document.getElementById('hasChoices').checked;
+    const choicesContainer = document.getElementById('choicesContainer');
+    const addChoiceButton = document.getElementById('addChoiceButton');
+    const choiceInputs = choicesContainer.getElementsByTagName('input');
     
-    <style>
-    .survey-form {
-        background: #f9f9f9;
-        padding: 20px;
-        margin-bottom: 20px;
-        border: 1px solid #ddd;
-        border-radius: 4px;
+    choicesContainer.style.display = hasChoices ? 'block' : 'none';
+    addChoiceButton.style.display = hasChoices ? 'inline-block' : 'none';
+    
+    // 選択肢が無い場合は必須属性を解除
+    for (let input of choiceInputs) {
+        input.required = hasChoices;
     }
+}
+
+// 選択肢の追加
+function addChoice() {
+    const container = document.getElementById('choicesContainer');
+    const newChoice = document.createElement('div');
+    newChoice.className = 'choice-group';
+    newChoice.innerHTML = `
+        <input type="text" name="choices[]" placeholder="選択肢" required>
+        <input type="number" name="values[]" placeholder="値" required>
+        <button type="button" onclick="removeChoice(this)">削除</button>
+    `;
+    container.appendChild(newChoice);
+}
+
+// 選択肢の削除
+function removeChoice(button) {
+    button.parentElement.remove();
+}
+
+// アンケートの追加
+async function addSurvey(event) {
+    event.preventDefault();
+    const form = event.target;
+    const formData = new FormData(form);
+    formData.append('has_choices', document.getElementById('hasChoices').checked);
     
-    .form-group {
-        margin-bottom: 15px;
-    }
-    
-    .form-group label {
-        display: block;
-        margin-bottom: 5px;
-    }
-    
-    .choice-group {
-        display: flex;
-        gap: 10px;
-        margin-bottom: 10px;
-        align-items: center;
-    }
-    
-    .choice-group input {
-        padding: 5px;
-    }
-    
-    button {
-        padding: 5px 10px;
-        margin: 5px;
-        cursor: pointer;
-    }
-    
-    button[type="submit"] {
-        background-color: #4CAF50;
-        color: white;
-        border: none;
-        padding: 10px 20px;
-        margin-top: 10px;
-    }
-    
-    button[type="button"] {
-        background-color: #f0f0f0;
-        border: 1px solid #ddd;
-    }
-    
-    .error {
-        color: red;
-        margin-top: 5px;
-    }
-    </style>
-    
-    <script>
-    // 選択肢の追加
-    function addChoice() {
-        const container = document.getElementById('choicesContainer');
-        const newChoice = document.createElement('div');
-        newChoice.className = 'choice-group';
-        newChoice.innerHTML = `
-            <input type="text" name="choices[]" placeholder="選択肢" required>
-            <input type="number" name="values[]" placeholder="値" required>
-            <button type="button" onclick="removeChoice(this)">削除</button>
-        `;
-        container.appendChild(newChoice);
-    }
-    
-    // 選択肢の削除
-    function removeChoice(button) {
-        button.parentElement.remove();
-    }
-    
-    // アンケートの追加
-    async function addSurvey(event) {
-        event.preventDefault();
-        const form = event.target;
-        const formData = new FormData(form);
+    try {
+        const response = await fetch(`/{{ admin_hash }}/add_survey`, {
+            method: 'POST',
+            body: formData
+        });
         
-        try {
-            const response = await fetch(`/{{ admin_hash }}/add_survey`, {
-                method: 'POST',
-                body: formData
-            });
-            
-            const data = await response.json();
-            if (data.success) {
-                alert('アンケートが追加されました');
-                location.reload();  // ページを更新して新しいアンケートを表示
-            } else {
-                alert('エラー: ' + data.error);
-            }
-        } catch (error) {
-            alert('エラーが発生しました');
-            console.error('Error:', error);
+        const data = await response.json();
+        if (data.success) {
+            alert('アンケートが追加されました');
+            location.reload();
+        } else {
+            alert('エラー: ' + data.error);
         }
+    } catch (error) {
+        alert('エラーが発生しました');
+        console.error('Error:', error);
+    }
+}
+
+// アンケートの削除
+async function deleteSurvey(surveyId) {
+    if (!confirm('このアンケートを削除してもよろしいですか？')) {
+        return;
     }
     
-    // アンケートの削除
-    async function deleteSurvey(surveyId) {
-        if (!confirm('このアンケートを削除してもよろしいですか？')) {
-            return;
-        }
+    try {
+        const response = await fetch(`/{{ admin_hash }}/delete_survey/${surveyId}`, {
+            method: 'POST'
+        });
         
-        try {
-            const response = await fetch(`/{{ admin_hash }}/delete_survey/${surveyId}`, {
-                method: 'POST'
-            });
-            
-            const data = await response.json();
-            if (data.success) {
-                const element = document.getElementById(`survey-${surveyId}`);
-                element.remove();
-                alert('アンケートが削除されました');
-            } else {
-                alert('エラー: ' + data.error);
-            }
-        } catch (error) {
-            alert('エラーが発生しました');
-            console.error('Error:', error);
+        const data = await response.json();
+        if (data.success) {
+            const element = document.getElementById(`survey-${surveyId}`);
+            element.remove();
+            alert('アンケートが削除されました');
+        } else {
+            alert('エラー: ' + data.error);
         }
+    } catch (error) {
+        alert('エラーが発生しました');
+        console.error('Error:', error);
     }
-    </script>
+}
+
+// 初期状態で選択肢セクションを表示
+document.addEventListener('DOMContentLoaded', function() {
+    toggleChoices();
+});
+</script>
 
     <div class="section">
         <h2>クイズ一覧</h2>

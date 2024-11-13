@@ -44,7 +44,7 @@ def show_logins():
         output = '<h1>ログイン情報</h1><ul>'
         for login in logins:
            output += f'<li>ID: {login.id}, アカウント: {login.account}</li>'
-        output += '</ul><br><a href="/">Back</a>'
+        output += '</ul><br><a href="/admin">Back</a>'
         return output
     except Exception as e:
         return f'<h1>エラーが発生しました</h1><p>{str(e)}</p>'
@@ -226,12 +226,14 @@ def update_checkpoint_type():
         'new_type': new_type
     })
 
+# アンケート追加のAPIを修正
 @app.route(f'/{hash_keys[9]}/add_survey', methods=['POST'])
 def add_survey():
     try:
         checkpoint_id = request.form.get('checkpoint_id')
         question = request.form.get('question')
         survey_order = request.form.get('survey_order')
+        has_choices = request.form.get('has_choices') == 'true'  # 選択肢の有無を確認
         
         if not all([checkpoint_id, question, survey_order]):
             return jsonify({'error': 'Missing required fields'}), 400
@@ -245,20 +247,22 @@ def add_survey():
         db.session.add(new_survey)
         db.session.flush()  # IDを取得するためにflush
         
-        # 選択肢の処理
-        choices = request.form.getlist('choices[]')
-        values = request.form.getlist('values[]')
-        
-        if len(choices) != len(values):
-            return jsonify({'error': 'Choices and values must match'}), 400
+        # 選択肢がある場合のみ処理
+        if has_choices:
+            choices = request.form.getlist('choices[]')
+            values = request.form.getlist('values[]')
             
-        for choice, value in zip(choices, values):
-            new_choice = Survey_Choice(
-                survey_id=new_survey.id,
-                survey_choice=choice,
-                value=int(value)
-            )
-            db.session.add(new_choice)
+            if len(choices) != len(values):
+                return jsonify({'error': 'Choices and values must match'}), 400
+                
+            for choice, value in zip(choices, values):
+                if choice.strip():  # 空の選択肢は無視
+                    new_choice = Survey_Choice(
+                        survey_id=new_survey.id,
+                        survey_choice=choice,
+                        value=int(value)
+                    )
+                    db.session.add(new_choice)
         
         db.session.commit()
         return jsonify({
@@ -376,7 +380,7 @@ def add_stamp():
         new_stamp = Stamp(
             login_id=login_id,
             checkpoint_id=checkpoint_id,
-            created_at=datetime.now(pytz.timezone('Asia/Tokyo'))
+        #    created_at=datetime.now(pytz.timezone('Asia/Tokyo'))
         )
         
         db.session.add(new_stamp)
@@ -595,7 +599,7 @@ def survey(checkpoint_id):
                         login_id=user.id,
                         survey_id=question.id,
                         value=choice.value,
-                        created_at=datetime.now(pytz.timezone('Asia/Tokyo'))
+                    #    created_at=datetime.now(pytz.timezone('Asia/Tokyo'))
                     ))
 
             if proceed:
@@ -662,7 +666,7 @@ def checkpoint_survey(checkpoint_id):
                     login_id=user.id,
                     survey_id=question.id,
                     value=choice.value,
-                    created_at=datetime.now(pytz.timezone('Asia/Tokyo'))
+                #    created_at=datetime.now(pytz.timezone('Asia/Tokyo'))
                 ))
 
             # トランザクションとしてまとめて処理
@@ -670,7 +674,7 @@ def checkpoint_survey(checkpoint_id):
             db.session.add(Stamp(
                 checkpoint_id=checkpoint_id,
                 login_id=user.id,
-                created_at=datetime.now(pytz.timezone('Asia/Tokyo'))
+            #    created_at=datetime.now(pytz.timezone('Asia/Tokyo'))
             ))
             db.session.commit()
             
@@ -727,7 +731,7 @@ def goal_survey(user_id, checkpoint_id):
                     login_id=user_id,
                     survey_id=question.id,
                     value=choice.value,
-                    created_at=datetime.now(pytz.timezone('Asia/Tokyo'))
+                #    created_at=datetime.now(pytz.timezone('Asia/Tokyo'))
                 ))
 
         if proceed:
@@ -736,7 +740,7 @@ def goal_survey(user_id, checkpoint_id):
                 new_stamp = Stamp(
                     checkpoint_id=checkpoint_id,
                     login_id=user_id,
-                    created_at=datetime.now(pytz.timezone('Asia/Tokyo'))
+                #    created_at=datetime.now(pytz.timezone('Asia/Tokyo'))
                 )
                 db.session.add(new_stamp)
                 
@@ -808,7 +812,7 @@ def agreement(login_id):
         db.session.commit()
 
         # STAMPテーブルに新しいレコードを挿入
-        new_stamp = Stamp(checkpoint_id=1, login_id=user.id, created_at=datetime.now(pytz.timezone('Asia/Tokyo')))
+        new_stamp = Stamp(checkpoint_id=1, login_id=user.id) #created_at=datetime.now(pytz.timezone('Asia/Tokyo')))
         db.session.add(new_stamp)
         db.session.commit()
 
