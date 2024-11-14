@@ -6,8 +6,8 @@ from sqlalchemy.exc import SQLAlchemyError
 import pandas as pd
 from init import db, initialize_db, Login, Checkpoint, Quiz, Quiz_Response, Stamp, Survey, Survey_Choice, Survey_Response 
 from services.user_service import authenticate_user
-from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required
-from flask_wtf import CSRFProtect
+#from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required
+#from flask_wtf import CSRFProtect
 from functools import wraps
 import os
 from sqlalchemy import or_
@@ -92,8 +92,21 @@ def show_logins():
 #スタンプテーブルのダウンロード
 #スタンプ管理でSTAMPテーブルの検索と表示数をページネーションする。
 #クイズ管理にアンケート管理とページネーション、同じ機能を追加する。
-#小数点以下をクイズで正しく表示できるようにする。
+#小数点以下をクイズで正しく表示できるようにする。あと、オリジナルグラフの検索、フィルター機能、始めは〇で色が変わるとかだといいなぁ。
 #べた付パスワード
+#現地にいる証を押すもの。QRコードをランダムで変えないといけない。Berealとか。どのような人がやるのか。
+#これまでの事を知り、傾向を知って、自分たちが０から作るのではなく、ここの価値を変えて提供する。
+#デジタルをやる人は、アナログの良いこと、原始的ないいことを現在までの進化として、ターゲットはどんな人がやっているのか。今のと何が違うのか。
+#ストーリーとして語れるようにする。
+#根本的に人の所在を判定するのを確認する価値
+# #価値のチェンジを可能にする。
+# QRコードを動的に動かしたり、ユーザーごとにリンクを変えられなけば
+#経路が欲しい。スポットの近くに何があるか。遅いとこ違う線にする。フロントエンドで右側を図にする。大元のメニュー、カーサーにあるような。検索を左に。自分に分かる、
+#２年後の自分にもわかるような。最大値を出せるのはいいこと。
+#エラー検知で、ユーザーがリグインできなかったときに通知を飛ばして対応する。答えが分からないのでエラーを出したユーザーを確認する機能。
+#ログイン管理の直下にエラーが出たユーザーを確認する。いつエラーが出たか。相手にエラー解消を。
+#テストプレイで耐えるか。
+#ちょっと画像いじるか。
 
 checkpoint_hash_dic = {'ajrwkhlkafsddfd': 1,
                        'syflwdehkejhrsd': 2, 
