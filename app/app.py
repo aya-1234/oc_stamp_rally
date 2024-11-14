@@ -1,6 +1,6 @@
 from flask import Flask, request, render_template, flash, url_for, session, redirect, jsonify
 import sqlite3
-from datetime import datetime
+from datetime import datetime, timedelta
 import pytz
 from sqlalchemy.exc import SQLAlchemyError
 import pandas as pd
@@ -12,9 +12,10 @@ from functools import wraps
 import os
 from sqlalchemy import or_
 import csv
-from io import StringIO  # StringIOからBytesIOに変更
+from io import StringIO  
 from flask import send_file
 from flask import make_response
+from collections import defaultdict
 
 #以下をpipインストールしてください。
 #pip install Flask-Login
@@ -88,17 +89,22 @@ def show_logins():
 #これ管理画面もかな、ログインテーブルのフラグ操作チェックポイントのフラグ操作とアンケートとクイズ一覧を見る。
 #アンケートとクイズの質問も管理画面から見れた方がいいかなあ。べた付パスワードで。
 #ゴール画面が質素、かなぁ。。
+#スタンプテーブルのダウンロード
+#スタンプ管理でSTAMPテーブルの検索と表示数をページネーションする。
+#クイズ管理にアンケート管理とページネーション、同じ機能を追加する。
+#小数点以下をクイズで正しく表示できるようにする。
+#べた付パスワード
 
 checkpoint_hash_dic = {'ajrwkhlkafsddfd': 1,
-                       'syflwdehkejhrsd1': 2, 
-                       'syflwehkejwhrsd2': 3, 
-                       'syflwehkejwhrsd3': 4, 
-                       'syflwehkejwhrsd4': 5, 
-                       'syflwehkejwhrsd5': 6, 
-                       'syflwehkejwhrsd6': 7, 
-                       'syflwehkejwhrsd7': 8, 
-                       'syflwehkejwhrsd8': 9,
-                       'syflwehkejwhrsd9': 10,  
+                       'syflwdehkejhrsd': 2, 
+                       'hgosmcbgdirmagf': 3, 
+                       'hocnhsmtgdobmjg': 4, 
+                       'bginchrfmhodhlk': 5, 
+                       'nhkbhditmfobhhj': 6, 
+                       'gkfcnshvmfjhpdj': 7, 
+                       'afsjfnvidngmcjx': 8, 
+                       'hhkncfouvmiwoxz': 9,
+                       'gdwahxojopmkcgd': 10,  
                        }
 hash_keys = list(checkpoint_hash_dic.keys())
 
@@ -143,6 +149,53 @@ def admin_panel():
         error_out=False
     )
 
+    # スタンプ管理のページネーションと検索
+    stamp_page = request.args.get('stamp_page', 1, type=int)
+    stamp_per_page = 10
+    stamp_search = request.args.get('stamp_search', '')
+
+    # スタンプ検索クエリの構築
+    stamp_query = db.session.query(
+        Stamp,
+        Login.account.label('user_account'),
+        Checkpoint.name.label('checkpoint_name'),
+        Checkpoint.checkpoint_type
+    ).join(
+        Login, Stamp.login_id == Login.id
+    ).join(
+        Checkpoint, Stamp.checkpoint_id == Checkpoint.id
+    )
+
+    # 検索条件を適用
+    if stamp_search:
+        stamp_query = stamp_query.filter(
+            Login.account.like(f'%{stamp_search}%')
+        )
+
+    # ページネーション適用
+    stamps_pagination = stamp_query.order_by(
+        Stamp.created_at.desc()
+    ).paginate(
+        page=stamp_page,
+        per_page=stamp_per_page,
+        error_out=False
+    )
+
+    # スタンプデータの取得を追加
+    #stamps = stamp_query.order_by(Stamp.created_at.desc()).limit(200).all()
+
+    # スタンプデータを整形
+    formatted_stamps = [
+        {
+            'id': stamp.id,
+            'user_account': user_account,
+            'checkpoint_name': checkpoint_name,
+            'checkpoint_type': checkpoint_type,
+            'created_at': stamp.created_at
+        }
+        for stamp, user_account, checkpoint_name, checkpoint_type in stamps_pagination.items
+    ]
+
     # チェックポイントデータの取得
     checkpoints = Checkpoint.query.order_by(Checkpoint.checkpoint_order).all()
     
@@ -156,7 +209,38 @@ def admin_panel():
         Survey.checkpoint_id, 
         Survey.survey_order
     ).all()
-    
+
+    # アンケート検索クエリの構築
+    survey_query = db.session.query(
+        Survey, 
+        Checkpoint.name.label('checkpoint_name')
+    ).join(
+        Checkpoint
+    )
+
+    # アンケート管理のページネーションと検索
+    survey_page = request.args.get('survey_page', 1, type=int)
+    survey_per_page = 10
+    survey_search = request.args.get('survey_search', '')
+
+    if survey_search:
+        survey_query = survey_query.filter(
+            db.or_(
+                Survey.question.like(f'%{survey_search}%'),
+                Checkpoint.name.like(f'%{survey_search}%')
+            )
+        )
+
+    # ページネーション適用
+    surveys_pagination = survey_query.order_by(
+        Survey.checkpoint_id, 
+        Survey.survey_order
+    ).paginate(
+        page=survey_page,
+        per_page=survey_per_page,
+        error_out=False
+    )
+
     # アンケート選択肢の取得
     survey_choices = {}
     for survey, _ in surveys:
@@ -174,16 +258,127 @@ def admin_panel():
         Quiz.quiz_order
     ).all()
     
+    # クイズ管理のページネーションと検索
+    quiz_page = request.args.get('quiz_page', 1, type=int)
+    quiz_per_page = 10
+    quiz_search = request.args.get('quiz_search', '')
+
+    # クイズ検索クエリの構築
+    quiz_query = db.session.query(
+        Quiz,
+        Checkpoint.name.label('checkpoint_name')
+    ).join(
+        Checkpoint
+    )
+
+    if quiz_search:
+        quiz_query = quiz_query.filter(
+            db.or_(
+                Quiz.content.like(f'%{quiz_search}%'),
+                Checkpoint.name.like(f'%{quiz_search}%')
+            )
+        )
+
+    # ページネーション適用
+    quizzes_pagination = quiz_query.order_by(
+        Quiz.checkpoint_id,
+        Quiz.quiz_order
+    ).paginate(
+        page=quiz_page,
+        per_page=quiz_per_page,
+        error_out=False
+    )
+
     return render_template(
         'admin/panel.html',
-        users_pagination=users_pagination,  # users から users_pagination に変更
+        users_pagination=users_pagination,
         checkpoints=checkpoints,
-        surveys=surveys,
+        surveys_pagination=surveys_pagination,  # surveysをsurveys_paginationに変更
         survey_choices=survey_choices,
         quizzes=quizzes,
         admin_hash=hash_keys[9],
-        search_query=search_query
+        search_query=search_query,
+        stamps=formatted_stamps,
+        stamps_pagination=stamps_pagination,
+        survey_search=survey_search,
+        quizzes_pagination=quizzes_pagination,
+        quiz_search=quiz_search  # 検索クエリを渡す
     )
+
+# クイズ追加のAPI
+@app.route(f'/{hash_keys[9]}/add_quiz', methods=['POST'])
+def add_quiz():
+    try:
+        checkpoint_id = request.form.get('checkpoint_id')
+        quiz_order = request.form.get('quiz_order')
+        content = request.form.get('content')
+        answer_1 = request.form.get('answer_1')
+        answer_2 = request.form.get('answer_2')
+        answer_3 = request.form.get('answer_3')
+        correct_option = request.form.get('correct')
+
+        if not all([checkpoint_id, quiz_order, content, answer_1, answer_2, answer_3, correct_option]):
+            return jsonify({'error': 'Missing required fields'}), 400
+
+        # 選択された正解オプションに基づいて実際の正解文字列を設定
+        correct_answers = {
+            'answer_1': answer_1,
+            'answer_2': answer_2,
+            'answer_3': answer_3
+        }
+        correct = correct_answers.get(correct_option)
+
+        if not correct:
+            return jsonify({'error': 'Invalid correct answer selection'}), 400
+
+        new_quiz = Quiz(
+            checkpoint_id=checkpoint_id,
+            quiz_order=float(quiz_order),
+            content=content,
+            answer_1=answer_1,
+            answer_2=answer_2,
+            answer_3=answer_3,
+            correct=correct
+        )
+        
+        db.session.add(new_quiz)
+        db.session.commit()
+
+        return jsonify({
+            'success': True,
+            'message': 'Quiz added successfully',
+            'quiz_id': new_quiz.id
+        })
+
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': str(e)}), 500
+
+# クイズ削除のAPI
+@app.route(f'/{hash_keys[9]}/delete_quiz/<int:quiz_id>', methods=['POST'])
+def delete_quiz(quiz_id):
+    try:
+        quiz = Quiz.query.get_or_404(quiz_id)
+        
+        # 関連する回答も削除
+        Quiz_Response.query.filter_by(quiz_id=quiz_id).delete()
+        
+        # クイズを削除
+        db.session.delete(quiz)
+        db.session.commit()
+
+        return jsonify({
+            'success': True,
+            'message': 'Quiz deleted successfully'
+        })
+
+    except Exception as e:
+        db.session.rollback()
+        print(f"Error deleting quiz: {str(e)}")  # サーバーログに記録
+        return jsonify({
+            'success': False,
+            'error': 'クイズの削除中にエラーが発生しました'
+        }), 500
 
 # ログインフラグの更新API
 @app.route(f'/{hash_keys[9]}/update_login', methods=['POST'])
@@ -421,11 +616,49 @@ def delete_stamp(stamp_id):
 @app.route(f'/{hash_keys[9]}/export/<table_name>')
 def export_csv(table_name):
     try:
-        # 一時的にStringIOを使用してCSVを作成
         si = StringIO()
         writer = csv.writer(si)
         
-        if table_name == 'users':
+        if table_name == 'stamps':
+            # スタンプデータのエクスポート
+            stamps = db.session.query(
+                Stamp,
+                Login.account.label('user_account'),
+                Checkpoint.name.label('checkpoint_name'),
+                Checkpoint.checkpoint_type
+            ).join(
+                Login, Stamp.login_id == Login.id
+            ).join(
+                Checkpoint, Stamp.checkpoint_id == Checkpoint.id
+            ).order_by(
+                Stamp.login_id,
+                Checkpoint.checkpoint_order,
+                Stamp.created_at
+            ).all()
+            
+            writer.writerow([
+                'スタンプID',
+                'ユーザーID',
+                'アカウント名',
+                'チェックポイントID',
+                'チェックポイント名',
+                'チェックポイントタイプ',
+                '取得日時'
+            ])
+            
+            for stamp, user_account, checkpoint_name, checkpoint_type in stamps:
+                writer.writerow([
+                    stamp.id,
+                    stamp.login_id,
+                    user_account,
+                    stamp.checkpoint_id,
+                    checkpoint_name,
+                    checkpoint_type,
+                    stamp.created_at.strftime('%Y-%m-%d %H:%M:%S')
+                ])
+            filename = "stamps.csv"
+            
+        elif table_name == 'users':
             # ユーザーデータのエクスポート
             users = Login.query.all()
             writer.writerow(['ID', 'アカウント', '使用状態', 'ログイン状態', '同意状態', '終了状態', '発行日時'])
@@ -497,6 +730,7 @@ def export_csv(table_name):
                     quiz.correct
                 ])
             filename = "quizzes.csv"
+            
         else:
             return 'Invalid table name', 400
 
@@ -513,6 +747,216 @@ def export_csv(table_name):
     except Exception as e:
         print(f"Error during CSV export: {str(e)}")
         return str(e), 500
+
+# 統計情報を取得する関数を修正
+def get_stamp_progress_data(page=1, per_page=10):
+    # アクティブユーザー（3つのフラグが立っているユーザー）のスタンプ情報を取得
+    active_stamps = db.session.query(
+        Stamp.login_id,
+        Login.account,
+        Checkpoint.name.label('checkpoint_name'),
+        Stamp.checkpoint_id,
+        Stamp.created_at
+    ).join(
+        Login, Stamp.login_id == Login.id
+    ).join(
+        Checkpoint, Stamp.checkpoint_id == Checkpoint.id
+    ).filter(
+        Login.is_loggedin == True,
+        Login.is_used == True,
+        Login.is_agree == True
+    ).order_by(
+        Stamp.login_id,
+        Stamp.created_at
+    ).all()
+
+    # チェックポイント名の一覧を取得（Y軸用）
+    checkpoints = db.session.query(
+        Checkpoint.id,
+        Checkpoint.name
+    ).order_by(
+        Checkpoint.checkpoint_order
+    ).all()
+    
+    checkpoint_names = [cp.name for cp in checkpoints]
+    checkpoint_ids = {cp.id: idx for idx, cp in enumerate(checkpoints)}
+
+    # ユーザーごとのデータを整理
+    user_progress = defaultdict(lambda: {
+        'account': '',
+        'stamps': set(),
+        'timestamps': {}
+    })
+
+    for stamp in active_stamps:
+        user_progress[stamp.login_id]['account'] = stamp.account
+        user_progress[stamp.login_id]['stamps'].add(stamp.checkpoint_id)
+        user_progress[stamp.login_id]['timestamps'][stamp.checkpoint_id] = stamp.created_at.strftime('%H:%M')
+
+    # ページネーション用にデータを準備
+    user_list = list(user_progress.items())
+    total_users = len(user_list)
+    start_idx = (page - 1) * per_page
+    end_idx = start_idx + per_page
+    paginated_users = user_list[start_idx:end_idx]
+
+    # グラフ用のデータを生成
+    progress_data = []
+    for user_id, data in paginated_users:
+        for checkpoint_id in data['stamps']:
+            progress_data.append({
+                'x': data['account'],
+                'y': checkpoint_names[checkpoint_ids[checkpoint_id]],
+                'timestamp': data['timestamps'][checkpoint_id]
+            })
+
+    return {
+        'progress_data': progress_data,
+        'checkpoint_names': checkpoint_names,
+        'total_users': total_users,
+        'total_pages': (total_users + per_page - 1) // per_page
+    }
+
+@app.route(f'/{hash_keys[9]}/statistics')
+def stamp_statistics():
+    page = request.args.get('page', 1, type=int)
+    per_page = 10
+    search_query = request.args.get('search', '')
+
+    # 1. ユーザー統計（ページネーション対応）
+    user_query = db.session.query(
+        Login.account,
+        db.func.count(Stamp.id).label('total_stamps'),
+        db.func.min(Stamp.created_at).label('first_stamp'),
+        db.func.max(Stamp.created_at).label('last_stamp')
+    ).outerjoin(
+        Stamp
+    ).group_by(Login.id)
+
+    if search_query:
+        user_query = user_query.filter(Login.account.like(f'%{search_query}%'))
+
+    users_pagination = user_query.paginate(page=page, per_page=per_page, error_out=False)
+
+    # 2. チェックポイント統計
+    checkpoint_stats = db.session.query(
+        Checkpoint.name,
+        Checkpoint.checkpoint_type,
+        db.func.count(Stamp.id).label('visit_count')
+    ).outerjoin(
+        Stamp
+    ).group_by(
+        Checkpoint.id
+    ).order_by(
+        Checkpoint.checkpoint_order
+    ).all()
+
+    # 3. 時間帯統計
+    time_stats = db.session.query(
+        db.func.strftime('%H', Stamp.created_at).label('hour'),
+        db.func.count(Stamp.id).label('stamp_count'),
+        db.func.count(db.distinct(Stamp.login_id)).label('unique_users')
+    ).group_by(
+        'hour'
+    ).order_by(
+        'hour'
+    ).all()
+
+    # 4. 進行状況マップ用データ
+    active_stamps = db.session.query(
+        Stamp.login_id,
+        Login.account,
+        Checkpoint.name.label('checkpoint_name'),
+        Stamp.checkpoint_id,
+        Stamp.created_at
+    ).join(
+        Login, Stamp.login_id == Login.id
+    ).join(
+        Checkpoint, Stamp.checkpoint_id == Checkpoint.id
+    ).filter(
+        Login.is_loggedin == True,
+        Login.is_used == True,
+        Login.is_agree == True
+    ).order_by(
+        Stamp.login_id,
+        Stamp.created_at
+    ).all()
+
+    # チェックポイント名の一覧を取得（Y軸用）
+    checkpoints = db.session.query(
+        Checkpoint.id,
+        Checkpoint.name
+    ).order_by(
+        Checkpoint.checkpoint_order
+    ).all()
+    
+    checkpoint_names = [cp.name for cp in checkpoints]
+    checkpoint_ids = {cp.id: idx for idx, cp in enumerate(checkpoints)}
+
+    # ユーザーごとのデータを整理
+    user_progress = defaultdict(lambda: {
+        'account': '',
+        'stamps': set(),
+        'timestamps': {}
+    })
+
+    for stamp in active_stamps:
+        user_progress[stamp.login_id]['account'] = stamp.account
+        user_progress[stamp.login_id]['stamps'].add(stamp.checkpoint_id)
+        user_progress[stamp.login_id]['timestamps'][stamp.checkpoint_id] = stamp.created_at.strftime('%H:%M')
+
+    # ページネーション用にデータを準備
+    user_list = list(user_progress.items())
+    total_users = len(user_list)
+    start_idx = (page - 1) * per_page
+    end_idx = start_idx + per_page
+    paginated_users = user_list[start_idx:end_idx]
+
+    # グラフ用のデータを生成
+    progress_data = []
+    for user_id, data in paginated_users:
+        for checkpoint_id in data['stamps']:
+            progress_data.append({
+                'x': data['account'],
+                'y': checkpoint_names[checkpoint_ids[checkpoint_id]],
+                'timestamp': data['timestamps'][checkpoint_id]
+            })
+
+    # 5. 全体の統計情報
+    total_stats = {
+        'total_stamps': db.session.query(db.func.count(Stamp.id)).scalar() or 0,
+        'total_users': db.session.query(db.func.count(db.distinct(Stamp.login_id))).scalar() or 0,
+        'completion_count': db.session.query(db.func.count(db.distinct(Login.id)))
+            .filter(Login.is_ended == True).scalar() or 0
+    }
+
+    # 時間帯データの整形
+    hours_data = {str(i).zfill(2): {'stamps': 0, 'users': 0} for i in range(24)}
+    for stat in time_stats:
+        hours_data[stat.hour] = {
+            'stamps': stat.stamp_count,
+            'users': stat.unique_users
+        }
+
+    # 進行状況マップのデータをまとめる
+    progress_map_data = {
+        'progress_data': progress_data,
+        'checkpoint_names': checkpoint_names,
+        'total_users': total_users,
+        'total_pages': (total_users + per_page - 1) // per_page
+    }
+
+    return render_template(
+        'admin/statistics.html',
+        users_pagination=users_pagination,
+        checkpoint_stats=checkpoint_stats,
+        hours_data=hours_data,
+        progress_map_data=progress_map_data,
+        search_query=search_query,
+        admin_hash=hash_keys[9],
+        total_stats=total_stats,
+        current_page=page
+    )
 
 
 ####3つの共通処理
@@ -620,10 +1064,10 @@ def goal_login(checkpoint):
         required_checkpoint_ids = set(range(2, 8))
         obtained_stamps = {stamp.checkpoint_id for stamp in Stamp.query.filter_by(login_id=user.id).all()}
         
-        if not required_checkpoint_ids.issubset(obtained_stamps):
-            missing_count = len(required_checkpoint_ids - obtained_stamps)
-            flash(f"ゴールするには、あと{missing_count}つのチェックポイントを回る必要があります。", 'error')
-            return render_template("login.html", title="ログイン", checkpoint=checkpoint)
+        #if not required_checkpoint_ids.issubset(obtained_stamps):
+        #    missing_count = len(required_checkpoint_ids - obtained_stamps)
+        #    flash(f"ゴールするには、あと{missing_count}つのチェックポイントを回る必要があります。", 'error')
+        #    return render_template("login.html", title="ログイン", checkpoint=checkpoint)
 
         # ログイン状態確認
         if user.is_loggedin:

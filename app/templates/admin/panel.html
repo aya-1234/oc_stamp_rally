@@ -1,3 +1,36 @@
+<!-- templates/admin/panel.html の上部に追加 -->
+<div class="admin-header">
+    <h1>管理画面</h1>
+    <a href="/{{ admin_hash }}/statistics" class="stats-button">
+        統計情報を見る
+    </a>
+</div>
+
+<style>
+.admin-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding: 20px;
+    background-color: #f8f9fa;
+    border-radius: 8px;
+}
+
+.stats-button {
+    padding: 10px 20px;
+    background-color: #28a745;
+    color: white;
+    text-decoration: none;
+    border-radius: 4px;
+    transition: background-color 0.3s;
+}
+
+.stats-button:hover {
+    background-color: #218838;
+}
+</style>
+
 <!-- templates/admin/panel.html -->
 <!DOCTYPE html>
 <html>
@@ -28,6 +61,153 @@
     </style>
 </head>
 <body>
+
+    <!-- templates/admin/panel.html に追加 -->
+    <!-- templates/admin/panel.html のスタンプ管理セクションを修正 -->
+    <div class="section">
+        <div class="section-header">
+            <h2>スタンプ管理</h2>
+            <div class="section-actions">
+                <button onclick="window.location.href='/{{ admin_hash }}/export/stamps'" class="download-button">
+                    CSVダウンロード
+                </button>
+                <form method="GET" action="/{{ admin_hash }}" class="search-form">
+                    <!-- 他の検索パラメータを維持 -->
+                    {% if search_query %}
+                    <input type="hidden" name="search" value="{{ search_query }}">
+                    {% endif %}
+                    {% if page %}
+                    <input type="hidden" name="page" value="{{ page }}">
+                    {% endif %}
+                    {% if survey_page %}
+                    <input type="hidden" name="survey_page" value="{{ survey_page }}">
+                    {% endif %}
+                    {% if quiz_page %}
+                    <input type="hidden" name="quiz_page" value="{{ quiz_page }}">
+                    {% endif %}
+                    
+                    <input type="text" 
+                        name="stamp_search" 
+                        value="{{ stamp_search }}" 
+                        placeholder="ユーザー名で検索..."
+                        class="search-input">
+                    <button type="submit" class="search-button">検索</button>
+                </form>
+            </div>
+        </div>
+        
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>スタンプID</th>
+                        <th>アカウント</th>
+                        <th>チェックポイント</th>
+                        <th>タイプ</th>
+                        <th>取得日時</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for stamp in stamps %}
+                    <tr>
+                        <td>{{ stamp.id }}</td>
+                        <td>{{ stamp.user_account }}</td>
+                        <td>{{ stamp.checkpoint_name }}</td>
+                        <td>{{ stamp.checkpoint_type }}</td>
+                        <td>{{ stamp.created_at.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+                    </tr>
+                    {% endfor %}
+                    {% if not stamps %}
+                    <tr>
+                        <td colspan="5" class="no-data">データがありません</td>
+                    </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+    
+        <!-- スタンプ管理のページネーション -->
+        <div class="pagination">
+            {% if stamps_pagination.has_prev %}
+                <a href="{{ url_for('admin_panel', 
+                                   stamp_page=stamps_pagination.prev_num,
+                                   page=page,
+                                   search=search_query,
+                                   survey_page=survey_page,
+                                   quiz_page=quiz_page,
+                                   stamp_search=stamp_search,
+                                   survey_search=survey_search,
+                                   quiz_search=quiz_search) }}">&laquo; 前へ</a>
+            {% endif %}
+    
+            {% for page_num in stamps_pagination.iter_pages(left_edge=2, left_current=2, right_current=2, right_edge=2) %}
+                {% if page_num %}
+                    {% if page_num == stamps_pagination.page %}
+                        <span class="current-page">{{ page_num }}</span>
+                    {% else %}
+                        <a href="{{ url_for('admin_panel',
+                                          stamp_page=page_num,
+                                          page=page,
+                                          search=search_query,
+                                          survey_page=survey_page,
+                                          quiz_page=quiz_page,
+                                          stamp_search=stamp_search,
+                                          survey_search=survey_search,
+                                          quiz_search=quiz_search) }}">{{ page_num }}</a>
+                    {% endif %}
+                {% else %}
+                    <span class="ellipsis">...</span>
+                {% endif %}
+            {% endfor %}
+    
+            {% if stamps_pagination.has_next %}
+                <a href="{{ url_for('admin_panel',
+                                   stamp_page=stamps_pagination.next_num,
+                                   page=page,
+                                   search=search_query,
+                                   survey_page=survey_page,
+                                   quiz_page=quiz_page,
+                                   stamp_search=stamp_search,
+                                   survey_search=survey_search,
+                                   quiz_search=quiz_search) }}">次へ &raquo;</a>
+            {% endif %}
+        </div>
+    </div>
+    
+    <style>
+    /* 既存のスタイルに追加 */
+    .pagination {
+        display: flex;
+        justify-content: center;
+        gap: 8px;
+        margin-top: 20px;
+        margin-bottom: 20px;
+    }
+    
+    .pagination a, .current-page {
+        padding: 8px 12px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        text-decoration: none;
+        color: #333;
+    }
+    
+    .pagination a:hover {
+        background-color: #f5f5f5;
+    }
+    
+    .current-page {
+        background-color: #4CAF50;
+        color: white;
+        border-color: #4CAF50;
+    }
+    
+    .ellipsis {
+        padding: 8px 12px;
+    }
+    </style>
+
+
     <!-- ログイン管理セクション -->
     <div class="section">
         <div class="section-header">
@@ -203,20 +383,16 @@
         }
     </style>
 
-<!-- templates/admin/panel.html に追加 -->
-<!-- templates/admin/panel.html のスタンプ管理セクションを修正 -->
-<div class="section">
-    <h2>スタンプ管理</h2>
-    
+
     <!-- ユーザー検索フォーム -->
     <div class="stamp-form">
         <h3>ユーザー検索</h3>
         <div class="search-box">
             <input 
-                type="text" 
-                id="userSearchInput" 
-                placeholder="ユーザーアカウントを検索..." 
-                oninput="searchUsers(this.value)"
+                    type="text" 
+                    id="userSearchInput" 
+                    placeholder="ユーザーアカウントを検索..." 
+                    oninput="searchUsers(this.value)"
             >
         </div>
         <div id="searchResults" class="search-results"></div>
@@ -521,9 +697,27 @@ async function deleteStamp(stampId) {
     <div class="section">
         <div class="section-header">
             <h2>アンケート管理</h2>
-            <button onclick="window.location.href='/{{ admin_hash }}/export/surveys'" class="download-button">
-                CSVダウンロード
-            </button>
+            <div class="section-actions">
+                <button onclick="window.location.href='/{{ admin_hash }}/export/surveys'" class="download-button">
+                    CSVダウンロード
+                </button>
+                <form method="GET" action="/{{ admin_hash }}" class="search-form">
+                    <!-- 他の検索パラメータを維持 -->
+                    {% if search_query %}
+                    <input type="hidden" name="search" value="{{ search_query }}">
+                    {% endif %}
+                    {% if page %}
+                    <input type="hidden" name="page" value="{{ page }}">
+                    {% endif %}
+                    
+                    <input type="text" 
+                           name="survey_search" 
+                           value="{{ survey_search }}" 
+                           placeholder="アンケートを検索..."
+                           class="search-input">
+                    <button type="submit" class="search-button">検索</button>
+                </form>
+            </div>
         </div>
     
     <!-- アンケート追加フォーム -->
@@ -573,105 +767,172 @@ async function deleteStamp(stampId) {
     </div>
 
     <!-- アンケート一覧 -->
-    <table>
-        <tr>
-            <th>チェックポイント</th>
-            <th>順序</th>
-            <th>質問/見出し</th>
-            <th>種類</th>
-            <th>選択肢</th>
-            <th>操作</th>
-        </tr>
-        {% for survey, checkpoint_name in surveys %}
-        <tr id="survey-{{ survey.id }}">
-            <td>{{ checkpoint_name }}</td>
-            <td>{{ survey.survey_order }}</td>
-            <td>{{ survey.question }}</td>
-            <td>
-                {% if survey.id in survey_choices and survey_choices[survey.id] %}
-                    選択式
-                {% else %}
-                    見出し
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>チェックポイント</th>
+                    <th>順序</th>
+                    <th>質問/見出し</th>
+                    <th>種類</th>
+                    <th>選択肢</th>
+                    <th>操作</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for survey, checkpoint_name in surveys_pagination.items %}
+                <tr id="survey-{{ survey.id }}">
+                    <td>{{ checkpoint_name }}</td>
+                    <td>{{ survey.survey_order }}</td>
+                    <td>{{ survey.question }}</td>
+                    <td>
+                        {% if survey.id in survey_choices and survey_choices[survey.id] %}
+                            選択式
+                        {% else %}
+                            見出し
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if survey.id in survey_choices %}
+                            <ul>
+                            {% for choice in survey_choices[survey.id] %}
+                                <li>{{ choice.survey_choice }} (値: {{ choice.value }})</li>
+                            {% endfor %}
+                            </ul>
+                        {% else %}
+                            -
+                        {% endif %}
+                    </td>
+                    <td>
+                        <button onclick="deleteSurvey({{ survey.id }})" class="delete-button">削除</button>
+                    </td>
+                </tr>
+                {% endfor %}
+                {% if not surveys_pagination.items %}
+                <tr>
+                    <td colspan="6" class="no-data">データがありません</td>
+                </tr>
                 {% endif %}
-            </td>
-            <td>
-                {% if survey.id in survey_choices %}
-                    <ul>
-                    {% for choice in survey_choices[survey.id] %}
-                        <li>{{ choice.survey_choice }} (値: {{ choice.value }})</li>
-                    {% endfor %}
-                    </ul>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- ページネーション -->
+    <div class="pagination">
+        {% if surveys_pagination.has_prev %}
+            <a href="{{ url_for('admin_panel', 
+                               survey_page=surveys_pagination.prev_num,
+                               page=page,
+                               search=search_query,
+                               survey_search=survey_search) }}">&laquo; 前へ</a>
+        {% endif %}
+
+        {% for page_num in surveys_pagination.iter_pages(left_edge=2, left_current=2, right_current=2, right_edge=2) %}
+            {% if page_num %}
+                {% if page_num == surveys_pagination.page %}
+                    <span class="current-page">{{ page_num }}</span>
                 {% else %}
-                    -
+                    <a href="{{ url_for('admin_panel',
+                                      survey_page=page_num,
+                                      page=page,
+                                      search=search_query,
+                                      survey_search=survey_search) }}">{{ page_num }}</a>
                 {% endif %}
-            </td>
-            <td>
-                <button onclick="deleteSurvey({{ survey.id }})" class="delete-button">削除</button>
-            </td>
-        </tr>
+            {% else %}
+                <span class="ellipsis">...</span>
+            {% endif %}
         {% endfor %}
-    </table>
+
+        {% if surveys_pagination.has_next %}
+            <a href="{{ url_for('admin_panel',
+                               survey_page=surveys_pagination.next_num,
+                               page=page,
+                               search=search_query,
+                               survey_search=survey_search) }}">次へ &raquo;</a>
+        {% endif %}
+    </div>
 </div>
 
 <style>
-.survey-form {
-    background: #f9f9f9;
-    padding: 20px;
-    margin-bottom: 20px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-}
-
-.form-group {
-    margin-bottom: 15px;
-}
-
-.form-group label {
-    display: block;
-    margin-bottom: 5px;
-}
-
-.form-group input[type="checkbox"] {
-    margin-right: 5px;
-}
-
-.choice-group {
+/* 既存のスタイルに追加 */
+.section-header {
     display: flex;
-    gap: 10px;
-    margin-bottom: 10px;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.section-actions {
+    display: flex;
+    gap: 15px;
     align-items: center;
 }
 
-.choice-group input {
-    padding: 5px;
+.table-container {
+    overflow-x: auto;
+    margin-top: 20px;
+    margin-bottom: 20px;
 }
 
-.button-group {
-    margin-top: 15px;
+.pagination {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    margin-top: 20px;
 }
 
-.submit-button {
+.pagination a, .current-page {
+    padding: 8px 12px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    text-decoration: none;
+    color: #333;
+}
+
+.pagination a:hover {
+    background-color: #f5f5f5;
+}
+
+.current-page {
+    background-color: #4CAF50;
+    color: white;
+    border-color: #4CAF50;
+}
+
+.no-data {
+    text-align: center;
+    padding: 20px;
+    color: #666;
+}
+
+.search-form {
+    display: flex;
+    gap: 10px;
+}
+
+.search-input {
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    min-width: 200px;
+}
+
+.search-button {
     background-color: #4CAF50;
     color: white;
     border: none;
-    padding: 10px 20px;
+    padding: 8px 15px;
+    border-radius: 4px;
+    cursor: pointer;
 }
 
-.delete-button {
-    background-color: #ff4444;
+.download-button {
+    background-color: #4CAF50;
     color: white;
     border: none;
-    padding: 5px 10px;
-}
-
-button {
+    padding: 8px 15px;
+    border-radius: 4px;
     cursor: pointer;
-    margin: 5px;
-    padding: 5px 10px;
-}
-
-.hidden {
-    display: none;
 }
 </style>
 
@@ -767,39 +1028,283 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 </script>
 
-    <!-- クイズ管理セクション -->
-    <div class="section">
-        <div class="section-header">
-            <h2>クイズ管理</h2>
+<div class="section">
+    <div class="section-header">
+        <h2>クイズ管理</h2>
+        <div class="section-actions">
             <button onclick="window.location.href='/{{ admin_hash }}/export/quizzes'" class="download-button">
                 CSVダウンロード
             </button>
+            <form method="GET" action="/{{ admin_hash }}" class="search-form">
+                <!-- 他の検索パラメータを維持 -->
+                {% if search_query %}
+                <input type="hidden" name="search" value="{{ search_query }}">
+                {% endif %}
+                {% if survey_search %}
+                <input type="hidden" name="survey_search" value="{{ survey_search }}">
+                {% endif %}
+                
+                <input type="text" 
+                       name="quiz_search" 
+                       value="{{ quiz_search }}" 
+                       placeholder="クイズを検索..."
+                       class="search-input">
+                <button type="submit" class="search-button">検索</button>
+            </form>
         </div>
+    </div>
+
+    <!-- クイズ追加フォーム -->
+    <div class="quiz-form">
+        <h3>新規クイズ追加</h3>
+        <form id="addQuizForm" onsubmit="return addQuiz(event)">
+            <div class="form-group">
+                <label>チェックポイント:</label>
+                <select name="checkpoint_id" required>
+                    {% for checkpoint in checkpoints %}
+                    <option value="{{ checkpoint.id }}">{{ checkpoint.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>順序:</label>
+                <input type="number" name="quiz_order" step="0.01" required>
+            </div>
+
+            <div class="form-group">
+                <label>問題:</label>
+                <textarea name="content" required></textarea>
+            </div>
+            
+            <div class="form-group">
+                <label>選択肢1:</label>
+                <input type="text" name="answer_1" required>
+            </div>
+            
+            <div class="form-group">
+                <label>選択肢2:</label>
+                <input type="text" name="answer_2" required>
+            </div>
+            
+            <div class="form-group">
+                <label>選択肢3:</label>
+                <input type="text" name="answer_3" required>
+            </div>
+            
+            <div class="form-group">
+                <label>正解:</label>
+                <select name="correct" required>
+                    <option value="">選択してください</option>
+                    <option value="answer_1">選択肢1</option>
+                    <option value="answer_2">選択肢2</option>
+                    <option value="answer_3">選択肢3</option>
+                </select>
+            </div>
+
+            <button type="submit" class="submit-button">クイズを保存</button>
+        </form>
+    </div>
+
+    <!-- クイズ一覧 -->
+    <div class="table-container">
         <table>
-            <tr>
-                <th>チェックポイント</th>
-                <th>順序</th>
-                <th>問題</th>
-                <th>選択肢</th>
-                <th>正解</th>
-            </tr>
-            {% for quiz, checkpoint_name in quizzes %}
-            <tr>
-                <td>{{ checkpoint_name }}</td>
-                <td>{{ quiz.quiz_order }}</td>
-                <td>{{ quiz.content }}</td>
-                <td>
-                    <ul>
-                        <li>1: {{ quiz.answer_1 }}</li>
-                        <li>2: {{ quiz.answer_2 }}</li>
-                        <li>3: {{ quiz.answer_3 }}</li>
-                    </ul>
-                </td>
-                <td>{{ quiz.correct }}</td>
-            </tr>
-            {% endfor %}
+            <thead>
+                <tr>
+                    <th>チェックポイント</th>
+                    <th>順序</th>
+                    <th>問題</th>
+                    <th>選択肢</th>
+                    <th>正解</th>
+                    <th>操作</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for quiz, checkpoint_name in quizzes_pagination.items %}
+                <tr id="quiz-{{ quiz.id }}">
+                    <td>{{ checkpoint_name }}</td>
+                    <td>{{ quiz.quiz_order }}</td>
+                    <td>{{ quiz.content }}</td>
+                    <td>
+                        <ul>
+                            <li>1: {{ quiz.answer_1 }} {% if quiz.correct == quiz.answer_1 %}<span class="correct-mark">✓</span>{% endif %}</li>
+                            <li>2: {{ quiz.answer_2 }} {% if quiz.correct == quiz.answer_2 %}<span class="correct-mark">✓</span>{% endif %}</li>
+                            <li>3: {{ quiz.answer_3 }} {% if quiz.correct == quiz.answer_3 %}<span class="correct-mark">✓</span>{% endif %}</li>
+                        </ul>
+                    </td>
+                    <td>{{ quiz.correct }}</td>
+                    <td>
+                        <button onclick="deleteQuiz({{ quiz.id }})" class="delete-button">削除</button>
+                    </td>
+
+                    <style>
+                        .correct-mark {
+                            color: #4CAF50;
+                            font-weight: bold;
+                            margin-left: 5px;
+                        }
+                    </style>
+                    
+                </tr>
+                {% endfor %}
+                {% if not quizzes_pagination.items %}
+                <tr>
+                    <td colspan="6" class="no-data">データがありません</td>
+                </tr>
+                {% endif %}
+            </tbody>
         </table>
     </div>
+
+    <!-- ページネーション -->
+    <div class="pagination">
+        {% if quizzes_pagination.has_prev %}
+            <a href="{{ url_for('admin_panel', 
+                               quiz_page=quizzes_pagination.prev_num,
+                               page=page,
+                               search=search_query,
+                               quiz_search=quiz_search) }}">&laquo; 前へ</a>
+        {% endif %}
+
+        {% for page_num in quizzes_pagination.iter_pages(left_edge=2, left_current=2, right_current=2, right_edge=2) %}
+            {% if page_num %}
+                {% if page_num == quizzes_pagination.page %}
+                    <span class="current-page">{{ page_num }}</span>
+                {% else %}
+                    <a href="{{ url_for('admin_panel',
+                                      quiz_page=page_num,
+                                      page=page,
+                                      search=search_query,
+                                      quiz_search=quiz_search) }}">{{ page_num }}</a>
+                {% endif %}
+            {% else %}
+                <span class="ellipsis">...</span>
+            {% endif %}
+        {% endfor %}
+
+        {% if quizzes_pagination.has_next %}
+            <a href="{{ url_for('admin_panel',
+                               quiz_page=quizzes_pagination.next_num,
+                               page=page,
+                               search=search_query,
+                               quiz_search=quiz_search) }}">次へ &raquo;</a>
+        {% endif %}
+    </div>
+</div>
+
+<style>
+.quiz-form {
+    background: #f9f9f9;
+    padding: 20px;
+    margin-bottom: 20px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
+
+.quiz-form textarea {
+    width: 100%;
+    min-height: 100px;
+    padding: 8px;
+    margin-bottom: 10px;
+}
+
+/* その他の既存のスタイル */
+</style>
+
+<script>
+    async function deleteQuiz(quizId) {
+    if (!confirm('このクイズを削除してもよろしいですか？')) {
+        return;
+    }
+    
+    try {
+        const response = await fetch(`/{{ admin_hash }}/delete_quiz/${quizId}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            // 削除アニメーション
+            const quizElement = document.getElementById(`quiz-${quizId}`);
+            quizElement.classList.add('fade-out');
+            
+            // アニメーション完了後に要素を削除
+            setTimeout(() => {
+                quizElement.remove();
+                
+                // テーブルが空になった場合、「データがありません」の行を追加
+                const tbody = document.querySelector('tbody');
+                if (tbody.children.length === 0) {
+                    const noDataRow = document.createElement('tr');
+                    noDataRow.innerHTML = '<td colspan="6" class="no-data">データがありません</td>';
+                    tbody.appendChild(noDataRow);
+                }
+            }, 500);
+            
+            // 成功メッセージ
+            alert('クイズが正常に削除されました');
+        } else {
+            throw new Error(data.error || 'クイズの削除に失敗しました');
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        alert('エラーが発生しました: ' + error.message);
+    }
+}
+    // フォームの送信前に選択肢の値を確認するバリデーション
+    function validateQuizForm(form) {
+        const answer1 = form.answer_1.value;
+        const answer2 = form.answer_2.value;
+        const answer3 = form.answer_3.value;
+        
+        // 選択肢が重複していないかチェック
+        if (answer1 === answer2 || answer2 === answer3 || answer1 === answer3) {
+            alert('選択肢は重複しないようにしてください。');
+            return false;
+        }
+        
+        return true;
+    }
+        // エラーハンドリングの改善
+    window.addEventListener('error', function(e) {
+        console.error('Global error:', e.error);
+        alert('予期せぬエラーが発生しました。ページをリロードしてください。');
+    });
+
+    // クイズの追加
+    async function addQuiz(event) {
+        event.preventDefault();
+        const form = event.target;
+        
+        if (!validateQuizForm(form)) {
+            return;
+        }
+        
+        const formData = new FormData(form);
+        
+        try {
+            const response = await fetch(`/{{ admin_hash }}/add_quiz`, {
+                method: 'POST',
+                body: formData
+            });
+            
+            const data = await response.json();
+            if (data.success) {
+                alert('クイズが追加されました');
+                location.reload();
+            } else {
+                alert('エラー: ' + data.error);
+            }
+        } catch (error) {
+            alert('エラーが発生しました');
+            console.error('Error:', error);
+        }
+    }
+</script>
 
     <!-- 追加のスタイル -->
     <style>
