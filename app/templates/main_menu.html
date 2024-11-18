@@ -3,18 +3,100 @@
 <head>
     <meta charset="UTF-8">
     <title>{{ title }}</title>
+    <style>
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .message {
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 4px;
+            text-align: left;
+            line-height: 1.5;
+        }
+
+        .flash-success {
+            background-color: #dff0d8;
+            border: 1px solid #d6e9c6;
+            color: #3c763d;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 4px;
+            line-height: 1.5;
+        }
+
+        .flash-error {
+            background-color: #f2dede;
+            border: 1px solid #ebccd1;
+            color: #a94442;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 4px;
+            line-height: 1.5;
+        }
+
+        .menu-list {
+            list-style: none;
+            padding: 0;
+            margin: 20px 0;
+        }
+
+        .menu-list li {
+            margin: 10px 0;
+        }
+
+        .menu-list a {
+            text-decoration: none;
+            color: #007bff;
+            padding: 8px 0;
+            display: inline-block;
+        }
+
+        .menu-list a:hover {
+            color: #0056b3;
+            text-decoration: underline;
+        }
+
+        .welcome-message {
+            font-size: 1.2em;
+            margin: 20px 0;
+            padding: 10px;
+            background-color: #f8f9fa;
+            border-radius: 4px;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 20px;
+        }
+    </style>
 </head>
 <body>
-    <h1>{{ title }}</h1>
-    
-    {% if user %}
-        <p>ようこそ、{{ user.account }}さん</p>
-    {% endif %}
-    
-    <ul>
-        <li><a href="{{ url_for('participation_guide') }}">スタンプラリーの参加方法</a></li>
-        <li><a href="{{ url_for('app_usage') }}">スタンプラリーアプリの使い方</a></li>
-        <li><a href="{{ url_for('view_stamps') }}">ゲット済みのスタンプを確認する</a></li>
-    </ul>
+    <div class="container">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="flash-{{ category }}">{{ message | safe }}</div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <h1>{{ title }}</h1>
+        
+        {% if user %}
+            <div class="welcome-message">
+                ようこそ、{{ user.account }}さん
+            </div>
+        {% endif %}
+        
+        <ul class="menu-list">
+            <li><a href="{{ url_for('participation_guide') }}">スタンプラリーの参加方法</a></li>
+            <li><a href="{{ url_for('app_usage') }}">スタンプラリーアプリの使い方</a></li>
+            <li><a href="{{ url_for('view_stamps') }}">ゲット済みのスタンプを確認する</a></li>
+        </ul>
+    </div>
 </body>
 </html>

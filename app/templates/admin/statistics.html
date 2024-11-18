@@ -71,6 +71,22 @@
     </style>
 </head>
 <body>
+
+    <!-- リロードステータス表示を修正 -->
+    <div id="reload-status">
+        <div class="reload-content">
+            <div class="countdown-display">
+                次回更新まで: <span id="countdown">30</span>秒
+            </div>
+            <div class="button-container">
+                <button id="reload-toggle" class="control-button">自動更新を停止</button>
+            </div>
+            <div class="force-button-container">
+                <button onclick="forceReload()" class="force-button">今すぐ更新</button>
+            </div>
+        </div>
+    </div>
+
     <div class="stats-container">
         <a href="/{{ admin_hash }}" class="back-button">管理画面に戻る</a>
         <h1>スタンプラリー統計情報</h1>
@@ -163,99 +179,287 @@
 
         <!-- 進行状況マップ -->
         <!-- templates/admin/statistics.html の進行状況マップ部分 -->
-    <div class="stats-section">
-        <h2>スポット進行状況マップ</h2>
-        <div class="progress-map-container">
-            <canvas id="progressMap"></canvas>
-        </div>
+        <div class="stats-section">
+            <h2>スポット進行状況マップ</h2>
+            <div class="search-bar">
+                <form action="{{ url_for('stamp_statistics') }}" method="get">
+                    <input type="text" name="search" placeholder="ユーザー検索" value="{{ search_query }}">
+                    <select name="filter">
+                        <option value="all" {% if filter_type == 'all' %}selected{% endif %}>全て</option>
+                        <option value="completed" {% if filter_type == 'completed' %}selected{% endif %}>完了済み</option>
+                        <option value="incomplete" {% if filter_type == 'incomplete' %}selected{% endif %}>未完了</option>
+                        <option value="no_stamps" {% if filter_type == 'no_stamps' %}selected{% endif %}>スタンプ0個</option>
+                        <option value="has_stamps" {% if filter_type == 'has_stamps' %}selected{% endif %}>スタンプ1個以上</option>
+                        {% for i in range(1, 10) %}
+                        <option value="stamps_{{ i }}" {% if filter_type == 'stamps_' + i|string %}selected{% endif %}>スタンプ{{ i }}個</option>
+                        {% endfor %}
+                    </select>
+                    <button type="submit">検索</button>
+                </form>
+            </div>
         
-        <!-- ページネーション -->
-        <div class="pagination">
-            {% for page in range(1, progress_map_data.total_pages + 1) %}
-                <a href="{{ url_for('stamp_statistics', page=page, search=search_query) }}" 
-                class="{% if page == current_page %}active{% endif %}">
-                    {{ page }}
-                </a>
-            {% endfor %}
-        </div>
-    </div>
+            <div class="progress-map">
+                <div class="y-axis">
+                    {% for checkpoint in progress_map_data.checkpoint_names %}
+                        <div class="y-label">{{ checkpoint }}</div>
+                    {% endfor %}
+                </div>
+            
+                <div class="map-container">
+                    <div class="plot-container">
+                        {% if progress_map_data.progress_data %}
+                            {% set sorted_data = progress_map_data.progress_data|sort(attribute='timestamp', reverse=true) %}
+                            {% set user_data = {} %}
+                            {% for point in sorted_data %}
+                                {% if point.x not in user_data %}
+                                    {% set _ = user_data.update({point.x: []}) %}
+                                {% endif %}
+                                {% set _ = user_data[point.x].append(point) %}
+                            {% endfor %}
+                            {% for user, points in user_data.items() %}
+                                {% set x_scale = 100 if user_data|length <= 1 else (loop.index0 / (user_data|length - 1)) * 100 %}
+                                {% for point in points %}
+                                    {% set y_pos = progress_map_data.checkpoint_names.index(point.y) %}
+                                    {% set y_scale = 100 if progress_map_data.checkpoint_names|length <= 1 else (y_pos / (progress_map_data.checkpoint_names|length - 1)) * 100 %}
+                                    <div class="data-point"
+                                         style="left: {{ x_scale }}%;
+                                                top: {{ y_scale }}%;"
+                                         data-user="{{ point.x }}"
+                                         data-checkpoint="{{ point.y }}"
+                                         data-time="{{ point.timestamp }}">
+                                    </div>
+                                {% endfor %}
+                            {% endfor %}
+            
+                            <div class="x-axis">
+                                {% for user in user_data %}
+                                    <div class="x-label" style="left: {{ (loop.index0 / (user_data|length - 1 or 1)) * 100 }}%">
+                                        {% for char in user %}{{ char }}{% endfor %}
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            <div class="no-data-message">表示するデータがありません</div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            
+            <style>
 
-    <script>
-    const progressMap = new Chart(document.getElementById('progressMap'), {
-        type: 'scatter',
-        data: {
-            datasets: [{
-                label: 'スタンプ取得',
-                data: {{ progress_map_data.progress_data | tojson }},
-                backgroundColor: 'rgba(54, 162, 235, 0.8)',
-                pointRadius: 8,
-                pointHoverRadius: 10
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            scales: {
-                y: {
-                    type: 'category',
-                    labels: {{ progress_map_data.checkpoint_names | tojson }},
-                    title: {
-                        display: true,
-                        text: 'チェックポイント'
-                    }
-                },
-                x: {
-                    type: 'category',
-                    title: {
-                        display: true,
-                        text: 'ユーザー'
-                    }
-                }
-            },
-            plugins: {
-                tooltip: {
-                    callbacks: {
-                        label: function(context) {
-                            const data = context.raw;
-                            return `${data.x}: ${data.y} (${data.timestamp})`;
-                        }
-                    }
-                },
-                legend: {
-                    display: false
-                }
+            .search-bar {
+                margin-bottom: 20px;
             }
+
+            .search-bar form {
+                display: flex;
+                gap: 10px;
+                align-items: center;
+            }
+
+            .search-bar input,
+            .search-bar select {
+                padding: 8px 12px;
+                border: 1px solid #ddd;
+                border-radius: 4px;
+                font-size: 14px;
+            }
+
+            .search-bar select {
+                min-width: 150px;
+            }
+
+            .search-bar button {
+                padding: 8px 16px;
+                background: #007bff;
+                color: white;
+                border: none;
+                border-radius: 4px;
+                cursor: pointer;
+            }
+
+            .search-bar button:hover {
+                background: #0056b3;
+            }
+
+            .progress-map {
+                display: flex;
+                margin: 40px 20px;
+                padding-bottom: 60px;
+            }
+            
+            .map-container {
+                margin-bottom: 10px;  /* ラベルのための空間を確保 */
+                flex-grow: 1;
+                position: relative;
+                height: 600px;
+                border: 1px solid #ddd;
+                background: white;
+            }
+            
+            .grid-background {
+                position: absolute;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                display: flex;
+                flex-direction: column;
+                justify-content: space-between;
+            }
+            
+            .grid-line {
+                height: 1px;
+                background-color: #f0f0f0;
+            }
+            
+            .plot-container {
+                position: absolute;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                padding: 20px;
+            }
+            
+            .no-data-message {
+                position: absolute;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                color: #666;
+                font-style: italic;
+            }
+            
+            .data-point {
+                position: absolute;
+                width: 12px;
+                height: 12px;
+                background-color: #007bff;
+                border-radius: 50%;
+                transform: translate(-50%, -50%);
+                cursor: pointer;
+                transition: all 0.2s ease;
+                z-index: 2;
+            }
+            
+            .data-point:hover {
+                width: 16px;
+                height: 16px;
+                background-color: #0056b3;
+                box-shadow: 0 0 8px rgba(0,123,255,0.5);
+                z-index: 3;
+            }
+            
+            .y-axis {
+                width: 120px;
+                padding-right: 10px;
+                display: flex;
+                flex-direction: column;
+                justify-content: space-between;
+            }
+            
+            .y-label {
+                text-align: right;
+                padding: 5px;
+                font-size: 12px;
+                height: 20px;
+            }
+            
+            /* ラベルのコンテナのスタイルも調整 */
+            .x-axis {
+                position: absolute;
+                bottom: -60px;  /* より多くのスペースを確保 */
+                left: 0;
+                right: 0;
+                height: 50px;  /* 高さを増やす */
+            }
+            
+            .x-label {
+            position: absolute;
+            transform: translateX(-50%);
+            text-align: center;
+            writing-mode: vertical-lr;
+            text-orientation: upright;
+            font-size: 12px;
+            letter-spacing: 2px;
+            padding-top: 5px;
+            height: auto;
+            white-space: nowrap;
         }
-    });
-    </script>
+            
+            @media (max-width: 768px) {
+                .progress-map {
+                    margin: 20px 10px;
+                }
+            
+                .y-axis {
+                    width: 80px;
+                }
+            
+                .y-label {
+                    font-size: 10px;
+                }
+            
+                .map-container {
+                    height: 400px;
+                    margin-bottom: 60px;
+                }
+            
+                .x-label {
+                    font-size: 10px;
+                    letter-spacing: 1px;
+                }
+                
+                .x-axis {
+                    bottom: -50px;
+                }
+                
+                /* ツールチップのスタイルも調整 */
+                .tooltip {
+                    position: absolute;
+                    background: rgba(0, 0, 0, 0.8);
+                    color: white;
+                    padding: 8px 12px;
+                    border-radius: 4px;
+                    font-size: 12px;
+                    pointer-events: none;
+                    z-index: 1001;
+                    white-space: pre-line;
+                }
 
-    <style>
-    .progress-map-container {
-        height: 500px;
-        margin: 20px 0;
-    }
-
-    .pagination {
-        display: flex;
-        justify-content: center;
-        gap: 10px;
-        margin-top: 20px;
-    }
-
-    .pagination a {
-        padding: 5px 10px;
-        border: 1px solid #ddd;
-        text-decoration: none;
-        color: #333;
-    }
-
-    .pagination a.active {
-        background-color: #007bff;
-        color: white;
-        border-color: #007bff;
-    }
-    </style>
-    </script>
+            }
+            </style>
+            
+            <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                const points = document.querySelectorAll('.data-point');
+                const tooltip = document.createElement('div');
+                tooltip.className = 'tooltip';
+                document.body.appendChild(tooltip);
+            
+                points.forEach(point => {
+                    point.addEventListener('mouseover', function(e) {
+                        const tooltipContent = `
+                            ユーザー: ${point.dataset.user}
+                            チェックポイント: ${point.dataset.checkpoint}
+                            時刻: ${point.dataset.time}
+                        `.trim();
+            
+                        tooltip.textContent = tooltipContent;
+                        tooltip.style.display = 'block';
+            
+                        const rect = point.getBoundingClientRect();
+                        tooltip.style.left = `${rect.left + window.scrollX}px`;
+                        tooltip.style.top = `${rect.top + window.scrollY - tooltip.offsetHeight - 10}px`;
+                    });
+            
+                    point.addEventListener('mouseout', function() {
+                        tooltip.style.display = 'none';
+                    });
+                });
+            });
+            </script>
 
         <!-- チェックポイント別統計 -->
         <div class="stats-section">
@@ -354,5 +558,440 @@
             }
         });
     </script>
+
+    <script>
+        let autoReloadEnabled = true;
+        const RELOAD_INTERVAL = 30;
+        let countdown = RELOAD_INTERVAL;
+        let isInputting = false;
+        let pausedCountdown = null;
+
+        function setupInputTracking() {
+            const inputs = document.querySelectorAll('input, textarea, select');
+            inputs.forEach(input => {
+                input.addEventListener('focus', () => {
+                    isInputting = true;
+                    pausedCountdown = countdown;
+                    updateReloadStatus();
+                });
+
+                input.addEventListener('blur', () => {
+                    isInputting = false;
+                    if (autoReloadEnabled) {
+                        countdown = pausedCountdown;
+                    }
+                    updateReloadStatus();
+                });
+            });
+        }
+
+        function updateReloadStatus() {
+            const statusElement = document.getElementById('reload-status');
+            const toggleButton = document.getElementById('reload-toggle');
+
+            if (isInputting) {
+                statusElement.classList.add('paused');
+                toggleButton.textContent = '入力中';
+                toggleButton.disabled = true;
+                toggleButton.classList.remove('start-update');
+            } else {
+                statusElement.classList.remove('paused');
+                toggleButton.disabled = false;
+
+                if (autoReloadEnabled) {
+                    toggleButton.textContent = '自動更新を停止';
+                    toggleButton.classList.remove('start-update');
+                } else {
+                    toggleButton.textContent = '自動更新を開始';
+                    toggleButton.classList.add('start-update');
+                }
+            }
+        }
+
+        function updateCountdown() {
+            const countdownElement = document.getElementById('countdown');
+            if (!isInputting && autoReloadEnabled) {
+                countdownElement.textContent = countdown;
+                if (countdown <= 0) {
+                    reloadContent();
+                    autoSubmitSearchForms(); // 各検索フォームを自動送信
+                    countdown = RELOAD_INTERVAL;
+                }
+                countdown--;
+            }
+        }
+
+        async function reloadContent() {
+            if (isInputting) return;
+
+            try {
+                const response = await fetch(window.location.href);
+                const text = await response.text();
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(text, 'text/html');
+
+                ['login-table', 'checkpoint-table', 'survey-table', 'quiz-table'].forEach(tableId => {
+                    const newTable = doc.getElementById(tableId);
+                    const currentTable = document.getElementById(tableId);
+                    if (newTable && currentTable) {
+                        currentTable.innerHTML = newTable.innerHTML;
+                    }
+                });
+
+                setupInputTracking();
+            } catch (error) {
+                console.error('Error reloading content:', error);
+            }
+        }
+
+        async function autoSubmitSearchForms() {
+            // ユーザー検索フォーム
+            const userSearchForm = document.querySelector('.search-form form');
+            if (userSearchForm) {
+                await reloadUserStats();
+                updateCharts();
+                userSearchForm.submit();
+            }
+
+            // チェックポイント統計の検索フォーム
+            const checkpointStatsForm = document.querySelector('.stats-section:nth-of-type(3) form');
+            if (checkpointStatsForm) {
+                await reloadCheckpointStats();
+                updateCharts();
+                checkpointStatsForm.submit();
+            }
+
+            // 時間帯別統計
+            await reloadHourlyStats();
+            updateCharts();
+        }
+
+        async function reloadUserStats() {
+            try {
+                const response = await fetch(`/{{ admin_hash }}/statistics?${new URLSearchParams(new FormData(userSearchForm))}`);
+                const data = await response.json();
+                updateUserStatsTable(data.users_pagination.items);
+            } catch (error) {
+                console.error('Error reloading user stats:', error);
+            }
+        }
+
+        function updateUserStatsTable(data) {
+            const tableBody = document.querySelector('.stats-section:nth-of-type(2) tbody');
+            tableBody.innerHTML = '';
+
+            for (const stat of data) {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${stat.account}</td>
+                    <td>${stat.total_stamps}</td>
+                    <td>${stat.first_stamp ? stat.first_stamp.strftime('%H:%M') : '-'}</td>
+                    <td>${stat.last_stamp ? stat.last_stamp.strftime('%H:%M') : '-'}</td>
+                    <td>${getTimeElapsed(stat.first_stamp, stat.last_stamp)}</td>
+                `;
+                tableBody.appendChild(row);
+            }
+        }
+
+        function getTimeElapsed(start, end) {
+            if (!start || !end) {
+                return '-';
+            }
+            const minutes = Math.round((end - start).total_seconds() / 60);
+            if (minutes < 60) {
+                return `${minutes}分`;
+            } else {
+                const hours = Math.floor(minutes / 60);
+                const remainingMinutes = minutes % 60;
+                return `${hours}時間${remainingMinutes}分`;
+            }
+        }
+
+        async function reloadCheckpointStats() {
+            try {
+                const response = await fetch(`/{{ admin_hash }}/statistics?${new URLSearchParams(new FormData(checkpointStatsForm))}`);
+                const data = await response.json();
+                updateCheckpointStatsTable(data.checkpoint_stats);
+            } catch (error) {
+                console.error('Error reloading checkpoint stats:', error);
+            }
+        }
+
+        function updateCheckpointStatsTable(data) {
+            const tableBody = document.querySelector('.stats-section:nth-of-type(3) tbody');
+            tableBody.innerHTML = '';
+
+            for (const stat of data) {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${stat.name}</td>
+                    <td>${stat.checkpoint_type}</td>
+                    <td>${stat.visit_count}</td>
+                `;
+                tableBody.appendChild(row);
+            }
+
+            updateCheckpointChart();
+        }
+
+        function updateCheckpointChart() {
+            const chartData = {
+                labels: {{ checkpoint_stats | map(attribute='name') | list | tojson }},
+                datasets: [{
+                    label: '訪問回数',
+                    data: {{ checkpoint_stats | map(attribute='visit_count') | list | tojson }},
+                    backgroundColor: 'rgba(54, 162, 235, 0.5)',
+                    borderColor: 'rgba(54, 162, 235, 1)',
+                    borderWidth: 1
+                }]
+            };
+
+            const checkpointChart = Chart.getChart('checkpointChart') || new Chart(document.getElementById('checkpointChart'), {
+                type: 'bar',
+                data: chartData,
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            suggestedMax: 100
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'top'
+                        },
+                        title: {
+                            display: true,
+                            text: 'チェックポイント別訪問回数'
+                        }
+                    }
+                }
+            });
+
+            checkpointChart.data = chartData;
+            checkpointChart.update();
+        }
+
+        async function reloadHourlyStats() {
+            try {
+                const response = await fetch(`/{{ admin_hash }}/statistics`);
+                const data = await response.json();
+                updateHourlyChart(data.hours_data);
+            } catch (error) {
+                console.error('Error reloading hourly stats:', error);
+            }
+        }
+
+        function updateHourlyChart(data) {
+            const hourlyChart = Chart.getChart('hourlyChart') || new Chart(document.getElementById('hourlyChart'), {
+                type: 'line',
+                data: {
+                    labels: Object.keys(data),
+                    datasets: [{
+                        label: 'スタンプ取得数',
+                        data: Object.values(data).map(d => d.stamps),
+                        fill: false,
+                        borderColor: 'rgba(75, 192, 192, 1)',
+                        tension: 0.1
+                    }, {
+                        label: 'ユニークユーザー数',
+                        data: Object.values(data).map(d => d.users),
+                        fill: false,
+                        borderColor: 'rgba(255, 159, 64, 1)',
+                        tension: 0.1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+
+            hourlyChart.data.labels = Object.keys(data);
+            hourlyChart.data.datasets[0].data = Object.values(data).map(d => d.stamps);
+            hourlyChart.data.datasets[1].data = Object.values(data).map(d => d.users);
+            hourlyChart.update();
+        }
+
+        function updateCharts() {
+            updateCheckpointChart();
+            updateHourlyChart({{ hours_data | tojson }});
+        }
+
+        // 自動更新の切り替え
+        document.getElementById('reload-toggle').addEventListener('click', function() {
+            if (!isInputting) {
+                autoReloadEnabled = !autoReloadEnabled;
+                if (!autoReloadEnabled) {
+                    pausedCountdown = countdown;
+                } else {
+                    countdown = pausedCountdown || RELOAD_INTERVAL;
+                }
+                updateReloadStatus();
+            }
+        });
+
+        function forceReload() {
+            if (!isInputting) {
+                countdown = 0;
+                autoReloadEnabled = true;
+                updateCountdown();
+                updateReloadStatus();
+            }
+        }
+
+        setInterval(() => {
+            updateCountdown();
+        }, 1000);
+
+        document.addEventListener('DOMContentLoaded', () => {
+            setupInputTracking();
+            updateCountdown();
+            updateReloadStatus();
+        });
+    </script>
+
+    <style>
+        /* リロードステータスのスタイル更新 */
+        #reload-status {
+            position: fixed;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 1000;
+            padding: 15px 30px;
+            background-color: rgba(248, 249, 250, 0.98);
+            border: 2px solid #ddd;
+            border-radius: 0 0 8px 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            min-width: 500px; /* 最小幅を設定 */
+        }
+        
+        .reload-content {
+            display: grid;
+            grid-template-columns: auto auto auto;
+            gap: 20px;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .countdown-display {
+            font-size: 1.1em;
+            white-space: nowrap;
+        }
+        
+        #countdown {
+            font-weight: bold;
+            color: #4CAF50;
+            font-size: 1.3em;
+            margin: 0 5px;
+        }
+        
+        .button-container {
+            display: flex;
+            justify-content: center;
+        }
+        
+        /* 通常の停止ボタン */
+        .control-button {
+            padding: 8px 16px;
+            font-size: 0.9em;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background-color: #ff4444;
+            color: white;
+            min-width: 140px; /* 最小幅を設定 */
+        }
+        
+        /* 開始ボタンの特別なスタイル */
+        .control-button.start-update {
+            background-color: #4CAF50;
+            color: white;
+            font-size: 1.1em;
+            padding: 12px 24px;
+            font-weight: bold;
+            transform: scale(1.1);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            animation: attention-pulse 2s infinite;
+            z-index: 2; /* 他の要素より前面に */
+            min-width: 160px; /* 大きくなった時の最小幅 */
+        }
+        
+        /* 開始ボタンのホバー効果 */
+        .control-button.start-update:hover {
+            background-color: #45a049;
+            transform: scale(1.15);
+        }
+        
+        .force-button-container {
+            display: flex;
+            justify-content: flex-start;
+        }
+        
+        .force-button {
+            padding: 8px 16px;
+            background-color: #2196F3;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            white-space: nowrap;
+        }
+        
+        .force-button:hover {
+            background-color: #1976D2;
+        }
+        
+        /* パルスアニメーション */
+        @keyframes attention-pulse {
+            0% {
+                box-shadow: 0 0 0 0 rgba(76, 175, 80, 0.7);
+            }
+            70% {
+                box-shadow: 0 0 0 10px rgba(76, 175, 80, 0);
+            }
+            100% {
+                box-shadow: 0 0 0 0 rgba(76, 175, 80, 0);
+            }
+        }
+        
+        #reload-status.paused {
+            background-color: rgba(255, 224, 224, 0.98);
+        }
+        
+        #reload-status button:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+            transform: none;
+            animation: none;
+            box-shadow: none;
+        }
+        
+        /* ボタンの配置が崩れないようにするためのメディアクエリ */
+        @media (max-width: 768px) {
+            .reload-content {
+                grid-template-columns: 1fr;
+                gap: 10px;
+            }
+            
+            #reload-status {
+                min-width: auto;
+                width: 95%;
+            }
+        }
+    </style>
+
 </body>
 </html>

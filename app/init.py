@@ -4,6 +4,8 @@ from sqlalchemy import CheckConstraint, Numeric
 from datetime import datetime
 import pytz
 import pandas as pd
+#actual_loginsとかの名前にする。
+
 
 db = SQLAlchemy()
 
@@ -12,7 +14,7 @@ class Checkpoint(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True, nullable=False)
     checkpoint_order = db.Column(db.Integer, nullable=False)
     name = db.Column(db.String(20), nullable=False)
-    description = db.Column(db.String(240), unique=True, nullable=False)
+    description = db.Column(db.String(300), unique=True, nullable=False)
     checkpoint_type = db.Column(db.String(10), nullable=False)
     __table_args__ = (
         CheckConstraint("checkpoint_type IN ('normal', 'start', 'goal')", name='check_point_type'),
@@ -69,7 +71,7 @@ class Survey(db.Model):
     __tablename__ = 'SURVEY'
     id = db.Column(db.Integer, primary_key=True, autoincrement=True, nullable=False)
     checkpoint_id = db.Column(db.Integer, db.ForeignKey('CHECKPOINT.id'), nullable=False)
-    question = db.Column(db.String(120), nullable=False)
+    question = db.Column(db.String(240), nullable=False)
     survey_order = db.Column(Numeric(10, 2), unique=True, nullable=False)
     # リレーションシップの定義
     survey_choices = db.relationship('Survey_Choice', back_populates='survey', lazy=True)
@@ -110,8 +112,8 @@ def initialize_db(app):
                 Checkpoint(checkpoint_order=5, name="地点4番", description="ここは地点4番です。", checkpoint_type="normal"),
                 Checkpoint(checkpoint_order=6, name="地点5番", description="ここは地点5番です。", checkpoint_type="normal"),
                 Checkpoint(checkpoint_order=7, name="地点6番", description="ここは地点6番です。", checkpoint_type="normal"),
-                Checkpoint(checkpoint_order=8, name="地点7番", description="ここは地点7番です。", checkpoint_type="normal"),
-                Checkpoint(checkpoint_order=9, name="ゴール地点", description="ここがゴールです。", checkpoint_type="goal")
+            #    Checkpoint(checkpoint_order=8, name="地点7番", description="ここは地点7番です。", checkpoint_type="normal"),
+                Checkpoint(checkpoint_order=8, name="ゴール地点", description="ここがゴールです。", checkpoint_type="goal")
             ]
             db.session.add_all(test_checkpoints)
             db.session.flush() 
@@ -295,7 +297,7 @@ def initialize_db(app):
                 Stamp(2, checkpoint_id=test_checkpoints[4].id),
                 Stamp(2, checkpoint_id=test_checkpoints[5].id),
                 Stamp(2, checkpoint_id=test_checkpoints[6].id),
-                Stamp(2, checkpoint_id=test_checkpoints[7].id)
+            #    Stamp(2, checkpoint_id=test_checkpoints[7].id)
             ]
             db.session.add_all(test_stamps)
             db.session.flush()  

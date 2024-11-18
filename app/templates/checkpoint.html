@@ -1,9 +1,190 @@
 <!DOCTYPE html>
-<html>
-<head><title>{{ checkpoint.name }}</title></head>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>チェックポイント</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        p {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+            line-height: 1.6;
+        }
+
+        .quiz-info {
+            text-align: center;
+            margin-bottom: 20px;
+            color: #666;
+        }
+
+        .submit-button {
+            display: block;
+            width: 200px;
+            margin: 20px auto;
+            padding: 15px 30px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s ease;
+        }
+
+        .submit-button:hover {
+            background-color: #45a049;
+        }
+
+        .submit-button:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+
+        .flash-message {
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 4px;
+        }
+
+        .flash-message.error {
+            background-color: #ffebee;
+            border: 1px solid #ffcdd2;
+            color: #c62828;
+        }
+
+        .flash-message.success {
+            background-color: #e8f5e9;
+            border: 1px solid #c8e6c9;
+            color: #2e7d32;
+        }
+
+        .image-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+        }
+
+        .checkpoint-image {
+            max-width: 100%;
+            height: auto;
+            display: block;
+        }
+
+        .image-caption {
+            margin-top: 10px;
+            font-size: 14px;
+            color: #666;
+        }
+    </style>
+</head>
 <body>
-    <h1>{{ checkpoint.name }}</h1>
-    <p>{{ checkpoint.description }}</p>
-    <a href="{{ url_for('quiz', checkpoint_id=checkpoint.id) }}">クイズに回答する</a>
+    <!-- フラッシュメッセージの表示 -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="flash-message {{ category }}">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <h1>チェックポイント: {{ checkpoint.name }}</h1>
+    
+    <!-- 写真の表示 -->
+    <div class="image-container">
+        {% if checkpoint.checkpoint_order == 1 %}
+            <img src="{{ url_for('static', filename='images/start_point.jpg') }}" alt="スタート地点" class="checkpoint-image">
+            <div class="image-caption">スタート地点の様子</div>
+        {% elif checkpoint.checkpoint_order == 2 %}
+            <img src="{{ url_for('static', filename='images/point1.jpg') }}" alt="チェックポイント1" class="checkpoint-image">
+            <div class="image-caption">チェックポイント1の様子</div>
+        {% elif checkpoint.checkpoint_order == 3 %}
+            <img src="{{ url_for('static', filename='images/point2.jpg') }}" alt="チェックポイント2" class="checkpoint-image">
+            <div class="image-caption">チェックポイント2の様子</div>
+        {% elif checkpoint.checkpoint_order == 4 %}
+            <img src="{{ url_for('static', filename='images/point3.jpg') }}" alt="チェックポイント3" class="checkpoint-image">
+            <div class="image-caption">チェックポイント3の様子</div>
+        {% elif checkpoint.checkpoint_order == 5 %}
+            <img src="{{ url_for('static', filename='images/point4.jpg') }}" alt="チェックポイント4" class="checkpoint-image">
+            <div class="image-caption">チェックポイント4の様子</div>
+        {% elif checkpoint.checkpoint_order == 6 %}
+            <img src="{{ url_for('static', filename='images/point5.jpg') }}" alt="チェックポイント5" class="checkpoint-image">
+            <div class="image-caption">チェックポイント5の様子</div>
+        {% elif checkpoint.checkpoint_order == 7 %}
+            <img src="{{ url_for('static', filename='images/point6.jpg') }}" alt="チェックポイント6" class="checkpoint-image">
+            <div class="image-caption">チェックポイント6の様子</div>
+
+        {% elif checkpoint.checkpoint_order == 8 %}
+            <img src="{{ url_for('static', filename='images/goal_point.jpg') }}" alt="ゴール地点" class="checkpoint-image">
+            <div class="image-caption">ゴール地点の様子</div>
+        {% endif %}
+    </div>
+
+    <p>{{ checkpoint.description | replace('<br>', '\n') }}</p>
+
+    {% if total_quizzes > 0 %}
+        <div class="quiz-info">
+            <p>このチェックポイントには {{ total_quizzes }}問のクイズがあります。</p>
+        </div>
+
+        <form method="GET" action="{{ url_for('quiz', checkpoint_id=checkpoint.id) }}">
+            <button type="submit" class="submit-button" id="quizButton">
+                クイズに挑戦する
+            </button>
+        </form>
+    {% else %}
+        <div class="quiz-info">
+            <p>現在このチェックポイントにはクイズが設定されていません。</p>
+        </div>
+    {% endif %}
+
+    <div style="text-align: center; margin-top: 30px;">
+        <a href="{{ url_for('view_stamps') }}" style="color: #4CAF50; text-decoration: none;">
+            スタンプ一覧に戻る
+        </a>
+    </div>
+
+    <script>
+        // フォーム送信時のボタン二重クリック防止
+        document.querySelector('form').addEventListener('submit', function(e) {
+            const button = document.getElementById('quizButton');
+            button.disabled = true;
+            button.textContent = '移動中...';
+        });
+
+        // フラッシュメッセージの自動非表示
+        window.addEventListener('load', function() {
+            const flashMessages = document.querySelectorAll('.flash-message');
+            flashMessages.forEach(function(message) {
+                setTimeout(function() {
+                    message.style.opacity = '0';
+                    message.style.transition = 'opacity 0.5s ease';
+                    setTimeout(function() {
+                        message.remove();
+                    }, 500);
+                }, 3000);
+            });
+        });
+    </script>
 </body>
 </html>

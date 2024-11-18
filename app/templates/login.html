@@ -37,11 +37,39 @@
         button:hover {
             background-color: #1976D2;
         }
+        .flash-message {
+            margin: 20px 0;
+            padding: 10px;
+            border-radius: 4px;
+            text-align: center;
+            font-weight: bold;
+        }
+        .flash-message.error {
+            background-color: #ffebee;
+            border: 1px solid #ffcdd2;
+            color: #c62828;
+        }
+        .flash-message.success {
+            background-color: #e8f5e9;
+            border: 1px solid #c8e6c9;
+            color: #2e7d32;
+        }
     </style>
 </head>
 <h1>{{ title }}</h1>
 
-{% if checkpoint.description %}
+{% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+        {% for category, message in messages %}
+            <div class="flash-message {{ category }}">
+                {{ message }}
+            </div>
+        {% endfor %}
+    {% endif %}
+{% endwith %}
+
+{# スタートまたはゴールの場合のみ説明文を表示 #}
+{% if checkpoint.checkpoint_type in ['start', 'goal'] and checkpoint.description %}
 <div class="checkpoint-description">
     <p>{{ checkpoint.description }}</p>
 </div>

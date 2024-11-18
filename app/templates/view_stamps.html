@@ -2,6 +2,17 @@
 {% block content %}
 <h1>{{ title }}</h1>
 
+{# フラッシュメッセージ表示部分を修正 #}
+{% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+        {% for category, message in messages %}
+            <div class="alert alert-{{ category }}">
+                {{ message | safe }}
+            </div>
+        {% endfor %}
+    {% endif %}
+{% endwith %}
+
 <div class="stamps-container">
     {% for checkpoint in checkpoints %}
         <div class="checkpoint-card {% if checkpoint.is_obtained %}obtained{% endif %}">
@@ -23,7 +34,7 @@
                 <span class="badge goal">ゴール</span>
             {% endif %}
 
-            <p class="description">{{ checkpoint.description }}</p>
+            {#<p class="description">{{ checkpoint.description | safe }}</p>#}
         </div>
     {% endfor %}
 </div>
@@ -90,5 +101,47 @@
         font-size: 0.9rem;
         color: #666;
     }
+    /* フラッシュメッセージのスタイルを改善 */
+    .alert {
+        padding: 1.2rem;
+        margin: 1rem;
+        border-radius: 4px;
+        line-height: 1.5;
+        white-space: pre-line;  /* 改行を保持 */
+    }
+
+    .alert-success {
+        background-color: #d4edda;
+        border-color: #c3e6cb;
+        color: #155724;
+    }
+
+    .alert-error {
+        background-color: #f8d7da;
+        border-color: #f5c6cb;
+        color: #721c24;
+    }
+
+    .alert-warning {
+        background-color: #fff3cd;
+        border-color: #ffeeba;
+        color: #856404;
+    }
+
+    .alert-info {
+        background-color: #d1ecf1;
+        border-color: #bee5eb;
+        color: #0c5460;
+    }
+
+    /* 説明文の改行を適切に表示 */
+    .description {
+        margin-top: 0.5rem;
+        font-size: 0.9rem;
+        color: #666;
+        white-space: pre-line;  /* 改行を保持 */
+        line-height: 1.5;
+    }
+
 </style>
 {% endblock %}

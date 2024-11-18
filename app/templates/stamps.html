@@ -77,7 +77,7 @@
         {% for checkpoint in checkpoints %}
             <li class="stamp-item 
                        {% if checkpoint.id == 1 %}stamp-start
-                       {% elif checkpoint.id == 9 %}stamp-goal
+                       {% elif checkpoint.id == 8 %}stamp-goal
                        {% endif %}
                        {% if checkpoint.id in user_stamps %}obtained{% endif %}">
                 {{ checkpoint.name }} - 
@@ -89,7 +89,7 @@
                 
                 {% if checkpoint.id == 1 %}
                     [スタート地点]
-                {% elif checkpoint.id == 9 %}
+                {% elif checkpoint.id == 8 %}
                     [ゴール地点]
                 {% endif %}
             </li>
