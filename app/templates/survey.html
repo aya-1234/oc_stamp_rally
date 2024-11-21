@@ -49,6 +49,7 @@
             background-color: white;
             border-radius: 8px;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            transition: background-color 0.3s ease;
         }
 
         .question-text {
@@ -141,6 +142,49 @@
         body {
             background-color: #f5f5f5;
         }
+
+        .question-text.required::after {
+            content: "（回答必須）";
+            color: #ff4444;
+            font-size: 0.9em;
+            margin-left: 8px;
+        }
+
+        /* 未回答の必須項目のスタイル */
+        .question-container.unanswered {
+            border-left: 4px solid #ff4444;
+        }
+
+        .question-container.highlight {
+            background-color: #fff3cd;
+            border-left: 4px solid #ffc107;
+            animation: pulse 2s;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.02); }
+            100% { transform: scale(1); }
+        }
+
+        .message.flash-error {
+            background-color: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+            padding: 15px 20px;
+            border-radius: 4px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            max-width: 80%;
+            margin: 0 auto;
+            animation: slideDown 0.5s ease-out;
+        }
+
+        @keyframes slideDown {
+            0% { transform: translateY(-100%) translateX(-50%); }
+            100% { transform: translateY(0) translateX(-50%); }
+        }
+
+
     </style>
 </head>
 <body>
@@ -171,6 +215,8 @@
             {% endif %}
         {% endwith %}
 
+        <div id="error-message" class="message flash-error" style="display: none; position: fixed; top: 20px; left: 50%; transform: translateX(-50%); z-index: 1000;"></div>
+
         <form method="post" id="surveyForm" onsubmit="return validateForm()">
             {% for question in questions %}
                 <div class="question-container">
@@ -181,9 +227,10 @@
                         {% for choice in sorted_choices %}
                             <div class="choice">
                                 <input type="radio" 
-                                       id="choice_{{ choice.id }}"
-                                       name="question_{{ question.id }}" 
-                                       value="{{ choice.id }}">
+                                    id="choice_{{ choice.id }}"
+                                    name="question_{{ question.id }}" 
+                                    value="{{ choice.id }}"
+                                    {% if form_data and ('question_' ~ question.id) in form_data and form_data['question_' ~ question.id]|string == choice.id|string %}checked{% endif %}>
                                 <label for="choice_{{ choice.id }}">
                                     {{ choice.survey_choice }}
                                 </label>
@@ -201,7 +248,7 @@
         function validateForm() {
             const questions = document.querySelectorAll('.question-container');
             let allAnswered = true;
-
+    
             questions.forEach(question => {
                 const radios = question.querySelectorAll('input[type="radio"]');
                 if (radios.length > 0) {
@@ -211,29 +258,64 @@
                     }
                 }
             });
-
-
-
+    
             const submitButton = document.getElementById('submitButton');
             submitButton.disabled = true;
             submitButton.textContent = '送信中...';
             return true;
         }
-
+    
         // フラッシュメッセージの自動非表示
         document.addEventListener('DOMContentLoaded', function() {
-            const flashMessages = document.querySelectorAll('.flash-message');
-            flashMessages.forEach(function(message) {
+            {% if scroll_to_question %}
+                // 少し遅延を入れてスクロール
                 setTimeout(function() {
-                    message.style.opacity = '0';
-                    message.style.transition = 'opacity 0.5s ease';
-                    setTimeout(function() {
-                        message.remove();
-                    }, 500);
-                }, 3000);
-            });
-        });
+                    const questionElement = document.getElementById('question-container-{{ scroll_to_question }}');
+                    if (questionElement) {
+                        // ビューポートの高さを取得
+                        const viewportHeight = window.innerHeight;
+                        // 要素の位置を取得
+                        const elementRect = questionElement.getBoundingClientRect();
+                        // スクロール位置を計算（ビューポートの1/3の位置に要素が来るように）
+                        const scrollPosition = window.pageYOffset + elementRect.top - (viewportHeight / 3);
+                        
+                        // スムーズスクロール
+                        window.scrollTo({
+                            top: scrollPosition,
+                            behavior: 'smooth'
+                        });
 
+                        // スクロール後に要素をハイライト
+                        questionElement.classList.add('highlight');
+                        setTimeout(() => {
+                            questionElement.classList.remove('highlight');
+                        }, 2000); // 2秒後にハイライトを除去
+                    }
+                }, 100);
+            {% endif %}
+
+            // エラーメッセージの表示処理
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        {% if category == 'error' %}
+                            const errorDiv = document.getElementById('error-message');
+                            errorDiv.innerHTML = '{{ message|safe }}';
+                            errorDiv.style.display = 'block';
+                            // 5秒後にメッセージを非表示
+                            setTimeout(() => {
+                                errorDiv.style.opacity = '0';
+                                errorDiv.style.transition = 'opacity 0.5s ease';
+                                setTimeout(() => {
+                                    errorDiv.style.display = 'none';
+                                }, 500);
+                            }, 5000);
+                        {% endif %}
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+        });
+    
         // 選択肢のクリック領域を改善
         document.querySelectorAll('.choice').forEach(choice => {
             choice.addEventListener('click', function(e) {

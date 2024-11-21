@@ -1018,8 +1018,8 @@ async function deleteStamp(stampId) {
                     <td>{{ survey.survey_order }}</td>
                     <td>{{ survey.question }}</td>
                     <td>
-                        <span class="required-badge {% if '（必須）' in survey.question %}required{% endif %}">
-                            {{ '必須' if '（必須）' in survey.question else '任意' }}
+                        <span class="required-badge {% if '（回答必須）' in survey.question %}required{% endif %}">
+                            {{ '必須' if '（回答必須）' in survey.question else '任意' }}
                         </span>
                     </td>
                     <td>

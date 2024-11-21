@@ -102,6 +102,7 @@ def shutdown_session(exception=None):
 
 
 #本番用の文が無いとっころがあるからそこを何とかする。
+#回答必須の誘導
 
 
 
@@ -1533,29 +1534,38 @@ def start_survey(checkpoint_id):
         .options(db.joinedload(Survey.survey_choices))\
         .order_by(Survey.survey_order).all()
     
+    # 初期化時にform_dataを空の辞書として定義
+    form_data = {}
+    
     if request.method == 'POST':
         try:
             responses = []
             unanswered_required_questions = []
 
-            # すべての質問をチェック
+            # フォームデータの収集
             for question in questions:
                 if question.survey_choices:
-                    selected_choice_id = request.form.get(f'question_{question.id}')
+                    key = f'question_{question.id}'
+                    value = request.form.get(key)
+                    if value:
+                        form_data[key] = value
+
+            # 以下、質問のチェック
+            for question in questions:
+                if question.survey_choices:
+                    key = f'question_{question.id}'
+                    selected_choice_id = form_data.get(key)
                     
-                    # 必須項目（質問文に「（必須）」が含まれる）の場合のみチェック
-                    is_required = '（必須）' in question.question
+                    is_required = '（回答必須）' in question.question
                     
                     if is_required and not selected_choice_id:
                         unanswered_required_questions.append(question.question)
-                    else:
-                        # 非必須項目で未回答の場合はスキップ
-                        if selected_choice_id:
-                            responses.append(Survey_Response(
-                                login_id=user.id,
-                                survey_id=question.id,
-                                value=selected_choice_id
-                            ))
+                    elif selected_choice_id:
+                        responses.append(Survey_Response(
+                            login_id=user.id,
+                            survey_id=question.id,
+                            value=selected_choice_id
+                        ))
 
             # 未回答の必須質問がある場合
             if unanswered_required_questions:
@@ -1568,10 +1578,11 @@ def start_survey(checkpoint_id):
                     title=message_info["title"],
                     initial_message=message_info["message"],
                     checkpoint=checkpoint,
-                    questions=questions
+                    questions=questions,
+                    form_data=form_data
                 )
 
-            # 必須質問に全て回答済みの場合
+            # すべて回答済みの場合
             db.session.add_all(responses)
             user.is_loggedin = True
             db.session.commit()
@@ -1587,7 +1598,8 @@ def start_survey(checkpoint_id):
         title=message_info["title"],
         initial_message=message_info["message"],
         checkpoint=checkpoint,
-        questions=questions
+        questions=questions,
+        form_data=form_data
     )
 
 # チェックポイントのアンケート画面
@@ -1684,8 +1696,8 @@ def goal_survey(user_id, checkpoint_id):
                 if question.survey_choices:
                     selected_choice_id = request.form.get(f'question_{question.id}')
                     
-                    # 必須項目（質問文に「（必須）」が含まれる）の場合のみチェック
-                    is_required = '（必須）' in question.question
+                    # 必須項目（質問文に「（回答必須）」が含まれる）の場合のみチェック
+                    is_required = '（回答必須）' in question.question
                     
                     if is_required and not selected_choice_id:
                         unanswered_required_questions.append(question.question)
