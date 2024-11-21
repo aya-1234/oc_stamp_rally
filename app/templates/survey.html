@@ -30,9 +30,10 @@
         }
 
         .flash-error {
-            background-color: #f2dede;
-            border: 1px solid #ebccd1;
-            color: #a94442;
+            background-color: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+            text-align: center;
         }
 
         .checkpoint-info {
@@ -143,6 +144,36 @@
             background-color: #f5f5f5;
         }
 
+        .question-container {
+            transition: background-color 0.3s ease;
+        }
+
+        .question-container.highlight {
+            background-color: #fff3cd;
+            border-left: 4px solid #ffc107;
+        }
+
+        .question-container.unanswered {
+            border-left: 4px solid #ff4444;
+        }
+
+        .flash-message, #error-message {
+            transition: opacity 0.5s ease;
+        }
+
+        #error-message {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 1000;
+            background-color: #f8d7da;
+            border: 1px solid #f5c6cb;
+            padding: 15px 20px;
+            border-radius: 4px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
         .question-text.required::after {
             content: "（回答必須）";
             color: #ff4444;
@@ -199,6 +230,14 @@
                     </div>
                 {% endif %}
             {% endfor %}
+
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% for category, message in messages %}
+                    <div class="message {% if category == 'error' %}flash-error{% elif category == 'ended' %}flash-success{% endif %}">
+                        {{ message|safe }}
+                    </div>
+                {% endfor %}
+            {% endwith %}
             
             {% if checkpoint_id is defined and checkpoint_id >= 2 and checkpoint_id <= 7 %}
             {% else %}
@@ -219,7 +258,7 @@
 
         <form method="post" id="surveyForm" onsubmit="return validateForm()">
             {% for question in questions %}
-                <div class="question-container">
+                <div class="question-container" id="question-{{ question.id }}" data-question-id="{{ question.id }}">
                     <p class="question-text">{{ question.question }}</p>
                     {% if question.survey_choices %}
                     <div class="choice-container">
@@ -239,22 +278,29 @@
                     </div>
                     {% endif %}
                 </div>
-            {% endfor %}
-            <button type="submit" class="submit-button" id="submitButton">送信</button>
+                {% endfor %}
+                <button type="submit" class="submit-button" id="submitButton">送信</button>
         </form>
     </div>
 
     <script>
+        // フォームバリデーション
         function validateForm() {
             const questions = document.querySelectorAll('.question-container');
             let allAnswered = true;
     
             questions.forEach(question => {
+                const questionText = question.querySelector('.question-text').textContent;
+                const isRequired = questionText.includes('（回答必須）');
                 const radios = question.querySelectorAll('input[type="radio"]');
-                if (radios.length > 0) {
+                
+                if (isRequired && radios.length > 0) {
                     const answered = Array.from(radios).some(radio => radio.checked);
                     if (!answered) {
+                        question.classList.add('unanswered');
                         allAnswered = false;
+                    } else {
+                        question.classList.remove('unanswered');
                     }
                 }
             });
@@ -265,65 +311,100 @@
             return true;
         }
     
-        // フラッシュメッセージの自動非表示
+        // ページ読み込み時の処理
         document.addEventListener('DOMContentLoaded', function() {
-            {% if scroll_to_question %}
-                // 少し遅延を入れてスクロール
-                setTimeout(function() {
-                    const questionElement = document.getElementById('question-container-{{ scroll_to_question }}');
-                    if (questionElement) {
-                        // ビューポートの高さを取得
-                        const viewportHeight = window.innerHeight;
-                        // 要素の位置を取得
-                        const elementRect = questionElement.getBoundingClientRect();
-                        // スクロール位置を計算（ビューポートの1/3の位置に要素が来るように）
-                        const scrollPosition = window.pageYOffset + elementRect.top - (viewportHeight / 3);
-                        
-                        // スムーズスクロール
-                        window.scrollTo({
-                            top: scrollPosition,
-                            behavior: 'smooth'
-                        });
+            {% if target_question_id %}
+                // 対象の質問要素を取得
+                const targetElement = document.getElementById('question-{{ target_question_id }}');
+                if (targetElement) {
+                    // 要素の位置を取得
+                    const elementPosition = targetElement.offsetTop;
+                    
+                    // 即座にスクロール
+                    window.scrollTo({
+                        top: elementPosition - 100, // 上部に少し余白を持たせる
+                        behavior: 'auto'
+                    });
 
-                        // スクロール後に要素をハイライト
-                        questionElement.classList.add('highlight');
-                        setTimeout(() => {
-                            questionElement.classList.remove('highlight');
-                        }, 2000); // 2秒後にハイライトを除去
-                    }
-                }, 100);
+                    // ハイライト効果を追加
+                    targetElement.classList.add('highlight');
+                    
+                    // 2秒後にハイライトを解除
+                    setTimeout(() => {
+                        targetElement.classList.remove('highlight');
+                    }, 2000);
+                }
             {% endif %}
-
-            // エラーメッセージの表示処理
-            {% with messages = get_flashed_messages(with_categories=true) %}
-                {% if messages %}
-                    {% for category, message in messages %}
-                        {% if category == 'error' %}
-                            const errorDiv = document.getElementById('error-message');
-                            errorDiv.innerHTML = '{{ message|safe }}';
-                            errorDiv.style.display = 'block';
-                            // 5秒後にメッセージを非表示
-                            setTimeout(() => {
-                                errorDiv.style.opacity = '0';
-                                errorDiv.style.transition = 'opacity 0.5s ease';
-                                setTimeout(() => {
-                                    errorDiv.style.display = 'none';
-                                }, 500);
-                            }, 5000);
-                        {% endif %}
-                    {% endfor %}
-                {% endif %}
-            {% endwith %}
         });
+    
+            // フラッシュメッセージの処理
+            const flashMessages = document.querySelectorAll('.flash-message');
+            flashMessages.forEach(function(message) {
+                setTimeout(function() {
+                    message.style.opacity = '0';
+                    message.style.transition = 'opacity 0.5s ease';
+                    setTimeout(function() {
+                        message.remove();
+                    }, 500);
+                }, 3000);
+            });
+    
+            // エラーメッセージの表示処理
+            <!-- フラッシュメッセージ表示部分をシンプルに -->
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% for category, message in messages %}
+                    {% if category == 'error' %}
+                        <div class="message flash-error">
+                            {{ message }}
+                        </div>
+                    {% endif %}
+                {% endfor %}
+            {% endwith %}
+    
+            // フォームの状態を復元
+            restoreFormState();
+            
+            // 各ラジオボタンの変更を監視
+            document.querySelectorAll('input[type="radio"]').forEach(radio => {
+                radio.addEventListener('change', saveFormState);
+            });
     
         // 選択肢のクリック領域を改善
         document.querySelectorAll('.choice').forEach(choice => {
             choice.addEventListener('click', function(e) {
                 if (e.target !== this) return;
                 const radio = this.querySelector('input[type="radio"]');
-                radio.checked = true;
+                if (radio) {
+                    radio.checked = true;
+                    saveFormState(); // 状態を保存
+                }
             });
         });
+    
+        // フォームの状態を保存
+        function saveFormState() {
+            const formState = {};
+            document.querySelectorAll('input[type="radio"]').forEach(radio => {
+                if (radio.checked) {
+                    formState[radio.name] = radio.value;
+                }
+            });
+            sessionStorage.setItem('surveyFormState', JSON.stringify(formState));
+        }
+    
+        // フォームの状態を復元
+        function restoreFormState() {
+            const savedState = sessionStorage.getItem('surveyFormState');
+            if (savedState) {
+                const formState = JSON.parse(savedState);
+                Object.entries(formState).forEach(([name, value]) => {
+                    const radio = document.querySelector(`input[type="radio"][name="${name}"][value="${value}"]`);
+                    if (radio) {
+                        radio.checked = true;
+                    }
+                });
+            }
+        }
     </script>
 </body>
 </html>

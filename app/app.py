@@ -1536,6 +1536,7 @@ def start_survey(checkpoint_id):
     
     # 初期化時にform_dataを空の辞書として定義
     form_data = {}
+    first_unanswered_id = None  # 初期化を追加
     
     if request.method == 'POST':
         try:
@@ -1569,20 +1570,26 @@ def start_survey(checkpoint_id):
 
             # 未回答の必須質問がある場合
             if unanswered_required_questions:
-                error_message = "以下の必須質問に回答してください：<br>" + "<br>".join([
-                    f"・{q}" for q in unanswered_required_questions
-                ])
-                flash(error_message, 'error')
+                flash("回答必須にお答えください。", 'error')
+                
+                first_unanswered_id = next(
+                    (str(question.id) for question in questions 
+                    if question.question in unanswered_required_questions),
+                    None
+                )
+                
+                # 未回答がある場合は同じページを再表示
                 return render_template(
                     'survey.html',
                     title=message_info["title"],
                     initial_message=message_info["message"],
                     checkpoint=checkpoint,
                     questions=questions,
-                    form_data=form_data
+                    form_data=form_data,
+                    target_question_id=first_unanswered_id
                 )
 
-            # すべて回答済みの場合
+            # すべて回答済みの場合のみここに到達
             db.session.add_all(responses)
             user.is_loggedin = True
             db.session.commit()
@@ -1593,13 +1600,15 @@ def start_survey(checkpoint_id):
             db.session.rollback()
             flash('エラーが発生しました。<br>もう一度お試しください。', 'error')
 
+    # GET requestの場合のレンダリング
     return render_template(
         'survey.html',
         title=message_info["title"],
         initial_message=message_info["message"],
         checkpoint=checkpoint,
         questions=questions,
-        form_data=form_data
+        form_data=form_data,
+        target_question_id=first_unanswered_id
     )
 
 # チェックポイントのアンケート画面
