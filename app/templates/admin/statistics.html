@@ -11,7 +11,7 @@
             padding: 20px;
         }
         .stats-section {
-            margin-bottom: 40px;
+            margin-bottom: 10px;
             background: white;
             padding: 20px;
             border-radius: 8px;
@@ -49,6 +49,7 @@
             border-collapse: collapse;
             margin-top: 20px;
         }
+        
         th, td {
             padding: 12px;
             text-align: left;
@@ -75,20 +76,25 @@
     <!-- リロードステータス表示を修正 -->
     <div id="reload-status">
         <div class="reload-content">
+            <!-- 新しい左側のナビゲーション部分 -->
+            <div class="navigation-button">
+                <a href="/{{ admin_hash }}" class="nav-button">管理画面に戻る</a>
+            </div>
+    
+            <!-- 中央のカウントダウン -->
             <div class="countdown-display">
                 次回更新まで: <span id="countdown">30</span>秒
             </div>
-            <div class="button-container">
+    
+            <!-- 右側の更新コントロール -->
+            <div class="update-controls">
                 <button id="reload-toggle" class="control-button">自動更新を停止</button>
-            </div>
-            <div class="force-button-container">
                 <button onclick="forceReload()" class="force-button">今すぐ更新</button>
             </div>
         </div>
     </div>
 
     <div class="stats-container">
-        <a href="/{{ admin_hash }}" class="back-button">管理画面に戻る</a>
         <h1>スタンプラリー統計情報</h1>
 
         <!-- 全体の統計 -->
@@ -123,129 +129,221 @@
     <!-- ユーザー別取得状況 -->
     <div class="stats-section">
         <h2>ユーザー別取得状況</h2>
-        <table>
-            <tr>
-                <th>アカウント</th>
-                <th>取得スタンプ数</th>
-                <th>開始時刻</th>
-                <th>最終取得時刻</th>
-                <th>所要時間</th>
-            </tr>
-            {% for stat in users_pagination.items %}
-            <tr>
-                <td>{{ stat.account }}</td>
-                <td>{{ stat.total_stamps }}</td>
-                <td>{{ stat.first_stamp.strftime('%H:%M') if stat.first_stamp else '-' }}</td>
-                <td>{{ stat.last_stamp.strftime('%H:%M') if stat.last_stamp else '-' }}</td>
-                <td>
-                    {% if stat.first_stamp and stat.last_stamp %}
-                        {% set minutes = ((stat.last_stamp - stat.first_stamp).total_seconds() / 60)|round|int %}
-                        {% if minutes < 60 %}
-                            {{ minutes }}分
-                        {% else %}
-                            {{ (minutes / 60)|round|int }}時間{{ minutes % 60 }}分
-                        {% endif %}
-                    {% else %}
-                        -
-                    {% endif %}
-                </td>
-            </tr>
-            {% endfor %}
-        </table>
-
-        <!-- ページネーション -->
-        <div class="pagination">
-            {% if users_pagination.has_prev %}
-                <a href="{{ url_for('stamp_statistics', page=users_pagination.prev_num, search=search_query) }}">&laquo; 前へ</a>
-            {% endif %}
-
-            {% for page_num in users_pagination.iter_pages() %}
-                {% if page_num %}
-                    {% if page_num == users_pagination.page %}
-                        <span class="current-page">{{ page_num }}</span>
-                    {% else %}
-                        <a href="{{ url_for('stamp_statistics', page=page_num, search=search_query) }}">{{ page_num }}</a>
-                    {% endif %}
-                {% else %}
-                    <span class="ellipsis">...</span>
-                {% endif %}
-            {% endfor %}
-
-            {% if users_pagination.has_next %}
-                <a href="{{ url_for('stamp_statistics', page=users_pagination.next_num, search=search_query) }}">次へ &raquo;</a>
-            {% endif %}
+        
+        <div class="filter-section">
+            <form action="{{ url_for('stamp_statistics') }}" method="get">
+                <!-- 検索ボックス -->
+                <input type="text" name="search" placeholder="ユーザー検索" value="{{ search_query }}">
+    
+                <!-- スタンプ数のフィルター -->
+                <select name="stats_filter" class="stats-filter">
+                    <option value="has_stamps" {% if stats_filter == 'has_stamps' %}selected{% endif %}>スタンプ1-7個</option>
+                    {% for i in range(1, 8) %}
+                        <option value="stamps_{{ i }}" {% if stats_filter == 'stamps_' ~ i %}selected{% endif %}>
+                            スタンプ{{ i }}個
+                        </option>
+                    {% endfor %}
+                    <option value="stamps_1_to_2" {% if stats_filter == 'stamps_1_to_2' %}selected{% endif %}>
+                        スタンプ1-2個
+                    </option>
+                    <option value="completed_users" {% if stats_filter == 'completed_users' %}selected{% endif %}>
+                        完走者（スタンプ8個）
+                    </option>
+                </select>
+    
+                <!-- ソート順のフィルター -->
+                <select name="sort_order" class="sort-filter">
+                    <option value="latest_first" {% if sort_order == 'latest_first' %}selected{% endif %}>
+                        新規取得順
+                    </option>
+                    <option value="oldest_first" {% if sort_order == 'oldest_first' %}selected{% endif %}>
+                        古い順
+                    </option>
+                </select>
+    
+                <button type="submit" class="filter-button">フィルター</button>
+            </form>
         </div>
     </div>
+     
+        <table>
+            <thead>
+                <tr>
+                    <th>アカウント</th>
+                    <th>取得スタンプ数</th>
+                    <th>開始時刻</th>
+                    <th>最終取得時刻</th>
+                    <th>所要時間</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for stat in users_pagination.items %}
+                <tr>
+                    <td>{{ stat.account }}</td>
+                    <td>{{ stat.total_stamps }}</td>
+                    <td>{{ stat.first_stamp.strftime('%H:%M') if stat.first_stamp else '-' }}</td>
+                    <td>{{ stat.last_stamp.strftime('%H:%M') if stat.last_stamp else '-' }}</td>
+                    <td>
+                        {% if stat.first_stamp and stat.last_stamp %}
+                            {% set minutes = ((stat.last_stamp - stat.first_stamp).total_seconds() / 60)|round|int %}
+                            {% if minutes < 60 %}
+                                {{ minutes }}分
+                            {% else %}
+                                {{ (minutes / 60)|round|int }}時間{{ minutes % 60 }}分
+                            {% endif %}
+                        {% else %}
+                            -
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+     
+        <div class="pagination">
+            {% if users_pagination.has_prev %}
+                <a href="{{ url_for('stamp_statistics', 
+                                   page=users_pagination.prev_num,
+                                   search=search_query,
+                                   stats_filter=stats_filter,
+                                   sort_order=sort_order) }}" 
+                   class="pagination-link">« 前へ</a>
+            {% endif %}
+        
+            {% for page_num in users_pagination.iter_pages() %}
+                {% if page_num %}
+                    <a href="{{ url_for('stamp_statistics',
+                                       page=page_num,
+                                       search=search_query,
+                                       stats_filter=stats_filter,
+                                       sort_order=sort_order) }}"
+                       class="pagination-link {% if page_num == users_pagination.page %}active{% endif %}">
+                        {{ page_num }}
+                    </a>
+                {% endif %}
+            {% endfor %}
+        
+            {% if users_pagination.has_next %}
+                <a href="{{ url_for('stamp_statistics',
+                                   page=users_pagination.next_num,
+                                   search=search_query,
+                                   stats_filter=stats_filter,
+                                   sort_order=sort_order) }}"
+                   class="pagination-link">次へ »</a>
+            {% endif %}
+        </div>
+     </div>
 
         <!-- 進行状況マップ -->
         <!-- templates/admin/statistics.html の進行状況マップ部分 -->
-        <div class="stats-section">
+        <div class="stats-section" data-auto-reload="true">
             <h2>スポット進行状況マップ</h2>
-            <div class="search-bar">
+            
+            <div class="filter-section">
                 <form action="{{ url_for('stamp_statistics') }}" method="get">
                     <input type="text" name="search" placeholder="ユーザー検索" value="{{ search_query }}">
-                    <select name="filter">
-                        <option value="all" {% if filter_type == 'all' %}selected{% endif %}>全て</option>
-                        <option value="completed" {% if filter_type == 'completed' %}selected{% endif %}>完了済み</option>
-                        <option value="incomplete" {% if filter_type == 'incomplete' %}selected{% endif %}>未完了</option>
-                        <option value="no_stamps" {% if filter_type == 'no_stamps' %}selected{% endif %}>スタンプ0個</option>
-                        <option value="has_stamps" {% if filter_type == 'has_stamps' %}selected{% endif %}>スタンプ1個以上</option>
-                        {% for i in range(1, 10) %}
-                        <option value="stamps_{{ i }}" {% if filter_type == 'stamps_' + i|string %}selected{% endif %}>スタンプ{{ i }}個</option>
-                        {% endfor %}
-                    </select>
-                    <button type="submit">検索</button>
+                    <input type="hidden" name="stats_filter" value="{{ stats_filter }}">
+                    <input type="hidden" name="sort_order" value="{{ sort_order }}">
+                    <button type="submit" class="filter-button">フィルター</button>
                 </form>
             </div>
+        </div>
         
-            <div class="progress-map">
-                <div class="y-axis">
-                    {% for checkpoint in progress_map_data.checkpoint_names %}
-                        <div class="y-label">{{ checkpoint }}</div>
-                    {% endfor %}
-                </div>
-            
-                <div class="map-container">
-                    <div class="plot-container">
-                        {% if progress_map_data.progress_data %}
-                            {% set sorted_data = progress_map_data.progress_data|sort(attribute='timestamp', reverse=true) %}
-                            {% set user_data = {} %}
-                            {% for point in sorted_data %}
-                                {% if point.x not in user_data %}
-                                    {% set _ = user_data.update({point.x: []}) %}
-                                {% endif %}
-                                {% set _ = user_data[point.x].append(point) %}
-                            {% endfor %}
-                            {% for user, points in user_data.items() %}
-                                {% set x_scale = 100 if user_data|length <= 1 else (loop.index0 / (user_data|length - 1)) * 100 %}
-                                {% for point in points %}
-                                    {% set y_pos = progress_map_data.checkpoint_names.index(point.y) %}
-                                    {% set y_scale = 100 if progress_map_data.checkpoint_names|length <= 1 else (y_pos / (progress_map_data.checkpoint_names|length - 1)) * 100 %}
-                                    <div class="data-point"
-                                         style="left: {{ x_scale }}%;
-                                                top: {{ y_scale }}%;"
-                                         data-user="{{ point.x }}"
-                                         data-checkpoint="{{ point.y }}"
-                                         data-time="{{ point.timestamp }}">
-                                    </div>
-                                {% endfor %}
-                            {% endfor %}
-            
-                            <div class="x-axis">
-                                {% for user in user_data %}
-                                    <div class="x-label" style="left: {{ (loop.index0 / (user_data|length - 1 or 1)) * 100 }}%">
-                                        {% for char in user %}{{ char }}{% endfor %}
-                                    </div>
-                                {% endfor %}
-                            </div>
-                        {% else %}
-                            <div class="no-data-message">表示するデータがありません</div>
-                        {% endif %}
-                    </div>
-                </div>
+        {% if progress_map_data and progress_map_data.total_pages > 1 %}
+        <div class="pagination">
+            {% if progress_map_data.current_page > 1 %}
+                <a href="{{ url_for('stamp_statistics', page=progress_map_data.current_page-1, search=search_query, stats_filter=stats_filter, sort_order=sort_order) }}" class="pagination-link">« 前へ</a>
+            {% endif %}
+        
+            {% for p in range(1, progress_map_data.total_pages + 1) %}
+                <a href="{{ url_for('stamp_statistics', page=p, search=search_query, stats_filter=stats_filter, sort_order=sort_order) }}" class="pagination-link {% if p == progress_map_data.current_page %}active{% endif %}">
+                    {{ p }}
+                </a>
+            {% endfor %}
+        
+            {% if progress_map_data.current_page < progress_map_data.total_pages %}
+                <a href="{{ url_for('stamp_statistics', page=progress_map_data.current_page+1, search=search_query, stats_filter=stats_filter, sort_order=sort_order) }}" class="pagination-link">次へ »</a>
+            {% endif %}
+        </div>
+        {% endif %}
+
+        <div class="map-container">
+            <div class="y-axis">
+                {% set num_labels = progress_map_data.checkpoint_names|length %}
+                {% for i in range(num_labels) %}
+                    {% set y_pos = i / (num_labels - 1) * 80 %}
+                    <div class="y-label" style="top: {{ y_pos }}%;">{{ progress_map_data.checkpoint_names[i] }}</div>
+                {% endfor %}
             </div>
             
+            <div class="plot-container">
+                {% if progress_map_data.progress_data %}
+                    {% set user_data = {} %}
+                    {% for user in progress_map_data.user_order %}
+                        {% set user_data = user_data.update({user: []}) or user_data %}
+                    {% endfor %}
+                    
+                    {% for point in progress_map_data.progress_data %}
+                        {% if point.x in user_data %}
+                            {% set _ = user_data[point.x].append(point) %}
+                        {% endif %}
+                    {% endfor %}
+            
+                    {% set total_users = user_data|length %}
+                    {% set x_spacing = 100 if total_users <= 1 else (100 / (total_users - 1)) %}
+                
+                    {% for user in progress_map_data.user_order %}
+                        {% set x_pos = loop.index0 * x_spacing %}
+                        {% for point in user_data[user] %}
+                            {% set y_pos = progress_map_data.checkpoint_names.index(point.y) / (num_labels - 1) * 100 %}
+                            <div class="data-point" style="left: {{ x_pos }}%; top: {{ y_pos }}%;" data-user="{{ point.x }}" data-checkpoint="{{ point.y }}" data-time="{{ point.timestamp }}"></div>
+                        {% endfor %}
+                    {% endfor %}
+                    
+                    <div class="x-axis">
+                        {% for user in progress_map_data.user_order %}
+                            {% set x_pos = loop.index0 * x_spacing %}
+                            <div class="x-label" style="left: {{ x_pos }}%;">{{ user }}</div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="no-data-message">表示するデータがありません</div>
+                {% endif %}
+            </div>
+        </div>
+            
+
+
             <style>
+
+            .search-form {
+            display: none;
+            }
+
+            /* フィルターセクションのスタイル調整 */
+            .filter-section {
+            margin: 20px 0;
+            }
+
+            .filter-section select {
+            padding: 8px;
+            border-radius: 4px;
+            border: 1px solid #ddd;
+            margin-right: 10px;
+            }
+
+            .filter-section button {
+            padding: 8px 16px;
+            border-radius: 4px;
+            border: none;
+            background-color: #4CAF50;
+            color: white;
+            cursor: pointer;
+            }
+
+            .filter-section button:hover {
+            background-color: #45a049;
+            }
 
             .search-bar {
                 margin-bottom: 20px;
@@ -278,6 +376,11 @@
                 cursor: pointer;
             }
 
+            .pagination-ellipsis {
+                padding: 6px 12px;
+                color: #666;
+            }
+
             .search-bar button:hover {
                 background: #0056b3;
             }
@@ -289,12 +392,9 @@
             }
             
             .map-container {
-                margin-bottom: 10px;  /* ラベルのための空間を確保 */
-                flex-grow: 1;
+                display: flex;
+                padding-left: 120px;
                 position: relative;
-                height: 600px;
-                border: 1px solid #ddd;
-                background: white;
             }
             
             .grid-background {
@@ -314,12 +414,10 @@
             }
             
             .plot-container {
-                position: absolute;
-                top: 0;
-                left: 0;
-                right: 0;
-                bottom: 0;
-                padding: 20px;
+                flex: 1;
+                min-height: 500px;
+                position: relative;
+                margin-bottom: 60px;
             }
             
             .no-data-message {
@@ -352,8 +450,12 @@
             }
             
             .y-axis {
+                position: absolute;
+                top: 0;
+                left: 0;
+                height: 93%;
                 width: 120px;
-                padding-right: 10px;
+                padding-right: 20px;
                 display: flex;
                 flex-direction: column;
                 justify-content: space-between;
@@ -376,18 +478,68 @@
             }
             
             .x-label {
-            position: absolute;
-            transform: translateX(-50%);
-            text-align: center;
-            writing-mode: vertical-lr;
-            text-orientation: upright;
-            font-size: 12px;
-            letter-spacing: 2px;
-            padding-top: 5px;
-            height: auto;
-            white-space: nowrap;
-        }
+                position: absolute;
+                transform: translateX(-50%) translateY(100%);
+                text-align: center;
+                font-size: 12px;
+                padding-top: 5px;
+            }
+
+            .pagination-controls {
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                gap: 8px;
+                margin-top: 20px;
+                padding: 10px;
+            }
+
+            .pagination-button {
+                padding: 6px 12px;
+                border: 1px solid #ddd;
+                border-radius: 4px;
+                color: #333;
+                text-decoration: none;
+                transition: background-color 0.2s;
+            }
+
+            .pagination-button:hover {
+                background-color: #f0f0f0;
+            }
+
+            .pagination-current {
+                padding: 6px 12px;
+                background-color: #007bff;
+                color: white;
+                border-radius: 4px;
+                font-weight: bold;
+            }
+
+            .pagination-button.prev,
+            .pagination-button.next {
+                font-weight: bold;
+            }
+
+            .pagination-button.disabled {
+                color: #999;
+                pointer-events: none;
+                background-color: #f5f5f5;
+            }
             
+            .stamp-info {
+            margin-top: 20px;
+            }
+
+            .stamp-info > h2 {
+            margin-bottom: 10px;
+            }
+
+            .stamp-list,
+            .user-stats,
+            .checkpoint-stats {
+            margin-top: 20px;
+            }
+
             @media (max-width: 768px) {
                 .progress-map {
                     margin: 20px 10px;
@@ -588,15 +740,18 @@
         function updateReloadStatus() {
             const statusElement = document.getElementById('reload-status');
             const toggleButton = document.getElementById('reload-toggle');
+            const forceButton = document.querySelector('.force-button'); // 今すぐ更新ボタン
 
             if (isInputting) {
                 statusElement.classList.add('paused');
                 toggleButton.textContent = '入力中';
                 toggleButton.disabled = true;
                 toggleButton.classList.remove('start-update');
+                forceButton.disabled = true; // 今すぐ更新ボタンを無効化
             } else {
                 statusElement.classList.remove('paused');
                 toggleButton.disabled = false;
+                forceButton.disabled = false; // 今すぐ更新ボタンを有効化
 
                 if (autoReloadEnabled) {
                     toggleButton.textContent = '自動更新を停止';
@@ -625,11 +780,46 @@
             if (isInputting) return;
 
             try {
-                const response = await fetch(window.location.href);
+                const url = new URL(window.location.href);
+                url.searchParams.set('filter', 'has_stamps');
+                // 現在のページ番号を維持
+                const currentPage = url.searchParams.get('page') || '1';
+                url.searchParams.set('page', currentPage);
+                
+                const response = await fetch(url.toString());
                 const text = await response.text();
                 const parser = new DOMParser();
                 const doc = parser.parseFromString(text, 'text/html');
 
+                // 進行状況マップの更新
+                const newProgressMap = doc.querySelector('.progress-map');
+                const currentProgressMap = document.querySelector('.progress-map');
+                if (newProgressMap && currentProgressMap) {
+                    currentProgressMap.innerHTML = newProgressMap.innerHTML;
+                }
+
+                // ページネーションの更新
+                const newPagination = doc.querySelector('.pagination-controls');
+                const currentPagination = document.querySelector('.pagination-controls');
+                if (newPagination && currentPagination) {
+                    currentPagination.innerHTML = newPagination.innerHTML;
+                }
+
+                // Y軸ラベルの更新
+                const newYAxis = doc.querySelector('.y-axis');
+                const currentYAxis = document.querySelector('.y-axis');
+                if (newYAxis && currentYAxis) {
+                    currentYAxis.innerHTML = newYAxis.innerHTML;
+                }
+
+                // X軸ラベルの更新
+                const newXAxis = doc.querySelector('.x-axis');
+                const currentXAxis = document.querySelector('.x-axis');
+                if (newXAxis && currentXAxis) {
+                    currentXAxis.innerHTML = newXAxis.innerHTML;
+                }
+
+                // その他の統計情報の更新
                 ['login-table', 'checkpoint-table', 'survey-table', 'quiz-table'].forEach(tableId => {
                     const newTable = doc.getElementById(tableId);
                     const currentTable = document.getElementById(tableId);
@@ -645,25 +835,27 @@
         }
 
         async function autoSubmitSearchForms() {
-            // ユーザー検索フォーム
-            const userSearchForm = document.querySelector('.search-form form');
-            if (userSearchForm) {
-                await reloadUserStats();
-                updateCharts();
-                userSearchForm.submit();
-            }
+            try {
+                // 進行状況マップ用のフィルター適用
+                const url = new URL(window.location.href);
+                url.searchParams.set('filter', 'has_stamps');
+                await fetch(url.toString());
+                
+                // 既存の処理
+                const userSearchForm = document.querySelector('.search-form form');
+                if (userSearchForm) {
+                    await reloadUserStats();
+                    updateCharts();
+                    userSearchForm.submit();
+                }
 
-            // チェックポイント統計の検索フォーム
-            const checkpointStatsForm = document.querySelector('.stats-section:nth-of-type(3) form');
-            if (checkpointStatsForm) {
+                // チェックポイント統計とその他の更新処理
                 await reloadCheckpointStats();
+                await reloadHourlyStats();
                 updateCharts();
-                checkpointStatsForm.submit();
+            } catch (error) {
+                console.error('Error in autoSubmitSearchForms:', error);
             }
-
-            // 時間帯別統計
-            await reloadHourlyStats();
-            updateCharts();
         }
 
         async function reloadUserStats() {
@@ -857,6 +1049,103 @@
             updateCountdown();
             updateReloadStatus();
         });
+
+        // statistics.htmlに追加するJavaScript
+        document.addEventListener('DOMContentLoaded', function() {
+            // 現在のフィルター状態を保存
+            const currentFilter = new URLSearchParams(window.location.search);
+            const statsFilter = currentFilter.get('stats_filter') || 'has_stamps';
+            const sortOrder = currentFilter.get('sort_order') || 'latest_first';
+            
+            // 自動更新用の関数
+            function autoReload() {
+                const currentUrl = new URL(window.location.href);
+                currentUrl.searchParams.set('stats_filter', statsFilter);
+                currentUrl.searchParams.set('sort_order', sortOrder);
+                window.location.href = currentUrl.toString();
+            }
+
+            // カウントダウンタイマーの設定
+            let timeLeft = 30;
+            const countdownElement = document.getElementById('countdown');
+            const countdownInterval = setInterval(() => {
+                timeLeft--;
+                if (countdownElement) {
+                    countdownElement.textContent = timeLeft;
+                }
+                if (timeLeft <= 0) {
+                    clearInterval(countdownInterval);
+                    autoReload();
+                }
+            }, 1000);
+
+            // 自動更新停止ボタンの処理
+            const stopButton = document.querySelector('.update-controls button:first-child');
+            if (stopButton) {
+                stopButton.addEventListener('click', () => {
+                    clearInterval(countdownInterval);
+                    if (countdownElement) {
+                        countdownElement.parentElement.style.display = 'none';
+                    }
+                });
+            }
+
+            // 今すぐ更新ボタンの処理
+            const updateButton = document.querySelector('.update-controls button:last-child');
+            if (updateButton) {
+                updateButton.addEventListener('click', () => {
+                    clearInterval(countdownInterval);
+                    autoReload();
+                });
+            }
+        });
+
+                // フィルター状態の永続化
+        document.addEventListener('DOMContentLoaded', function() {
+            // フィルター状態の取得関数
+            function getCurrentFilters() {
+                const urlParams = new URLSearchParams(window.location.search);
+                return {
+                    stats_filter: urlParams.get('stats_filter') || 'has_stamps',
+                    sort_order: urlParams.get('sort_order') || 'latest_first',
+                    page: urlParams.get('page') || '1',
+                    search: urlParams.get('search') || ''
+                };
+            }
+
+            // 現在のフィルター状態を保存
+            const filters = getCurrentFilters();
+
+            // リロード時のURLを構築する関数
+            function buildReloadUrl() {
+                const currentUrl = new URL(window.location.href);
+                Object.entries(filters).forEach(([key, value]) => {
+                    if (value) {
+                        currentUrl.searchParams.set(key, value);
+                    }
+                });
+                return currentUrl.toString();
+            }
+
+            // 既存の自動更新処理を修正
+            function autoReload() {
+                window.location.href = buildReloadUrl();
+            }
+
+            // 自動更新インターバルの設定
+            const reloadInterval = setInterval(() => {
+                if (autoReloadEnabled && !isInputting) {
+                    autoReload();
+                }
+            }, 30000);
+
+            // 今すぐ更新ボタンのイベントハンドラを修正
+            document.querySelector('.force-button-container').addEventListener('click', function() {
+                if (!isInputting) {
+                    autoReload();
+                }
+            });
+        });
     </script>
 
     <style>
@@ -876,14 +1165,64 @@
             min-width: 500px; /* 最小幅を設定 */
         }
         
+        .force-button:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+            opacity: 0.7;
+        }
+
         .reload-content {
+            max-width: 1200px;
+            margin: 0 auto;
             display: grid;
-            grid-template-columns: auto auto auto;
+            grid-template-columns: 200px auto 340px; /* 3列のグリッドを調整 */
             gap: 20px;
             align-items: center;
-            justify-content: center;
+        }
+
+        .navigation-button {
+            justify-self: start;
+        }
+
+        .nav-button {
+            padding: 8px 16px;
+            background-color: #4CAF50;
+            color: white;
+            text-decoration: none;
+            border-radius: 4px;
+            transition: background-color 0.3s;
+            white-space: nowrap;
         }
         
+        .nav-button:hover {
+            background-color: #45a049;
+        }
+
+        .update-controls {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+            min-width: 340px; /* ボタンが重ならないように最小幅を設定 */
+        }
+
+        /* レスポンシブ対応のメディアクエリを更新 */
+        @media (max-width: 768px) {
+            .reload-content {
+                grid-template-columns: 1fr;
+                gap: 10px;
+            }
+            
+            .navigation-button, .countdown-display, .update-controls {
+                justify-self: center;
+            }
+
+            .update-controls {
+                min-width: auto;
+                width: 100%;
+                justify-content: center;
+            }
+        }
+
         .countdown-display {
             font-size: 1.1em;
             white-space: nowrap;

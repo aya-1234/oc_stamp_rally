@@ -106,7 +106,7 @@
         {% endfor %}
     {% else %}
         {% if collected_stamps < total_required %}
-            <p>ゴールアンケートに回答するには、あと {{ total_required+1 - collected_stamps }} つのチェックポイントを回る必要があります。</p>
+            <p>ゴールアンケートに回答するには、あと {{ total_required - collected_stamps }} つのチェックポイントを回る必要があります。</p>
         {% endif %}
         <button class="survey-button disabled" disabled>
             ゴールアンケートに回答する

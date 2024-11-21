@@ -2,7 +2,6 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <title>{{ title }}</title>
     <style>
         .container {
             max-width: 800px;
@@ -21,7 +20,7 @@
         .initial-message {
             background-color: #e3f2fd;
             border: 1px solid #bbdefb;
-            color: #1976d2;
+            color: #000000;
         }
 
         .flash-success {
@@ -37,10 +36,10 @@
         }
 
         .checkpoint-info {
-            margin-bottom: 20px;
+
             padding: 10px;
             background-color: #f8f9fa;
-            border-radius: 4px;
+
         }
 
         /* 新しい選択肢のスタイル */
@@ -146,18 +145,26 @@
 </head>
 <body>
     <div class="container">
-        <div class="checkpoint-info">
-            <h1>{{ title }}</h1>
-        </div>
 
-        {% with messages = get_flashed_messages(with_categories=true) %}
-            {% if messages %}
-                {% for category, message in messages %}
-                    <div class="message flash-{{ category }}" id="flash-{{ loop.index }}">
+            {% with all_messages = get_flashed_messages(with_categories=true) %}
+            <!-- クイズ完了メッセージ -->
+            {% for category, message in all_messages %}
+                {% if category == 'success' %}
+                    <div class="message flash-success">
                         {{ message | safe }}
                     </div>
-                {% endfor %}
+                {% endif %}
+            {% endfor %}
+            
+            {% if checkpoint_id is defined and checkpoint_id >= 2 and checkpoint_id <= 7 %}
             {% else %}
+            <div class="checkpoint-info">
+                <h1>{{ title }}</h1>
+            </div>
+            {% endif %}
+        
+            <!-- 初期メッセージ（アンケート説明） -->
+            {% if initial_message %}
                 <div class="message initial-message">
                     {{ initial_message | safe }}
                 </div>
@@ -169,19 +176,20 @@
                 <div class="question-container">
                     <p class="question-text">{{ question.question }}</p>
                     {% if question.survey_choices %}
-                        <div class="choice-container">
-                            {% for choice in question.survey_choices %}
-                                <div class="choice">
-                                    <input type="radio" 
-                                           id="choice_{{ choice.id }}"
-                                           name="question_{{ question.id }}" 
-                                           value="{{ choice.id }}">
-                                    <label for="choice_{{ choice.id }}">
-                                        {{ choice.survey_choice }}
-                                    </label>
-                                </div>
-                            {% endfor %}
-                        </div>
+                    <div class="choice-container">
+                        {% set sorted_choices = question.survey_choices|sort(attribute='id') %}
+                        {% for choice in sorted_choices %}
+                            <div class="choice">
+                                <input type="radio" 
+                                       id="choice_{{ choice.id }}"
+                                       name="question_{{ question.id }}" 
+                                       value="{{ choice.id }}">
+                                <label for="choice_{{ choice.id }}">
+                                    {{ choice.survey_choice }}
+                                </label>
+                            </div>
+                        {% endfor %}
+                    </div>
                     {% endif %}
                 </div>
             {% endfor %}

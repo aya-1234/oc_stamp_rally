@@ -3,74 +3,168 @@
 <head>
     <meta charset="UTF-8">
     <title>{{ title }}</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
+        :root {
+            --primary-color: #4CAF50;
+            --secondary-color: #2196F3;
+            --accent-color: #FF9800;
+            --background-color: #f5f7fa;
+            --text-color: #333;
+            --card-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            --hover-transition: all 0.3s ease;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--background-color);
+            color: var(--text-color);
+            line-height: 1.6;
+            margin: 0;
+            padding: 0;
+        }
+
         .container {
-            max-width: 800px;
-            margin: 0 auto;
+            max-width: 1000px;
+            margin: 40px auto;
             padding: 20px;
         }
 
-        .message {
-            padding: 15px;
-            margin: 20px 0;
-            border-radius: 4px;
-            text-align: left;
-            line-height: 1.5;
-        }
-
-        .flash-success {
-            background-color: #dff0d8;
-            border: 1px solid #d6e9c6;
-            color: #3c763d;
-            padding: 15px;
-            margin: 20px 0;
-            border-radius: 4px;
-            line-height: 1.5;
-        }
-
-        .flash-error {
-            background-color: #f2dede;
-            border: 1px solid #ebccd1;
-            color: #a94442;
-            padding: 15px;
-            margin: 20px 0;
-            border-radius: 4px;
-            line-height: 1.5;
-        }
-
-        .menu-list {
-            list-style: none;
-            padding: 0;
-            margin: 20px 0;
-        }
-
-        .menu-list li {
-            margin: 10px 0;
-        }
-
-        .menu-list a {
-            text-decoration: none;
-            color: #007bff;
-            padding: 8px 0;
-            display: inline-block;
-        }
-
-        .menu-list a:hover {
-            color: #0056b3;
-            text-decoration: underline;
-        }
-
-        .welcome-message {
-            font-size: 1.2em;
-            margin: 20px 0;
-            padding: 10px;
-            background-color: #f8f9fa;
-            border-radius: 4px;
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding: 20px;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            border-radius: 15px;
+            color: white;
+            box-shadow: var(--card-shadow);
         }
 
         h1 {
-            color: #333;
-            margin-bottom: 20px;
+            font-size: 2.5em;
+            margin: 0;
+            padding: 20px 0;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .welcome-message {
+            font-size: 1.3em;
+            margin: 20px 0;
+            padding: 20px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: var(--card-shadow);
+            border-left: 5px solid var(--accent-color);
+            display: flex;
+            align-items: center;
+        }
+
+        .welcome-message i {
+            font-size: 1.5em;
+            margin-right: 15px;
+            color: var(--accent-color);
+        }
+
+        .menu-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px;
+            margin-top: 30px;
+        }
+
+        .menu-item {
+            background: white;
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: var(--card-shadow);
+            transition: var(--hover-transition);
+            cursor: pointer;
+            text-decoration: none;
+            color: var(--text-color);
+            display: flex;
+            align-items: center;
+            border: 1px solid rgba(0,0,0,0.1);
+        }
+
+        .menu-item:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+        }
+
+        .menu-item i {
+            font-size: 2em;
+            margin-right: 20px;
+            color: var(--primary-color);
+            transition: var(--hover-transition);
+        }
+
+        .menu-item:hover i {
+            transform: scale(1.1);
+        }
+
+        .menu-item-content h3 {
+            margin: 0 0 10px 0;
+            color: var(--text-color);
+        }
+
+        .menu-item-content p {
+            margin: 0;
+            color: #666;
+            font-size: 0.9em;
+        }
+
+        .message {
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 12px;
+            text-align: left;
+            line-height: 1.5;
+            box-shadow: var(--card-shadow);
+            display: flex;
+            align-items: center;
+        }
+
+        .flash-success {
+            background-color: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+
+        .flash-error {
+            background-color: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+
+        .flash-ended {
+            background-color: #e1ecf4;
+            border: 1px solid #b3d3ec;
+            color: #004085;
+        }
+
+        .message i {
+            font-size: 1.5em;
+            margin-right: 15px;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 15px;
+                margin: 20px auto;
+            }
+
+            .menu-grid {
+                grid-template-columns: 1fr;
+                gap: 15px;
+            }
+
+            .header {
+                margin-bottom: 20px;
+            }
+
+            h1 {
+                font-size: 2em;
+            }
         }
     </style>
 </head>
@@ -79,24 +173,50 @@
         {% with messages = get_flashed_messages(with_categories=true) %}
             {% if messages %}
                 {% for category, message in messages %}
-                    <div class="flash-{{ category }}">{{ message | safe }}</div>
+                    <div class="message flash-{{ category }}">
+                        <i class="fas fa-{{ 'check-circle' if category == 'success' else ('exclamation-circle' if category == 'error' else 'info-circle') }}"></i>
+                        {{ message | safe }}
+                    </div>
                 {% endfor %}
             {% endif %}
         {% endwith %}
 
-        <h1>{{ title }}</h1>
+        <div class="header">
+            <h1>{{ title }}</h1>
+        </div>
         
         {% if user %}
             <div class="welcome-message">
+                <i class="fas fa-user-circle"></i>
                 ようこそ、{{ user.account }}さん
             </div>
         {% endif %}
         
-        <ul class="menu-list">
-            <li><a href="{{ url_for('participation_guide') }}">スタンプラリーの参加方法</a></li>
-            <li><a href="{{ url_for('app_usage') }}">スタンプラリーアプリの使い方</a></li>
-            <li><a href="{{ url_for('view_stamps') }}">ゲット済みのスタンプを確認する</a></li>
-        </ul>
+        <div class="menu-grid">
+            <a href="{{ url_for('participation_guide') }}" class="menu-item">
+                <i class="fas fa-map-marked-alt"></i>
+                <div class="menu-item-content">
+                    <h3>コースの説明・地図</h3>
+                    <p>コースの説明と地図をご確認いただけます</p>
+                </div>
+            </a>
+            
+            <a href="{{ url_for('app_usage') }}" class="menu-item">
+                <i class="fas fa-mobile-alt"></i>
+                <div class="menu-item-content">
+                    <h3>スタンプラリーアプリの使い方</h3>
+                    <p>アプリの基本的な操作方法を解説しています</p>
+                </div>
+            </a>
+            
+            <a href="{{ url_for('view_stamps') }}" class="menu-item">
+                <i class="fas fa-stamp"></i>
+                <div class="menu-item-content">
+                    <h3>獲得スタンプ確認</h3>
+                    <p>現在までに獲得したスタンプを確認できます</p>
+                </div>
+            </a>
+        </div>
     </div>
 </body>
 </html>
