@@ -1,16 +1,35 @@
 {% extends "base.html" %}
 {% block content %}
+
+{# 最初にメッセージを取得して変数に保存 #}
+{% with all_messages = get_flashed_messages(with_categories=true) %}
+    {# 最初のメッセージ（アンケート完了）を表示 #}
+    <div class="flash-container">
+        {% if all_messages %}
+            {% for category, message in all_messages %}
+                {% if category == 'success' %}
+                    <div class="alert alert-{{ category }}">
+                        {{ message | safe }}
+                    </div>
+                {% endif %}
+            {% endfor %}
+        {% endif %}
+    </div>
+
 <h1>{{ title }}</h1>
 
-{# フラッシュメッセージ表示部分を修正 #}
-{% with messages = get_flashed_messages(with_categories=true) %}
-    {% if messages %}
-        {% for category, message in messages %}
-            <div class="alert alert-{{ category }}">
-                {{ message | safe }}
-            </div>
-        {% endfor %}
-    {% endif %}
+    {# 2番目のメッセージ（スタンプ獲得）を表示 #}
+    <div class="flash-container">
+        {% if all_messages %}
+            {% for category, message in all_messages %}
+                {% if category == 'ended' %}
+                    <div class="alert alert-{{ category }}">
+                        {{ message | safe }}
+                    </div>
+                {% endif %}
+            {% endfor %}
+        {% endif %}
+    </div>
 {% endwith %}
 
 <div class="stamps-container">
@@ -21,7 +40,7 @@
             {% if checkpoint.is_obtained %}
                 <div class="stamp-info">
                     <p class="status obtained">スタンプ取得済み</p>
-                    <p class="visit-count">訪問回数: {{ checkpoint.visit_count }}回</p>
+                    {#<p class="visit-count">訪問回数: {{ checkpoint.visit_count }}回</p>#}
                     <p class="latest-visit">最終訪問: {{ checkpoint.latest_stamp.strftime('%Y/%m/%d %H:%M') }}</p>
                 </div>
             {% else %}
@@ -38,7 +57,11 @@
         </div>
     {% endfor %}
 </div>
-<a href="/main_menu" class="menu-button">メインメニューに戻る</a>
+<div class="button-container">
+    <a href="/main_menu" class="menu-button">
+        <i class="fas fa-home"></i> メインメニューに戻る
+    </a>
+</div>
 
 <style>
     .stamps-container {
@@ -96,18 +119,22 @@
         font-size: 0.9rem;
     }
 
-    .description {
-        margin-top: 0.5rem;
-        font-size: 0.9rem;
-        color: #666;
-    }
     /* フラッシュメッセージのスタイルを改善 */
+    .flash-container {
+        margin: 0;  /* マージンを0に設定 */
+        padding: 0; /* パディングも0に設定 */
+    }
+
+    /* アラートのスタイルを調整 */
     .alert {
-        padding: 1.2rem;
-        margin: 1rem;
+        padding-top: 0rem;     /* 上のパディングを小さく */
+        padding-bottom: 1.2rem;   /* 下のパディングを大きく */
+        padding-left: 1rem;
+        padding-right: 1rem;
+        margin: 0 0 1rem 0;
         border-radius: 4px;
-        line-height: 1.5;
-        white-space: pre-line;  /* 改行を保持 */
+        line-height: 1.4;
+        white-space: pre-line;
     }
 
     .alert-success {
@@ -134,13 +161,59 @@
         color: #0c5460;
     }
 
-    /* 説明文の改行を適切に表示 */
-    .description {
-        margin-top: 0.5rem;
-        font-size: 0.9rem;
-        color: #666;
-        white-space: pre-line;  /* 改行を保持 */
-        line-height: 1.5;
+    h1 {
+        margin-top: 1rem; /* h1タグの上マージンを調整 */
+    }
+
+    .menu-button {
+    display: inline-block;
+    text-decoration: none;
+    background: linear-gradient(135deg, #4CAF50, #45a049);
+    color: white;
+    padding: 12px 30px;
+    border-radius: 25px;
+    font-weight: 500;
+    margin: 20px 0;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    transition: all 0.3s ease;
+    border: none;
+    position: relative;
+    overflow: hidden;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    .menu-button::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(135deg, rgba(255,255,255,0.1), rgba(255,255,255,0));
+        transform: translateX(-100%);
+        transition: transform 0.5s ease;
+    }
+
+    .menu-button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+        color: white;
+    }
+
+    .menu-button:hover::before {
+        transform: translateX(100%);
+    }
+
+    .menu-button:active {
+        transform: translateY(1px);
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    /* ボタンの配置を中央に */
+    .button-container {
+        text-align: center;
+        margin: 30px 0;
+        width: 100%;
     }
 
 </style>

@@ -97,6 +97,13 @@ def shutdown_session(exception=None):
 #1.9is_usedのフラグを少し変えて弾くようにして、こちらで払い出しテーブルを作る。要らんな。
 #1.7と1.8が必要なかったら、もう２の最終盤くらいの位置づけになるね。
 #GETでリロードした際に、全員その条件で検索する！
+#複数Sqlite3と、DBのセッション終了をする。
+#アップデートと削除は書き込み。
+
+
+#本番用の文が無いとっころがあるからそこを何とかする。
+
+
 
 
 checkpoint_hash_dic = {'ajrwkhlkafsddfd': 1,
@@ -117,7 +124,6 @@ def hello():
     output=f'''
 <h1>Hello World</h1>
 <ul>
-<li><a href="/logins">ログイン情報</a></li>
 <li><a href="/handle_checkpoint/{hash_keys[0]}">スタートポイントログイン</a></li>
 <li><a href="/handle_checkpoint/{hash_keys[1]}">チェックポイント地点１ログイン</a></li>
 <li><a href="/handle_checkpoint/{hash_keys[2]}">チェックポイント地点２ログイン</a></li>
@@ -398,7 +404,10 @@ def admin_panel():
         .join(Checkpoint, Stamp.checkpoint_id == Checkpoint.id)
         .outerjoin(Quiz, Checkpoint.id == Quiz.checkpoint_id)
         .outerjoin(Quiz_Response, and_(Login.id == Quiz_Response.login_id, Quiz.id == Quiz_Response.quiz_id))
-        .filter(Quiz_Response.id.is_(None))
+        .filter(
+            Quiz_Response.id.is_(None),
+            Checkpoint.checkpoint_type == 'normal'  # normalタイプのチェックポイントのみ
+        )
         .group_by(Login.id, Login.account, Checkpoint.id)
         .all()
     )
@@ -1006,43 +1015,25 @@ def stamp_statistics():
     page = request.args.get('page', 1, type=int)
     per_page = 10
     search_query = request.args.get('search', '')
-    filter_type = request.args.get('filter', 'all')
+    stats_filter = request.args.get('stats_filter', 'has_stamps')
+    sort_order = request.args.get('sort_order', 'latest_first')
 
-    # ユーザー統計のベースクエリを構築
-    user_stats = db.session.query(
-        Login.account,
-        db.func.count(Stamp.id).label('total_stamps'),
-        db.func.min(Stamp.created_at).label('first_stamp'),
-        db.func.max(Stamp.created_at).label('last_stamp')
-    ).outerjoin(
-        Stamp,
-        Login.id == Stamp.login_id
-    ).group_by(
-        Login.id,
-        Login.account
-    )
-
-    # 検索フィルターの適用
-    if search_query:
-        user_stats = user_stats.filter(Login.account.like(f'%{search_query}%'))
-
-    # フィルタータイプの適用
-    if filter_type == 'completed':
-        user_stats = user_stats.filter(Login.is_ended == True)
-    elif filter_type == 'incomplete':
-        user_stats = user_stats.filter(Login.is_ended == False)
-    elif filter_type.startswith('stamps_'):
-        try:
-            num_stamps = int(filter_type.split('_')[1])
-            user_stats = user_stats.having(db.func.count(Stamp.id) == num_stamps)
-        except (ValueError, IndexError):
-            print("Invalid stamp filter format")
-
-    # ページネーション適用
-    users_pagination = user_stats.paginate(
+    # ユーザー統計を取得（フィルター設定を維持）
+    users_pagination = get_user_statistics(
         page=page,
         per_page=per_page,
-        error_out=False
+        search_query=search_query,
+        stats_filter=stats_filter,
+        sort_order=sort_order
+    )
+
+    # 進行状況マップデータの取得（同じフィルター設定を使用）
+    progress_map_data = get_stamp_progress_data(
+        page=page,
+        per_page=per_page,
+        search_query=search_query,
+        stats_filter=stats_filter,
+        sort_order=sort_order
     )
 
     # 全体の統計情報
@@ -1087,17 +1078,9 @@ def stamp_statistics():
                 'users': stat.unique_users
             }
 
-    # 進行状況マップデータの取得
-    progress_map_data = get_stamp_progress_data(
-        page=page,
-        per_page=per_page,
-        search_query=search_query,
-        filter_type=filter_type
-    )
-
     if app.debug:
         print("\n=== Debug Information ===")
-        print(f"User Stats Query: {user_stats}")
+        #print(f"User Stats Query: {user_stats}")
         print(f"Total Users: {users_pagination.total}")
         print(f"Current Page Items: {len(users_pagination.items)}")
         for user in users_pagination.items:
@@ -1111,7 +1094,8 @@ def stamp_statistics():
         hours_data=hours_data,
         progress_map_data=progress_map_data,
         search_query=search_query,
-        filter_type=filter_type,
+        stats_filter=stats_filter,
+        sort_order=sort_order,
         admin_hash=hash_keys[8],
         total_stats=total_stats,
         current_page=page,
@@ -1119,124 +1103,141 @@ def stamp_statistics():
     )
 
 # 統計情報を取得する関数を修正
-def get_stamp_progress_data(page=1, per_page=10, search_query='', filter_type='all'):
-    # ベースクエリの構築
-    base_query = db.session.query(
-        Login.id,
-        Login.account,
-        Stamp.checkpoint_id,
-        Checkpoint.name.label('checkpoint_name'),
-        Stamp.created_at,
-        db.func.count(Stamp.id).over(partition_by=Login.id).label('stamp_count')
-    ).outerjoin(
-        Stamp, Login.id == Stamp.login_id
-    ).outerjoin(
-        Checkpoint, Stamp.checkpoint_id == Checkpoint.id
+def get_stamp_progress_data(page=1, per_page=10, search_query='', stats_filter='has_stamps', sort_order='latest_first'):
+    # ユーザー統計のクエリを構築
+    user_stats = get_user_statistics(
+        page=page,
+        per_page=per_page,
+        search_query=search_query,
+        stats_filter=stats_filter,
+        sort_order=sort_order
     )
-
-    # 検索フィルターの適用
-    if search_query:
-        base_query = base_query.filter(Login.account.like(f'%{search_query}%'))
-
-    # スタンプ数のサブクエリ
-    stamp_counts = db.session.query(
-        Login.id,
-        Login.account,
-        db.func.count(Stamp.id).label('count')
-    ).outerjoin(
-        Stamp
-    ).group_by(Login.id, Login.account).subquery()
-
-    # フィルタータイプの適用
-    if filter_type == 'completed':
-        base_query = base_query.filter(Login.is_ended == True)
-    elif filter_type == 'incomplete':
-        base_query = base_query.filter(Login.is_ended == False)
-    elif filter_type == 'has_stamps':
-        # 1個以上のスタンプを持つユーザー
-        base_query = base_query.join(
-            stamp_counts,
-            Login.id == stamp_counts.c.id
-        ).filter(stamp_counts.c.count > 0)
-    elif filter_type.startswith('stamps_'):
-        try:
-            num_stamps = int(filter_type.split('_')[1])
-            base_query = base_query.join(
-                stamp_counts,
-                Login.id == stamp_counts.c.id
-            ).filter(stamp_counts.c.count == num_stamps)
-        except (ValueError, IndexError):
-            print("Invalid stamp filter format")
-    elif filter_type == 'no_stamps':
-        # スタンプを持たないユーザー
-        base_query = base_query.join(
-            stamp_counts,
-            Login.id == stamp_counts.c.id
-        ).filter(stamp_counts.c.count == 0)
-
-    # 結果を取得
-    results = base_query.order_by(
-        Login.account,
-        Stamp.created_at
-    ).all()
-
-    # チェックポイント情報を取得
-    checkpoints = db.session.query(
-        Checkpoint
-    ).order_by(
-        Checkpoint.checkpoint_order
-    ).all()
     
+    # 現在のページのユーザーを順序を保持して取得
+    current_users = [(user.id, user.account) for user in user_stats.items]
+    
+    # チェックポイントの取得（ゴール地点を除外）
+    checkpoints = db.session.query(Checkpoint)\
+        .filter(Checkpoint.checkpoint_type != 'goal')\
+        .order_by(Checkpoint.checkpoint_order).all()
     checkpoint_names = [cp.name for cp in checkpoints]
 
-    # ユーザーごとのデータを整理
-    unique_users = set()
-    progress_data = []
-
-    for result in results:
-        if result.account not in unique_users:
-            unique_users.add(result.account)
+    # スタンプデータを取得
+    stamp_data = []
+    for user_id, account in current_users:
+        user_stamps = db.session.query(
+            Login.account,
+            Checkpoint.name,
+            Stamp.created_at
+        ).join(
+            Stamp, Login.id == Stamp.login_id
+        ).join(
+            Checkpoint, Stamp.checkpoint_id == Checkpoint.id
+        ).filter(
+            Login.id == user_id,
+            Checkpoint.checkpoint_type != 'goal'
+        ).order_by(
+            Stamp.created_at.asc() if sort_order == 'oldest_first' else Stamp.created_at.desc()
+        ).all()
         
-        if result.created_at and result.checkpoint_name:
-            progress_data.append({
-                'x': result.account,
-                'y': result.checkpoint_name,
-                'timestamp': result.created_at.strftime('%H:%M')
-            })
-
-    # ページネーション
-    all_users = sorted(list(unique_users))
-    total_users = len(all_users)
-    start_idx = (page - 1) * per_page
-    end_idx = min(start_idx + per_page, total_users)
-    current_users = all_users[start_idx:end_idx]
-
-    # 現在のページのデータのみをフィルタリング
-    filtered_progress_data = [
-        data for data in progress_data 
-        if data['x'] in current_users
-    ]
+        stamp_data.extend(user_stamps)
+    
+    # プログレスマップ用のデータを構築
+    progress_data = [{
+        'x': result.account,
+        'y': result.name,
+        'timestamp': result.created_at.strftime('%H:%M')
+    } for result in stamp_data]
 
     if app.debug:
-        print("\n=== Progress Map Debug ===")
-        print(f"Total unique users: {total_users}")
-        print(f"Current page users: {current_users}")
-        print(f"Total progress data points: {len(filtered_progress_data)}")
-        print(f"Progress Data: {filtered_progress_data}")
-        print("\n=== Filter Debug ===")
-        print(f"Filter type: {filter_type}")
-        print(f"Total users before filter: {len(results)}")
-        print(f"Users with stamps: {len([r for r in results if r.created_at])}")
-        print(f"Filtered users: {len(current_users)}")
+        print("\n=== Progress Map Debug Information ===")
+        print(f"Total Users in Current Page: {len(current_users)}")
+        print(f"User Order: {[account for _, account in current_users]}")
+        print("\nStamp Data:")
+        for user_id, account in current_users:
+            print(f"\nUser: {account}")
+            user_stamps = [stamp for stamp in stamp_data if stamp.account == account]
+            for stamp in user_stamps:
+                print(f"  Checkpoint: {stamp.name}, Time: {stamp.created_at}")
+        print("\nProgress Data Points:")
+        for point in progress_data:
+            print(f"User: {point['x']}, Checkpoint: {point['y']}, Time: {point['timestamp']}")
+        print("=====================================\n")
 
     return {
-        'progress_data': filtered_progress_data,
+        'progress_data': progress_data,
         'checkpoint_names': checkpoint_names,
-        'user_order': current_users,
-        'total_users': total_users,
-        'total_pages': (total_users + per_page - 1) // per_page,
+        'user_order': [account for _, account in current_users],
+        'total_pages': user_stats.pages,
         'current_page': page
     }
+
+    # ... 残りのコードは同じ ...
+
+# ユーザー統計用の関数
+def get_user_statistics(page=1, per_page=10, search_query='', stats_filter='has_stamps', sort_order='latest_first'):
+    # ベースクエリの構築
+    user_stats = db.session.query(
+        Login.id,
+        Login.account,
+        db.func.count(Stamp.id).label('total_stamps'),
+        db.func.min(Stamp.created_at).label('first_stamp'),
+        db.func.max(Stamp.created_at).label('last_stamp'),
+        (db.func.julianday('now') - db.func.julianday(db.func.max(Stamp.created_at))) * 24 * 60 * 60
+    ).join(
+        Stamp, Login.id == Stamp.login_id
+    ).group_by(
+        Login.id,
+        Login.account
+    )
+
+    # 検索クエリの適用
+    if search_query:
+        user_stats = user_stats.filter(Login.account.like(f'%{search_query}%'))
+
+    # フィルタータイプの適用
+    if stats_filter == 'completed_users':
+        goal_exists = db.session.query(Stamp).filter(
+            db.and_(
+                Stamp.login_id == Login.id,
+                Stamp.checkpoint_id == 8
+            )
+        ).exists()
+        
+        user_stats = user_stats.having(
+            db.and_(
+                db.func.count(db.distinct(Stamp.checkpoint_id)) == 8,
+                db.session.query(goal_exists).scalar_subquery()
+            )
+        )
+    elif stats_filter == 'has_stamps':
+        user_stats = user_stats.having(
+            db.and_(
+                db.func.count(Stamp.id) >= 1,
+                db.func.count(Stamp.id) <= 7
+            )
+        )
+    elif stats_filter == 'stamps_1_to_2':
+        user_stats = user_stats.having(
+            db.and_(
+                db.func.count(Stamp.id) >= 1,
+                db.func.count(Stamp.id) <= 2
+            )
+        )
+    elif stats_filter.startswith('stamps_'):
+        try:
+            num_stamps = int(stats_filter.split('_')[1])
+            user_stats = user_stats.having(db.func.count(Stamp.id) == num_stamps)
+        except (ValueError, IndexError):
+            print("Invalid stamp filter format")
+
+    # ソート順の適用（first_stampを基準にする）
+    if sort_order == 'latest_first':
+        user_stats = user_stats.order_by(db.func.min(Stamp.created_at).desc())
+    else:  # oldest_first
+        user_stats = user_stats.order_by(db.func.min(Stamp.created_at).asc())
+
+    return user_stats.paginate(page=page, per_page=per_page, error_out=False)
 
 ###################################################################################################################################################
 ####3つの共通処理
@@ -1421,45 +1422,49 @@ DEFAULT_MESSAGES = {
 
 CHECKPOINT_MESSAGES = {
     1: {
-        "title": "スタート時アンケート調査",
-        "message": "スタートポイントのアンケートにご協力ください。<br>"
-                  "これから巡るスポットについて、お聞きしたいことがあります。"
+        "title": "池田おでかけスタンプラリー  アンケート調査（スタート地点）",
+        "message": "本日は「池田おでかけスタンプラリー」にご参加いただき、ありがとうございます。<br>"
+"「池田おでかけスタンプラリー」は大阪成蹊大学と池田市が共同で実施している「ウォークラリーを活用した地域プロモーション施策の有効性に関する研究」の一環として行うものです。<br><br>"
+"このアンケート調査は、地域振興施策を検討するための情報を収集することを目的に、本日、ご参加の皆さまを対象にして実施しております。<br>"
+"ご回答は匿名でいただき、すべて統計的に処理いたしますので、ご回答いただいた皆様にご迷惑をおかけすることは絶対にございません。なお、ご回答の有無、ご回答内容によって不利益を被ることはございません。<br><br>"
+"なお、スタンプラリー終了後にもアンケート調査がございます。ご協力のほど、よろしくお願いいたします。<br><br>"
+"大阪成蹊大学<br>"
+"池田市"
     },
     2: {
-        "title": "チェックポイント時アンケート調査",
-        "message": "地点1についてのアンケートにご協力ください。<br>"
-                  "最初のスポットの印象をお聞かせください。"
+        "title": "o",
+        "message": "次のアンケートにお答えください。"
     },
     3: {
         "title": "チェックポイント時アンケート調査",
-        "message": "地点2についてのアンケートにご協力ください。<br>"
-                  "2つ目のスポットはいかがでしたか？"
+        "message": "次のアンケートにお答えください。"
     },
     4: {
         "title": "チェックポイント時アンケート調査",
-        "message": "地点3についてのアンケートにご協力ください。<br>"
-                  "中間地点での感想をお聞かせください。"
+        "message": "次のアンケートにお答えください。"
     },
     5: {
         "title": "チェックポイント時アンケート調査",
-        "message": "地点4についてのアンケートにご協力ください。<br>"
-                  "このスポットの特徴的な部分はいかがでしたか？"
+        "message": "次のアンケートにお答えください。"
     },
     6: {
         "title": "チェックポイント時アンケート調査",
-        "message": "地点5についてのアンケートにご協力ください。<br>"
-                  "ここまでの道のりはいかがですか？"
+        "message": "次のアンケートにお答えください。"
     },
     7: {
         "title": "チェックポイント時アンケート調査",
-        "message": "地点6についてのアンケートにご協力ください。<br>"
-                  "ゴールまでもう少しです。このスポットの感想をお聞かせください。"
+        "message": "次のアンケートにお答えください。"
     },
 
     8: {
-        "title": "ゴール時アンケート調査",
-        "message": "ゴールポイントでの最後のアンケートにご協力ください。<br>"
-                  "全体を通しての感想をお聞かせください。"
+        "title": "池田おでかけスタンプラリー  アンケート調査（ゴール地点）",
+        "message": "本日は「池田おでかけスタンプラリー」にご参加いただき、ありがとうございました。<br>"
+"お楽しみいただけましたでしょうか。<br>"
+"お手数ですが、再度アンケート調査にご協力をお願いいたします。"
+"ご回答は匿名でいただき、すべて統計的に処理いたしますので、ご回答いただいた皆様にご迷惑をおかけすることは絶対にございません。<br>"
+"なお、ご回答の有無、ご回答内容によって不利益を被ることはございません。<br><br>"
+"大阪成蹊大学<br>"
+"池田市"
     }
 }
 
@@ -1544,7 +1549,7 @@ def start_survey(checkpoint_id):
             db.session.add_all(responses)
             user.is_loggedin = True
             db.session.commit()
-            flash('スタートアンケートが完了しました！<br>ご協力ありがとうございます。', 'success')
+            flash('スタートアンケートが完了しました！<br>ご協力ありがとうございます。', 'ended')
             return redirect(url_for('main_menu', user=user.account))
 
         except SQLAlchemyError:
@@ -1613,7 +1618,7 @@ def checkpoint_survey(checkpoint_id):
             ))
             db.session.commit()
             flash(f'{checkpoint.name}の記録が完了しました！<br>ご協力ありがとうございます。', 'success')
-            return redirect(url_for('view_stamps', checkpoint_id=checkpoint_id))
+            return redirect(url_for('view_stamps', checkpoint_id=checkpoint_id,stamp_added=True))
 
         except SQLAlchemyError:
             db.session.rollback()
@@ -1624,7 +1629,8 @@ def checkpoint_survey(checkpoint_id):
         title=message_info["title"],
         initial_message=message_info["message"],
         checkpoint=checkpoint,
-        questions=questions
+        questions=questions,
+        checkpoint_id=checkpoint_id 
     )
 
 # ゴールのアンケート画面
@@ -1737,6 +1743,10 @@ def agreement(login_id):
         db.session.add(new_stamp)
         db.session.commit()
 
+        # is_loggedinのチェック
+        if user.is_loggedin:
+            return redirect(url_for('main_menu'))
+
         # アンケート画面にリダイレクト
         return redirect(url_for('handle_survey', checkpoint_id=new_stamp.checkpoint_id))  # 新しく作成したスタンプのcheckpoint_idを使用 # ここで適切なcheckpoint_idを指定
 
@@ -1749,6 +1759,10 @@ def view_stamps():
     if not user_id:
         flash('セッションが切れました。<br>スタートポイントで再度ログインしてください。', 'error')
         return redirect(url_for('handle_checkpoint', checkpoint_id_hash=hash_keys[0]))
+    
+        # スタンプ取得時のメッセージを改行付きで表示
+    if request.args.get('stamp_added'):
+        flash('新しいスタンプを獲得しました！<br>次のチェックポイントに向かいましょう。', 'success')
 
     user = Login.query.get_or_404(user_id)
 
@@ -1780,10 +1794,6 @@ def view_stamps():
             'latest_stamp': stamp_data.get('latest_stamp'),
             'visit_count': stamp_data.get('visit_count', 0)
         })
-
-    # スタンプ取得時のメッセージを改行付きで表示
-    if request.args.get('stamp_added'):
-        flash('新しいスタンプを獲得しました！<br>次のチェックポイントに向かいましょう。', 'success')
 
     return render_template(
         'view_stamps.html',
@@ -2020,31 +2030,25 @@ def quiz(checkpoint_id):
 # スタンプ一覧の表示
 @app.route("/show_stamps/<int:user_id>")
 def show_stamps(user_id):
-    # チェックポイントとユーザーのスタンプ情報を取得
     checkpoints = Checkpoint.query.order_by(Checkpoint.checkpoint_order).all()
     user_stamps = set(stamp.checkpoint_id for stamp in Stamp.query.filter_by(login_id=user_id).all())
 
-    # 必要なチェックポイント（ID: 2-7）のIDセット
-    required_checkpoint_ids = set(range(2, 7))  # 2から6まで
+    # 必要なチェックポイントのIDセットを修正 (2から7まで)
+    required_checkpoint_ids = set(range(2, 8))  # 2から7までに修正
     
-    # 収集済みの必要なチェックポイントの数を計算
     collected_stamps = len(required_checkpoint_ids.intersection(user_stamps))
-    total_required = len(required_checkpoint_ids)  # 必要なチェックポイント数（6個）
+    total_required = len(required_checkpoint_ids)  # 6個になります
 
-    # ゴールチェックポイント（ID: 9）を取得
     goal_checkpoint = Checkpoint.query.filter_by(id=8).first()
     
-    # アンケートボタンのアクティブ化条件：
-    # 1. ID 2-7のチェックポイントをすべて収集している
-    # 2. まだゴール（ID: 9）のスタンプを取得していない
+    # ゴールアンケートのアクティブ化条件を厳密化
     active_survey = (collected_stamps >= total_required and 
                     goal_checkpoint and 
-                    goal_checkpoint.id not in user_stamps)
+                    goal_checkpoint.id not in user_stamps and
+                    all(cp_id in user_stamps for cp_id in required_checkpoint_ids))  # すべての必要なチェックポイントを確認
 
-    # ゴールのアンケート用チェックポイント
     survey_checkpoints = [goal_checkpoint] if active_survey and goal_checkpoint else []
 
-    # テンプレートにデータを渡す
     return render_template(
         "stamps.html",
         checkpoints=checkpoints,

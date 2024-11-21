@@ -108,7 +108,7 @@
         {% endif %}
     {% endwith %}
 
-    <h1>チェックポイント: {{ checkpoint.name }}</h1>
+    <h1>{{ checkpoint.name }}</h1>
     
     <!-- 写真の表示 -->
     <div class="image-container">
@@ -117,22 +117,22 @@
             <div class="image-caption">スタート地点の様子</div>
         {% elif checkpoint.checkpoint_order == 2 %}
             <img src="{{ url_for('static', filename='images/point1.jpg') }}" alt="チェックポイント1" class="checkpoint-image">
-            <div class="image-caption">チェックポイント1の様子</div>
+            <div class="image-caption">池田市観光案内所の様子</div>
         {% elif checkpoint.checkpoint_order == 3 %}
             <img src="{{ url_for('static', filename='images/point2.jpg') }}" alt="チェックポイント2" class="checkpoint-image">
-            <div class="image-caption">チェックポイント2の様子</div>
+            <div class="image-caption">	まがり書房の様子</div>
         {% elif checkpoint.checkpoint_order == 4 %}
             <img src="{{ url_for('static', filename='images/point3.jpg') }}" alt="チェックポイント3" class="checkpoint-image">
-            <div class="image-caption">チェックポイント3の様子</div>
+            <div class="image-caption">	井戸の辻（ビリケンさん）の様子</div>
         {% elif checkpoint.checkpoint_order == 5 %}
             <img src="{{ url_for('static', filename='images/point4.jpg') }}" alt="チェックポイント4" class="checkpoint-image">
-            <div class="image-caption">チェックポイント4の様子</div>
+            <div class="image-caption">落語みゅーじあむの様子</div>
         {% elif checkpoint.checkpoint_order == 6 %}
             <img src="{{ url_for('static', filename='images/point5.jpg') }}" alt="チェックポイント5" class="checkpoint-image">
-            <div class="image-caption">チェックポイント5の様子</div>
+            <div class="image-caption">池田城跡公園の様子</div>
         {% elif checkpoint.checkpoint_order == 7 %}
             <img src="{{ url_for('static', filename='images/point6.jpg') }}" alt="チェックポイント6" class="checkpoint-image">
-            <div class="image-caption">チェックポイント6の様子</div>
+            <div class="image-caption">Shokuの店の様子</div>
 
         {% elif checkpoint.checkpoint_order == 8 %}
             <img src="{{ url_for('static', filename='images/goal_point.jpg') }}" alt="ゴール地点" class="checkpoint-image">
