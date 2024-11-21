@@ -488,26 +488,44 @@ def add_quiz():
 @app.route(f'/{hash_keys[8]}/delete_quiz/<int:quiz_id>', methods=['POST'])
 def delete_quiz(quiz_id):
     try:
+        # まず対象のクイズが存在するか確認
         quiz = Quiz.query.get_or_404(quiz_id)
         
-        # 関連する回答も削除
-        Quiz_Response.query.filter_by(quiz_id=quiz_id).delete()
+        # トランザクションの開始
+        db.session.begin_nested()  # セーブポイントを作成
         
-        # クイズを削除
-        db.session.delete(quiz)
-        db.session.commit()
+        try:
+            # 関連する回答を削除
+            deleted_responses = Quiz_Response.query.filter_by(quiz_id=quiz_id).delete()
+            
+            # クイズを削除
+            db.session.delete(quiz)
+            
+            # トランザクションをコミット
+            db.session.commit()
+            
+            # ログ出力を追加
+            print(f"Quiz {quiz_id} and {deleted_responses} responses deleted successfully")
 
-        return jsonify({
-            'success': True,
-            'message': 'Quiz deleted successfully'
-        })
+            return jsonify({
+                'success': True,
+                'message': 'クイズと関連する回答が正常に削除されました',
+                'deletedResponses': deleted_responses
+            })
+
+        except Exception as e:
+            # 内部のトランザクションをロールバック
+            db.session.rollback()
+            raise e
 
     except Exception as e:
+        # 外部のトランザクションをロールバック
         db.session.rollback()
-        print(f"Error deleting quiz: {str(e)}")  # サーバーログに記録
+        print(f"Error deleting quiz {quiz_id}: {str(e)}")  # より詳細なログ
         return jsonify({
             'success': False,
-            'error': 'クイズの削除中にエラーが発生しました'
+            'error': 'クイズの削除中にエラーが発生しました',
+            'details': str(e)
         }), 500
 
 # ログインフラグの更新API
@@ -608,12 +626,14 @@ def add_survey():
 @app.route(f'/{hash_keys[8]}/delete_survey/<int:survey_id>', methods=['POST'])
 def delete_survey(survey_id):
     try:
-        survey = Survey.query.get_or_404(survey_id)
+        # まず関連する回答を削除
+        Survey_Response.query.filter_by(survey_id=survey_id).delete()
         
         # 関連する選択肢を削除
         Survey_Choice.query.filter_by(survey_id=survey_id).delete()
         
-        # アンケートを削除
+        # アンケート自体を削除
+        survey = Survey.query.get_or_404(survey_id)
         db.session.delete(survey)
         db.session.commit()
         
@@ -1516,25 +1536,31 @@ def start_survey(checkpoint_id):
     if request.method == 'POST':
         try:
             responses = []
-            unanswered_questions = []
+            unanswered_required_questions = []
 
             # すべての質問をチェック
             for question in questions:
                 if question.survey_choices:
                     selected_choice_id = request.form.get(f'question_{question.id}')
-                    if not selected_choice_id:
-                        unanswered_questions.append(question.question)
+                    
+                    # 必須項目（質問文に「（必須）」が含まれる）の場合のみチェック
+                    is_required = '（必須）' in question.question
+                    
+                    if is_required and not selected_choice_id:
+                        unanswered_required_questions.append(question.question)
                     else:
-                        responses.append(Survey_Response(
-                            login_id=user.id,
-                            survey_id=question.id,
-                            value=selected_choice_id
-                        ))
+                        # 非必須項目で未回答の場合はスキップ
+                        if selected_choice_id:
+                            responses.append(Survey_Response(
+                                login_id=user.id,
+                                survey_id=question.id,
+                                value=selected_choice_id
+                            ))
 
-            # 未回答の質問がある場合
-            if unanswered_questions:
-                error_message = "以下の質問に回答してください：<br>" + "<br>".join([
-                    f"・{q}" for q in unanswered_questions
+            # 未回答の必須質問がある場合
+            if unanswered_required_questions:
+                error_message = "以下の必須質問に回答してください：<br>" + "<br>".join([
+                    f"・{q}" for q in unanswered_required_questions
                 ])
                 flash(error_message, 'error')
                 return render_template(
@@ -1545,7 +1571,7 @@ def start_survey(checkpoint_id):
                     questions=questions
                 )
 
-            # 全ての質問に回答済みの場合
+            # 必須質問に全て回答済みの場合
             db.session.add_all(responses)
             user.is_loggedin = True
             db.session.commit()
@@ -1651,25 +1677,31 @@ def goal_survey(user_id, checkpoint_id):
     if request.method == "POST":
         try:
             responses = []
-            unanswered_questions = []
+            unanswered_required_questions = []
 
             # すべての質問をチェック
             for question in questions:
                 if question.survey_choices:
                     selected_choice_id = request.form.get(f'question_{question.id}')
-                    if not selected_choice_id:
-                        unanswered_questions.append(question.question)
+                    
+                    # 必須項目（質問文に「（必須）」が含まれる）の場合のみチェック
+                    is_required = '（必須）' in question.question
+                    
+                    if is_required and not selected_choice_id:
+                        unanswered_required_questions.append(question.question)
                     else:
-                        responses.append(Survey_Response(
-                            login_id=user_id,
-                            survey_id=question.id,
-                            value=selected_choice_id
-                        ))
+                        # 非必須項目で未回答の場合はスキップ
+                        if selected_choice_id:
+                            responses.append(Survey_Response(
+                                login_id=user_id,
+                                survey_id=question.id,
+                                value=selected_choice_id
+                            ))
 
-            # 未回答の質問がある場合
-            if unanswered_questions:
-                error_message = "以下の質問に回答してください：<br>" + "<br>".join([
-                    f"・{q}" for q in unanswered_questions
+            # 未回答の必須質問がある場合
+            if unanswered_required_questions:
+                error_message = "以下の必須質問に回答してください：<br>" + "<br>".join([
+                    f"・{q}" for q in unanswered_required_questions
                 ])
                 flash(error_message, 'error')
                 return render_template(
@@ -1680,7 +1712,7 @@ def goal_survey(user_id, checkpoint_id):
                     questions=questions
                 )
 
-            # 全ての質問に回答済みの場合
+            # 必須質問に全て回答済みの場合
             new_stamp = Stamp(
                 checkpoint_id=checkpoint_id,
                 login_id=user_id

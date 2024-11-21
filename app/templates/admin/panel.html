@@ -1005,6 +1005,7 @@ async function deleteStamp(stampId) {
                     <th>チェックポイント</th>
                     <th>順序</th>
                     <th>質問/見出し</th>
+                    <th>必須</th><!-- 新しい列 -->
                     <th>種類</th>
                     <th>選択肢</th>
                     <th>操作</th>
@@ -1016,6 +1017,11 @@ async function deleteStamp(stampId) {
                     <td>{{ checkpoint_name }}</td>
                     <td>{{ survey.survey_order }}</td>
                     <td>{{ survey.question }}</td>
+                    <td>
+                        <span class="required-badge {% if '（必須）' in survey.question %}required{% endif %}">
+                            {{ '必須' if '（必須）' in survey.question else '任意' }}
+                        </span>
+                    </td>
                     <td>
                         {% if survey.id in survey_choices and survey_choices[survey.id] %}
                             選択式
@@ -1041,7 +1047,7 @@ async function deleteStamp(stampId) {
                 {% endfor %}
                 {% if not surveys_pagination.items %}
                 <tr>
-                    <td colspan="6" class="no-data">データがありません</td>
+                    <td colspan="7" class="no-data">データがありません</td>
                 </tr>
                 {% endif %}
             </tbody>
@@ -1085,6 +1091,34 @@ async function deleteStamp(stampId) {
 </div>
 
 <style>
+
+.required-badge {
+    display: inline-block;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 0.8em;
+    font-weight: bold;
+    text-align: center;
+    min-width: 48px;
+}
+
+.required-badge.required {
+    background-color: #dc3545;
+    color: white;
+}
+
+.required-badge:not(.required) {
+    background-color: #6c757d;
+    color: white;
+}
+
+/* テーブルの新しい列のスタイル調整 */
+.table-container table th:nth-child(4),
+.table-container table td:nth-child(4) {
+    text-align: center;
+    width: 80px;
+}
+
 /* 既存のスタイルに追加 */
 .section-header {
     display: flex;
