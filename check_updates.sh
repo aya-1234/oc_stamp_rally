@@ -27,7 +27,7 @@ if [ $LOCAL != $REMOTE ]; then
         log_message "git pull successful"
         
         # Restart application
-        bash app/start_app.sh
+        bash start_app.sh
         if [ $? -eq 0 ]; then
             log_message "Application restart successful"
         else
