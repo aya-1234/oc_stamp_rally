@@ -2,6 +2,8 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="checkpoint-type" content="{{ checkpoint.checkpoint_type }}">
     <style>
         .container {
             max-width: 800px;
@@ -30,10 +32,9 @@
         }
 
         .flash-error {
-            background-color: #f8d7da;
-            border: 1px solid #f5c6cb;
-            color: #721c24;
-            text-align: center;
+            background-color: #f2dede;
+            border: 1px solid #ebccd1;
+            color: #a94442;
         }
 
         .checkpoint-info {
@@ -43,6 +44,150 @@
 
         }
 
+    </style>
+</head>
+<body>
+    <div class="container">
+
+            {% with all_messages = get_flashed_messages(with_categories=true) %}
+            <!-- クイズ完了メッセージ -->
+            {% for category, message in all_messages %}
+                {% if category == 'success' %}
+                    <div class="message flash-success">
+                        {{ message | safe }}
+                    </div>
+                {% endif %}
+            {% endfor %}
+            
+            {% if checkpoint_id is defined and checkpoint_id >= 2 and checkpoint_id <= 7 %}
+            {% else %}
+            <div class="checkpoint-info">
+                <h1>{{ title }}</h1>
+            </div>
+            {% endif %}
+        
+            <!-- 初期メッセージ（アンケート説明） -->
+            {% if initial_message %}
+                <div class="message initial-message">
+                    {{ initial_message | safe }}
+                </div>
+            {% endif %}
+        {% endwith %}
+        
+            <!-- アンケート質問セクション（アンケート管理）-->
+            <form method="post" id="surveyForm" onsubmit="return validateForm()">
+                {% for question in questions %}
+                    <div class="question-container" id="question-{{ question.id }}">
+                        <p class="question-text {% if '（回答必須）' in question.question %}required{% endif %}">
+                            {{ question.question }}
+                            {% if '（回答必須）' in question.question %}
+                                <span class="required-badge">必須</span>
+                            {% endif %}
+                        </p>
+                        {% if question.survey_choices %}
+                        <div class="choice-container">
+                            {% set sorted_choices = question.survey_choices|sort(attribute='id') %}
+                            {% for choice in sorted_choices %}
+                                <div class="choice">
+                                    <input type="radio" 
+                                            id="choice_{{ choice.id }}"
+                                            name="question_{{ question.id }}" 
+                                            value="{{ choice.id }}"
+                                            {% if form_data and form_data['question_' ~ question.id] == choice.id|string %}checked{% endif %}>
+                                    <label for="choice_{{ choice.id }}">
+                                        {{ choice.survey_choice }}
+                                    </label>
+                                </div>
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+                    </div>
+                {% endfor %}
+                <button type="submit" class="submit-button" id="submitButton">送信</button>
+            </form>
+        </div>
+
+    <style>
+
+    .filter-button-container {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        z-index: 1000;
+    }
+
+    .filter-button {
+        padding: 10px 20px;
+        background-color: #4CAF50;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        transition: all 0.3s ease;
+    }
+
+    .filter-button:hover {
+        background-color: #45a049;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    }
+
+    .modal {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0,0,0,0.5);
+        z-index: 1001;
+    }
+
+    .modal-content {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background-color: white;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        text-align: center;
+    }
+
+    .modal-buttons {
+        margin-top: 20px;
+        display: flex;
+        justify-content: center;
+        gap: 10px;
+    }
+
+    .modal-buttons button {
+        padding: 8px 20px;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+    }
+
+    #confirmYes {
+        background-color: #4CAF50;
+        color: white;
+    }
+
+    #confirmNo {
+        background-color: #f44336;
+        color: white;
+    }
+
+    .question-container {
+        transition: all 0.3s ease;
+    }
+
+    .question-container.hidden {
+        display: none;
+    }
+
         /* 新しい選択肢のスタイル */
         .question-container {
             margin: 20px 0;
@@ -50,9 +195,32 @@
             background-color: white;
             border-radius: 8px;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            transition: background-color 0.3s ease;
+            scroll-margin-top: 20px; /* スクロール時のマージンを追加 */
         }
 
+        .question-container.highlight {
+            animation: highlightPulse 1s ease-in-out;
+            border: 2px solid #ff4444;
+        }
+
+        @keyframes highlightPulse {
+            0% { background-color: white; }
+            50% { background-color: #fff3f3; }
+            100% { background-color: white; }
+        }
+
+        .required-badge {
+            display: inline-block;
+            background-color: #ff4444;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 0.8em;
+            margin-left: 8px;
+            vertical-align: middle;
+        }
+
+        /* 既存のスタイルは維持 */
         .question-text {
             font-size: 1.2em;
             font-weight: bold;
@@ -143,202 +311,117 @@
         body {
             background-color: #f5f5f5;
         }
-
-        .question-container {
-            transition: background-color 0.3s ease;
-        }
-
-        .question-container.highlight {
-            background-color: #fff3cd;
-            border-left: 4px solid #ffc107;
-        }
-
-        .question-container.unanswered {
-            border-left: 4px solid #ff4444;
-        }
-
-        .flash-message, #error-message {
-            transition: opacity 0.5s ease;
-        }
-
-        #error-message {
-            position: fixed;
-            top: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            z-index: 1000;
-            background-color: #f8d7da;
-            border: 1px solid #f5c6cb;
-            padding: 15px 20px;
-            border-radius: 4px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-        }
-
-        .question-text.required::after {
-            content: "（回答必須）";
-            color: #ff4444;
-            font-size: 0.9em;
-            margin-left: 8px;
-        }
-
-        /* 未回答の必須項目のスタイル */
-        .question-container.unanswered {
-            border-left: 4px solid #ff4444;
-        }
-
-        .question-container.highlight {
-            background-color: #fff3cd;
-            border-left: 4px solid #ffc107;
-            animation: pulse 2s;
-        }
-
-        @keyframes pulse {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.02); }
-            100% { transform: scale(1); }
-        }
-
-        .message.flash-error {
-            background-color: #f8d7da;
-            border: 1px solid #f5c6cb;
-            color: #721c24;
-            padding: 15px 20px;
-            border-radius: 4px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-            max-width: 80%;
-            margin: 0 auto;
-            animation: slideDown 0.5s ease-out;
-        }
-
-        @keyframes slideDown {
-            0% { transform: translateY(-100%) translateX(-50%); }
-            100% { transform: translateY(0) translateX(-50%); }
-        }
-
-
     </style>
-</head>
-<body>
-    <div class="container">
-
-            {% with all_messages = get_flashed_messages(with_categories=true) %}
-            <!-- クイズ完了メッセージ -->
-            {% for category, message in all_messages %}
-                {% if category == 'success' %}
-                    <div class="message flash-success">
-                        {{ message | safe }}
-                    </div>
-                {% endif %}
-            {% endfor %}
-
-            {% with messages = get_flashed_messages(with_categories=true) %}
-                {% for category, message in messages %}
-                    <div class="message {% if category == 'error' %}flash-error{% elif category == 'ended' %}flash-success{% endif %}">
-                        {{ message|safe }}
-                    </div>
-                {% endfor %}
-            {% endwith %}
-            
-            {% if checkpoint_id is defined and checkpoint_id >= 2 and checkpoint_id <= 7 %}
-            {% else %}
-            <div class="checkpoint-info">
-                <h1>{{ title }}</h1>
-            </div>
-            {% endif %}
-        
-            <!-- 初期メッセージ（アンケート説明） -->
-            {% if initial_message %}
-                <div class="message initial-message">
-                    {{ initial_message | safe }}
-                </div>
-            {% endif %}
-        {% endwith %}
-
-        <div id="error-message" class="message flash-error" style="display: none; position: fixed; top: 20px; left: 50%; transform: translateX(-50%); z-index: 1000;"></div>
-
-        <form method="post" id="surveyForm" onsubmit="return validateForm()">
-            {% for question in questions %}
-                <div class="question-container" id="question-{{ question.id }}" data-question-id="{{ question.id }}">
-                    <p class="question-text">{{ question.question }}</p>
-                    {% if question.survey_choices %}
-                    <div class="choice-container">
-                        {% set sorted_choices = question.survey_choices|sort(attribute='id') %}
-                        {% for choice in sorted_choices %}
-                            <div class="choice">
-                                <input type="radio" 
-                                    id="choice_{{ choice.id }}"
-                                    name="question_{{ question.id }}" 
-                                    value="{{ choice.id }}"
-                                    {% if form_data and ('question_' ~ question.id) in form_data and form_data['question_' ~ question.id]|string == choice.id|string %}checked{% endif %}>
-                                <label for="choice_{{ choice.id }}">
-                                    {{ choice.survey_choice }}
-                                </label>
-                            </div>
-                        {% endfor %}
-                    </div>
-                    {% endif %}
-                </div>
-                {% endfor %}
-                <button type="submit" class="submit-button" id="submitButton">送信</button>
-        </form>
-    </div>
 
     <script>
-        // フォームバリデーション
         function validateForm() {
             const questions = document.querySelectorAll('.question-container');
             let allAnswered = true;
-    
+            const unansweredRequired = [];
+
+            // チェックポイントタイプの確認
+            const checkpointType = document.querySelector('meta[name="checkpoint-type"]')?.content;
+            const isNormalCheckpoint = checkpointType === 'normal';
+
             questions.forEach(question => {
-                const questionText = question.querySelector('.question-text').textContent;
-                const isRequired = questionText.includes('（回答必須）');
+                const questionText = question.querySelector('.question-text');
                 const radios = question.querySelectorAll('input[type="radio"]');
                 
-                if (isRequired && radios.length > 0) {
+                if (radios.length > 0) {
                     const answered = Array.from(radios).some(radio => radio.checked);
-                    if (!answered) {
-                        question.classList.add('unanswered');
+                    if (!answered && questionText.textContent.includes('（回答必須）')) {
                         allAnswered = false;
-                    } else {
-                        question.classList.remove('unanswered');
+                        unansweredRequired.push(question.id);
                     }
                 }
             });
-    
+
+            if (!allAnswered) {
+                // 通常のチェックポイント以外でのみフィルターボタンを表示
+                if (!isNormalCheckpoint) {
+                    const modal = document.getElementById('confirmModal');
+                    if (!modal) {
+                        createFilterButton();
+                        document.getElementById('confirmModal').style.display = 'block';
+                    } else {
+                        modal.style.display = 'block';
+                    }
+                    
+                    return new Promise((resolve) => {
+                        document.getElementById('confirmYes').onclick = () => {
+                            modal.style.display = 'none';
+                            highlightUnansweredQuestions(unansweredRequired);
+                            resolve(false);
+                        };
+                        
+                        document.getElementById('confirmNo').onclick = () => {
+                            modal.style.display = 'none';
+                            highlightUnansweredQuestions(unansweredRequired);
+                            resolve(false);
+                        };
+                    });
+                } else {
+                    // 通常のチェックポイントの場合は直接ハイライトを表示
+                    highlightUnansweredQuestions(unansweredRequired);
+                    return false;
+                }
+            }
+
             const submitButton = document.getElementById('submitButton');
             submitButton.disabled = true;
             submitButton.textContent = '送信中...';
             return true;
         }
-    
-        // ページ読み込み時の処理
-        document.addEventListener('DOMContentLoaded', function() {
-            {% if target_question_id %}
-                // 対象の質問要素を取得
-                const targetElement = document.getElementById('question-{{ target_question_id }}');
-                if (targetElement) {
-                    // 要素の位置を取得
-                    const elementPosition = targetElement.offsetTop;
-                    
-                    // 即座にスクロール
-                    window.scrollTo({
-                        top: elementPosition - 100, // 上部に少し余白を持たせる
-                        behavior: 'auto'
-                    });
 
-                    // ハイライト効果を追加
-                    targetElement.classList.add('highlight');
-                    
-                    // 2秒後にハイライトを解除
-                    setTimeout(() => {
-                        targetElement.classList.remove('highlight');
-                    }, 2000);
-                }
-            {% endif %}
-        });
+        function highlightUnansweredQuestions(unansweredRequired) {
+            if (unansweredRequired.length > 0) {
+                unansweredRequired.forEach(id => {
+                    const question = document.getElementById(id);
+                    question.classList.add('highlight');
+                });
+                document.getElementById(unansweredRequired[0]).scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'center'
+                });
+            }
+        }
     
-            // フラッシュメッセージの処理
+        // フラッシュメッセージの自動非表示（既存の機能を維持）
+        document.addEventListener('DOMContentLoaded', function() {
+    // DOM読み込み完了時の処理
             const flashMessages = document.querySelectorAll('.flash-message');
+            let filterButtonShown = false;  // フィルターボタンの表示状態を追跡
+
+            // エラーメッセージ処理
+            const errorMessage = document.querySelector('.flash-error');
+            if (errorMessage && !filterButtonShown) {
+                const questions = document.querySelectorAll('.question-text');
+                let hasUnansweredRequired = false;
+
+                questions.forEach(questionElement => {
+                    if (questionElement.textContent.includes('回答必須')) {
+                        const container = questionElement.closest('.question-container');
+                        const radios = container.querySelectorAll('input[type="radio"]');
+                        const answered = Array.from(radios).some(radio => radio.checked);
+
+                        if (!answered) {
+                            hasUnansweredRequired = true;
+                            if (!filterButtonShown) {
+                                // フィルターボタンとモーダルの追加（既存のスタイル定義と要素追加のコードをここに移動）
+                                addFilterButtonAndModal();
+                                filterButtonShown = true;
+                            }
+                            container.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                            container.classList.add('highlight');
+                            setTimeout(() => {
+                                container.classList.remove('highlight');
+                            }, 2000);
+                        }
+                    }
+                });
+            }
+
+            // 既存のフラッシュメッセージの処理
             flashMessages.forEach(function(message) {
                 setTimeout(function() {
                     message.style.opacity = '0';
@@ -348,63 +431,175 @@
                     }, 500);
                 }, 3000);
             });
-    
-            // エラーメッセージの表示処理
-            <!-- フラッシュメッセージ表示部分をシンプルに -->
-            {% with messages = get_flashed_messages(with_categories=true) %}
-                {% for category, message in messages %}
-                    {% if category == 'error' %}
-                        <div class="message flash-error">
-                            {{ message }}
-                        </div>
-                    {% endif %}
-                {% endfor %}
-            {% endwith %}
-    
-            // フォームの状態を復元
-            restoreFormState();
-            
-            // 各ラジオボタンの変更を監視
-            document.querySelectorAll('input[type="radio"]').forEach(radio => {
-                radio.addEventListener('change', saveFormState);
+        });
+
+        document.getElementById('surveyForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const result = await validateForm();
+            if (result === true) {
+                this.submit();
+            }
+        });
+
+        // スタイルと要素を定義
+        const styles = `
+            .filter-button-container {
+                position: fixed;
+                bottom: 20px;
+                right: 20px;
+                z-index: 1000;
+            }
+
+            .filter-button {
+                padding: 10px 20px;
+                background-color: #4CAF50;
+                color: white;
+                border: none;
+                border-radius: 4px;
+                cursor: pointer;
+                box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+                transition: all 0.3s ease;
+            }
+
+            .modal {
+                display: none;
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background-color: rgba(0,0,0,0.5);
+                z-index: 1001;
+            }
+
+            .modal-content {
+                position: fixed;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                background-color: white;
+                padding: 20px;
+                border-radius: 8px;
+                box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+                text-align: center;
+            }
+
+            .modal-buttons {
+                margin-top: 20px;
+                display: flex;
+                justify-content: center;
+                gap: 10px;
+            }
+
+            .modal-buttons button {
+                padding: 8px 20px;
+                border: none;
+                border-radius: 4px;
+                cursor: pointer;
+                transition: background-color 0.3s ease;
+            }
+
+            #confirmYes {
+                background-color: #4CAF50;
+                color: white;
+            }
+
+            #confirmNo {
+                background-color: #f44336;
+                color: white;
+            }
+
+            .question-container {
+                transition: all 0.3s ease;
+            }
+
+            .question-container.hidden {
+                display: none;
+            }
+        `;
+
+        // スタイルを適用
+        const styleSheet = document.createElement("style");
+        styleSheet.textContent = styles;
+        document.head.appendChild(styleSheet);
+
+        function createFilterButton() {
+            // フィルターボタンとモーダルを作成して追加
+            const buttonContainer = document.createElement('div');
+            buttonContainer.className = 'filter-button-container';
+            buttonContainer.innerHTML = '<button id="filterButton" class="filter-button">必須項目のみ表示</button>';
+
+            const modal = document.createElement('div');
+            modal.id = 'confirmModal';
+            modal.className = 'modal';
+            modal.innerHTML = `
+                <div class="modal-content">
+                    <p>回答必須以外の質問を非表示にしますか？</p>
+                    <div class="modal-buttons">
+                        <button id="confirmYes">はい</button>
+                        <button id="confirmNo">いいえ</button>
+                    </div>
+                </div>
+            `;
+
+            document.body.appendChild(buttonContainer);
+            document.body.appendChild(modal);
+            setupFilterButtonEvents();
+        }
+
+        function setupFilterButtonEvents() {
+            // イベントリスナーの設定
+            let isFiltered = false;
+            const filterButton = document.getElementById('filterButton');
+            const confirmModal = document.getElementById('confirmModal');
+
+            filterButton.addEventListener('click', () => {
+                if (isFiltered) {
+                    const questions = document.querySelectorAll('.question-container');
+                    questions.forEach(question => {
+                        question.classList.remove('hidden');
+                    });
+                    filterButton.textContent = '必須項目のみ表示';
+                    isFiltered = false;
+                } else {
+                    confirmModal.style.display = 'block';
+                }
             });
-    
-        // 選択肢のクリック領域を改善
+
+            document.getElementById('confirmYes').addEventListener('click', () => {
+                const questions = document.querySelectorAll('.question-container');
+                questions.forEach(question => {
+                    const questionText = question.querySelector('.question-text');
+                    if (!questionText.textContent.includes('（回答必須）')) {
+                        question.classList.add('hidden');
+                    }
+                });
+                filterButton.textContent = '全ての質問を表示';
+                isFiltered = true;
+                confirmModal.style.display = 'none';
+            });
+
+            document.getElementById('confirmNo').addEventListener('click', () => {
+                confirmModal.style.display = 'none';
+            });
+
+            window.addEventListener('click', (event) => {
+                if (event.target === confirmModal) {
+                    confirmModal.style.display = 'none';
+                }
+            });
+        }
+
+        // 選択肢のクリック領域を改善（既存の機能を維持）
         document.querySelectorAll('.choice').forEach(choice => {
             choice.addEventListener('click', function(e) {
                 if (e.target !== this) return;
                 const radio = this.querySelector('input[type="radio"]');
-                if (radio) {
-                    radio.checked = true;
-                    saveFormState(); // 状態を保存
-                }
+                radio.checked = true;
+                // ハイライトを削除（新機能）
+                this.closest('.question-container').classList.remove('highlight');
             });
         });
-    
-        // フォームの状態を保存
-        function saveFormState() {
-            const formState = {};
-            document.querySelectorAll('input[type="radio"]').forEach(radio => {
-                if (radio.checked) {
-                    formState[radio.name] = radio.value;
-                }
-            });
-            sessionStorage.setItem('surveyFormState', JSON.stringify(formState));
-        }
-    
-        // フォームの状態を復元
-        function restoreFormState() {
-            const savedState = sessionStorage.getItem('surveyFormState');
-            if (savedState) {
-                const formState = JSON.parse(savedState);
-                Object.entries(formState).forEach(([name, value]) => {
-                    const radio = document.querySelector(`input[type="radio"][name="${name}"][value="${value}"]`);
-                    if (radio) {
-                        radio.checked = true;
-                    }
-                });
-            }
-        }
     </script>
 </body>
 </html>

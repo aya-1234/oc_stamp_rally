@@ -101,8 +101,10 @@ def shutdown_session(exception=None):
 #アップデートと削除は書き込み。
 
 
-#本番用の文が無いとっころがあるからそこを何とかする。
+
 #回答必須の誘導
+#このはい、いいえを答えたらそのフラグをテーブルに時間と共に保存！
+#エラー対応テーブルもあるよ。
 
 
 
@@ -1534,62 +1536,50 @@ def start_survey(checkpoint_id):
         .options(db.joinedload(Survey.survey_choices))\
         .order_by(Survey.survey_order).all()
     
-    # 初期化時にform_dataを空の辞書として定義
-    form_data = {}
-    first_unanswered_id = None  # 初期化を追加
-    
     if request.method == 'POST':
         try:
             responses = []
             unanswered_required_questions = []
+            form_data = {}  # 追加: フォームデータを保持
 
-            # フォームデータの収集
+            # すべての質問をチェック
             for question in questions:
                 if question.survey_choices:
-                    key = f'question_{question.id}'
-                    value = request.form.get(key)
-                    if value:
-                        form_data[key] = value
-
-            # 以下、質問のチェック
-            for question in questions:
-                if question.survey_choices:
-                    key = f'question_{question.id}'
-                    selected_choice_id = form_data.get(key)
+                    selected_choice_id = request.form.get(f'question_{question.id}')
+                    # 追加: フォームデータを保存
+                    if selected_choice_id:
+                        form_data[f'question_{question.id}'] = selected_choice_id
                     
+                    # 回答必須項目のチェック
                     is_required = '（回答必須）' in question.question
                     
                     if is_required and not selected_choice_id:
                         unanswered_required_questions.append(question.question)
-                    elif selected_choice_id:
-                        responses.append(Survey_Response(
-                            login_id=user.id,
-                            survey_id=question.id,
-                            value=selected_choice_id
-                        ))
+                    else:
+                        if selected_choice_id:
+                            responses.append(Survey_Response(
+                                login_id=user.id,
+                                survey_id=question.id,
+                                value=selected_choice_id
+                            ))
 
             # 未回答の必須質問がある場合
             if unanswered_required_questions:
-                flash("回答必須にお答えください。", 'error')
-                
-                first_unanswered_id = next(
-                    (str(question.id) for question in questions 
-                    if question.question in unanswered_required_questions),
-                    None
-                )
-                
-                # 未回答がある場合は同じページを再表示
+                error_message = "以下の必須質問に回答してください：<br>" + "<br>".join([
+                    f"・{q}" for q in unanswered_required_questions
+                ])
+                flash(error_message, 'error')
+                # 修正: フォームデータを渡してテンプレートをレンダリング
                 return render_template(
                     'survey.html',
                     title=message_info["title"],
                     initial_message=message_info["message"],
                     checkpoint=checkpoint,
                     questions=questions,
-                    form_data=form_data,
-                    target_question_id=first_unanswered_id
+                    form_data=form_data  # 追加: フォームデータを渡す
                 )
 
-            # すべて回答済みの場合のみここに到達
+            # 必須質問に全て回答済みの場合
             db.session.add_all(responses)
             user.is_loggedin = True
             db.session.commit()
@@ -1599,16 +1589,22 @@ def start_survey(checkpoint_id):
         except SQLAlchemyError:
             db.session.rollback()
             flash('エラーが発生しました。<br>もう一度お試しください。', 'error')
+            # エラー時もフォームデータを保持
+            return render_template(
+                'survey.html',
+                title=message_info["title"],
+                initial_message=message_info["message"],
+                checkpoint=checkpoint,
+                questions=questions,
+                form_data=form_data  # 追加: フォームデータを渡す
+            )
 
-    # GET requestの場合のレンダリング
     return render_template(
         'survey.html',
         title=message_info["title"],
         initial_message=message_info["message"],
         checkpoint=checkpoint,
-        questions=questions,
-        form_data=form_data,
-        target_question_id=first_unanswered_id
+        questions=questions
     )
 
 # チェックポイントのアンケート画面
@@ -1699,19 +1695,21 @@ def goal_survey(user_id, checkpoint_id):
         try:
             responses = []
             unanswered_required_questions = []
+            form_data = {}  # フォームデータ保持用の追加
 
             # すべての質問をチェック
             for question in questions:
                 if question.survey_choices:
                     selected_choice_id = request.form.get(f'question_{question.id}')
+                    # フォームデータを保存
+                    if selected_choice_id:
+                        form_data[f'question_{question.id}'] = selected_choice_id
                     
-                    # 必須項目（質問文に「（回答必須）」が含まれる）の場合のみチェック
                     is_required = '（回答必須）' in question.question
                     
                     if is_required and not selected_choice_id:
                         unanswered_required_questions.append(question.question)
                     else:
-                        # 非必須項目で未回答の場合はスキップ
                         if selected_choice_id:
                             responses.append(Survey_Response(
                                 login_id=user_id,
@@ -1730,7 +1728,8 @@ def goal_survey(user_id, checkpoint_id):
                     title=message_info["title"],
                     initial_message=message_info["message"],
                     checkpoint=checkpoint,
-                    questions=questions
+                    questions=questions,
+                    form_data=form_data  # フォームデータを渡す
                 )
 
             # 必須質問に全て回答済みの場合
@@ -1749,6 +1748,14 @@ def goal_survey(user_id, checkpoint_id):
         except SQLAlchemyError:
             db.session.rollback()
             flash('エラーが発生しました。<br>もう一度お試しください。', 'error')
+            return render_template(
+                'survey.html',
+                title=message_info["title"],
+                initial_message=message_info["message"],
+                checkpoint=checkpoint,
+                questions=questions,
+                form_data=form_data  # エラー時もフォームデータを保持
+            )
 
     return render_template(
         'survey.html',
