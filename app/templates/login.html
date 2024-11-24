@@ -41,7 +41,7 @@
             margin: 20px 0;
             padding: 10px;
             border-radius: 4px;
-            text-align: center;
+            /* text-align: center を削除 */
             font-weight: bold;
         }
         .flash-message.error {
@@ -62,7 +62,7 @@
     {% if messages %}
         {% for category, message in messages %}
             <div class="flash-message {{ category }}">
-                {{ message }}
+                {{ message | safe }}
             </div>
         {% endfor %}
     {% endif %}

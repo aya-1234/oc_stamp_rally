@@ -4,7 +4,7 @@
 cd /home/bitnami/Stamp-rally-Digital/app
 
 # 既存のプロセスを確認
-PID=$(pgrep -f "python run.py")
+PID=$(pgrep -f "python run_prod.py")
 
 if [ ! -z "$PID" ]; then
     echo "既存のアプリケーションを停止します (PID: $PID)"
@@ -13,5 +13,5 @@ if [ ! -z "$PID" ]; then
 fi
 
 # Pythonスクリプトをnohupで実行し、ログを出力
-nohup python run.py > app.log 2>&1 &
+nohup python run_prod.py > app.log 2>&1 &
 echo "アプリケーションを再起動しました。ログは app.log に保存されています。"
