@@ -123,7 +123,7 @@
         {% for checkpoint in survey_checkpoints %}
             <a href="{{ url_for('handle_survey', user_id=user_id, checkpoint_id=checkpoint.id) }}" 
                class="survey-button">
-                ゴールアンケートに回答する
+                アンケートに回答する
             </a>
         {% endfor %}
     {% else %}
@@ -132,9 +132,6 @@
                 ゴールするには、あと <span class="remaining-number">{{ total_required - collected_stamps }}</span> ヶ所のチェックポイントでスタンプを獲得する必要があります。
             </p>
         {% endif %}
-        <button class="survey-button disabled" disabled>
-            ゴールアンケートに回答する
-        </button>
     {% endif %}
 
     <br>
