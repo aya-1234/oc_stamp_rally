@@ -65,13 +65,6 @@
             color: var(--accent-color);
         }
 
-        .menu-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 25px;
-            margin-top: 30px;
-        }
-
         .menu-item {
             background: white;
             border-radius: 12px;
@@ -155,8 +148,15 @@
         }
 
         .menu-grid {
+<<<<<<< HEAD
+            display: grid;
+            grid-template-columns: repeat(3, 1fr); /* 3列を強制 */
+            gap: 25px; /* 必要に応じて調整 */
+            margin-top: 30px;
+=======
             grid-template-columns: 1fr; /* 1列に変更 */
             gap: 15px; /* gap幅を少し縮小 */
+>>>>>>> origin/initial
         }
 
         .menu-item {

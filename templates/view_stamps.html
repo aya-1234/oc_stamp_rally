@@ -1,0 +1,161 @@
+{% extends "base.html" %}
+{% block content %}
+
+{# 最初にメッセージを取得して変数に保存 #}
+{% with all_messages = get_flashed_messages(with_categories=true) %}
+    {# 最初のメッセージ（アンケート完了）を表示 #}
+    <div class="flash-container">
+        {% if all_messages %}
+            {% for category, message in all_messages %}
+                {% if category == 'success' %}
+                    <div class="alert alert-{{ category }}">
+                        {{ message | safe }}
+                    </div>
+                {% endif %}
+            {% endfor %}
+        {% endif %}
+    </div>
+
+<h1>{{ title }}</h1>
+
+    {# 2番目のメッセージ（スタンプ獲得）を表示 #}
+    <div class="flash-container">
+        {% if all_messages %}
+            {% for category, message in all_messages %}
+                {% if category == 'ended' %}
+                    <div class="alert alert-{{ category }}">
+                        {{ message | safe }}
+                    </div>
+                {% endif %}
+            {% endfor %}
+        {% endif %}
+    </div>
+{% endwith %}
+
+<div class="stamps-container">
+    {% for checkpoint in checkpoints %}
+        <div class="checkpoint-card {% if checkpoint.is_obtained %}obtained{% endif %}">
+            <h3>{{ checkpoint.name }}</h3>
+            
+            {% if checkpoint.is_obtained %}
+                <div class="stamp-info">
+                </div>
+            {% else %}
+            {% endif %}
+
+            {% if checkpoint.type == 'start' %}
+                <span class="badge start">スタート</span>
+            {% elif checkpoint.type == 'goal' %}
+                <span class="badge goal">ゴール</span>
+            {% endif %}
+
+            {#<p class="description">{{ checkpoint.description | safe }}</p>#}
+        </div>
+    {% endfor %}
+</div>
+<a href="/main_menu" class="menu-button">メインメニューに戻る</a>
+
+<style>
+    .stamps-container {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 1rem;
+        padding: 1rem;
+    }
+
+    .checkpoint-card {
+        border: 1px solid #ddd;
+        padding: 1rem;
+        border-radius: 8px;
+        background: #f8f8f8;
+    }
+
+    .checkpoint-card.obtained {
+        background: #e8f5e9;
+        border-color: #81c784;
+    }
+
+    .status {
+        font-weight: bold;
+        margin: 0.5rem 0;
+    }
+
+    .status.obtained {
+        color: #2e7d32;
+    }
+
+    .status.not-obtained {
+        color: #c62828;
+    }
+
+    .badge {
+        display: inline-block;
+        padding: 0.25rem 0.5rem;
+        border-radius: 4px;
+        font-size: 0.8rem;
+        margin-right: 0.5rem;
+    }
+
+    .badge.start {
+        background: #2196f3;
+        color: white;
+    }
+
+    .badge.goal {
+        background: #f44336;
+        color: white;
+    }
+
+    .stamp-info {
+        margin: 0.5rem 0;
+        font-size: 0.9rem;
+    }
+
+    /* フラッシュメッセージのスタイルを改善 */
+    .flash-container {
+        margin: 0;  /* マージンを0に設定 */
+        padding: 0; /* パディングも0に設定 */
+    }
+
+    /* アラートのスタイルを調整 */
+    .alert {
+        padding-top: 0rem;     /* 上のパディングを小さく */
+        padding-bottom: 1.2rem;   /* 下のパディングを大きく */
+        padding-left: 1rem;
+        padding-right: 1rem;
+        margin: 0 0 1rem 0;
+        border-radius: 4px;
+        line-height: 1.4;
+        white-space: pre-line;
+    }
+
+    .alert-success {
+        background-color: #d4edda;
+        border-color: #c3e6cb;
+        color: #155724;
+    }
+
+    .alert-error {
+        background-color: #f8d7da;
+        border-color: #f5c6cb;
+        color: #721c24;
+    }
+
+    .alert-warning {
+        background-color: #fff3cd;
+        border-color: #ffeeba;
+        color: #856404;
+    }
+
+    .alert-info {
+        background-color: #d1ecf1;
+        border-color: #bee5eb;
+        color: #0c5460;
+    }
+
+    h1 {
+        margin-top: 1rem; /* h1タグの上マージンを調整 */
+    }
+
+</style>
+{% endblock %}

@@ -32,7 +32,7 @@ ENV/
 .vscode/
 *.swp
 *.swo
-.DS_Store
+
 
 # Logs
 *.log
@@ -51,3 +51,5 @@ htmlcov/
 nosetests.xml
 coverage.xml
 *.cover
+
+.DS_Store
