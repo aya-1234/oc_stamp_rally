@@ -1411,7 +1411,7 @@ def checkpoint_login(checkpoint):
             return redirect(url_for('handle_checkpoint', checkpoint_id_hash=hash_keys[0])) 
 
         if not user.is_loggedin:
-            flash('スタートポイントでのアンケートを完了してからチェックポイントにアクセスしてください。', 'error')
+            flash('はじめにスタート地点にログインしてから、スタンプラリーを始めてください。', 'error')
             return redirect(url_for('handle_checkpoint', checkpoint_id_hash=hash_keys[0]))
 
         if user.is_ended:
@@ -1473,7 +1473,7 @@ def goal_login(checkpoint):
             return redirect(url_for('handle_checkpoint', checkpoint_id_hash=hash_keys[0])) 
 
         if not user.is_loggedin:
-            flash('スタートポイントでのアンケートを完了してからチェックポイントにアクセスしてください。', 'error')
+            flash('はじめにスタート地点にログインしてから、スタンプラリーを始めてください。', 'error')
             return redirect(url_for('handle_checkpoint', checkpoint_id_hash=hash_keys[0])) 
 
         # ログイン状態確認
@@ -1734,7 +1734,7 @@ def checkpoint_survey(checkpoint_id):
                 login_id=user.id
             ))
             db.session.commit()
-            flash(f'{checkpoint.name}の記録が完了しました！<br>ご協力ありがとうございます。', 'success')
+            flash(f'{checkpoint.name}のスタンプを獲得しました！<br><br>次のチェックポイントに向かいましょう！', 'success')
             return redirect(url_for('view_stamps', checkpoint_id=checkpoint_id,stamp_added=True))
 
         except SQLAlchemyError:
@@ -1816,7 +1816,7 @@ def goal_survey(user_id, checkpoint_id):
             user.is_ended = True
             db.session.commit()
 
-            flash('ゴールおめでとうございます！<br>スタンプラリーは終了です。<br>最後までご参加いただき、ありがとうございました。', 'success')
+            #flash('ゴールおめでとうございます！<br>スタンプラリーは終了です。<br>最後までご参加いただき、ありがとうございました。', 'success')
             return redirect(url_for("goal"))
 
         except SQLAlchemyError:
@@ -1895,8 +1895,8 @@ def view_stamps():
         return redirect(url_for('handle_checkpoint', checkpoint_id_hash=hash_keys[0]))
     
         # スタンプ取得時のメッセージを改行付きで表示
-    if request.args.get('stamp_added'):
-        flash('新しいスタンプを獲得しました！<br>次のチェックポイントに向かいましょう。', 'success')
+    #if request.args.get('stamp_added'):
+    #    flash('新しいスタンプを獲得しました！<br>次のチェックポイントに向かいましょう。', 'success')
 
     user = Login.query.get_or_404(user_id)
 
@@ -1957,7 +1957,7 @@ def checkpoint(checkpoint_id):
        return redirect(url_for('handle_checkpoint', checkpoint_id_hash=hash_keys[0])) 
 
    if not user.is_loggedin:
-       flash('スタートポイントでのアンケートを完了してからチェックポイントにアクセスしてください。', 'error')
+       flash('はじめにスタート地点にログインしてから、スタンプラリーを始めてください。', 'error')
        return redirect(url_for('handle_checkpoint', checkpoint_id_hash=hash_keys[0]))
 
    checkpoint = Checkpoint.query.get_or_404(checkpoint_id)
@@ -1990,7 +1990,7 @@ def quiz(checkpoint_id):
         return redirect(url_for('handle_checkpoint', checkpoint_id_hash=hash_keys[0]))
 
     if not user.is_loggedin:
-        flash('スタートポイントでのアンケートを完了してからチェックポイントにアクセスしてください。', 'error')
+        flash('はじめにスタート地点にログインしてから、スタンプラリーを始めてください。', 'error')
         return redirect(url_for('handle_checkpoint', checkpoint_id_hash=hash_keys[0]))
 
     if user.is_ended:

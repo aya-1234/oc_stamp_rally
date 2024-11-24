@@ -61,6 +61,28 @@
             border-radius: 5px;
             margin-top: 20px;
         }
+
+                /* 追加：残りチェックポイント数メッセージのスタイル */
+        .remaining-checkpoints {
+            font-size: 1.5em;  /* テキストサイズを大きく */
+            font-weight: bold;  /* 太字に */
+            margin: 20px 0;    /* 上下の余白を追加 */
+            color: #333;       /* テキストカラー */
+            line-height: 1.4;  /* 行間を調整 */
+        }
+
+                /* 追加：残り数字のスタイル */
+        .remaining-number {
+            display: inline-block;
+            color: #e53935;  /* 赤色 */
+            font-size: 1.3em;  /* 親要素より30%大きく */
+            font-weight: 800;  /* より太く */
+            padding: 0 5px;
+            margin: 0 3px;
+            background-color: #ffebee;  /* 薄い赤色の背景 */
+            border-radius: 4px;
+            border: 2px solid #ef5350;  /* 赤色の枠線 */
+        }
     </style>
 </head>
 <body>
@@ -106,7 +128,9 @@
         {% endfor %}
     {% else %}
         {% if collected_stamps < total_required %}
-            <p>ゴールアンケートに回答するには、あと {{ total_required - collected_stamps }} つのチェックポイントを回る必要があります。</p>
+            <p class="remaining-checkpoints">
+                ゴールするには、あと <span class="remaining-number">{{ total_required - collected_stamps }}</span> ヶ所のチェックポイントでスタンプを獲得する必要があります。
+            </p>
         {% endif %}
         <button class="survey-button disabled" disabled>
             ゴールアンケートに回答する
