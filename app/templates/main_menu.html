@@ -65,13 +65,6 @@
             color: var(--accent-color);
         }
 
-        .menu-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 25px;
-            margin-top: 30px;
-        }
-
         .menu-item {
             background: white;
             border-radius: 12px;
@@ -147,25 +140,76 @@
             margin-right: 15px;
         }
 
+                /* Media Queries for responsiveness */
         @media (max-width: 768px) {
-            .container {
-                padding: 15px;
-                margin: 20px auto;
-            }
-
-            .menu-grid {
-                grid-template-columns: 1fr;
-                gap: 15px;
-            }
-
-            .header {
-                margin-bottom: 20px;
-            }
-
-            h1 {
-                font-size: 2em;
-            }
+        .container {
+            padding: 10px;
+            margin: 20px auto;
         }
+
+        .menu-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr); /* 3列を強制 */
+            gap: 25px; /* 必要に応じて調整 */
+            margin-top: 30px;
+        }
+
+        .menu-item {
+            padding: 15px; /* パディングを少し縮小 */
+        }
+
+        .menu-item i {
+            font-size: 1.5em; /* アイコンサイズを少し小さく */
+        }
+
+        .menu-item-content h3 {
+            font-size: 1.1em; /* 見出しを少し小さく */
+        }
+
+        .menu-item-content p {
+            font-size: 0.85em; /* 説明文を少し小さく */
+        }
+
+        .header {
+            margin-bottom: 20px;
+            padding: 15px;
+        }
+
+        h1 {
+            font-size: 1.8em;
+            padding: 10px 0;
+        }
+
+        .message, .flash-success, .flash-error, .flash-ended {
+            font-size: 0.9em;
+            padding: 15px;
+        }
+
+        .welcome-message {
+            font-size: 0.9em;
+            padding: 15px;
+        }
+    }
+
+    /* さらに小さい画面（例：iPhone SE など）向けの調整 */
+    @media (max-width: 380px) {
+        .menu-item {
+            padding: 12px;
+        }
+
+        h1 {
+            font-size: 1.5em;
+        }
+
+        .menu-item-content h3 {
+            font-size: 1em;
+        }
+
+        .menu-item-content p {
+            font-size: 0.8em;
+        }
+    }
+        
     </style>
 </head>
 <body>

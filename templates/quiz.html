@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>クイズ</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+
+        .quiz-container {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .quiz-progress {
+            margin-bottom: 30px;
+        }
+
+        .progress-text {
+            text-align: center;
+            font-size: 1.2em;
+            margin-bottom: 10px;
+        }
+
+        .progress-bar {
+            background-color: #e0e0e0;
+            height: 20px;
+            border-radius: 10px;
+            overflow: hidden;
+            margin-top: 10px;
+        }
+
+        .progress {
+            background-color: #4CAF50;
+            height: 100%;
+            transition: width 0.3s ease;
+        }
+
+        .flash-message {
+            margin: 10px 0;
+            padding: 15px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+        }
+
+        .error {
+            background-color: #ffebee;
+            border: 1px solid #ffcdd2;
+            color: #c62828;
+        }
+
+        .success {
+            background-color: #e8f5e9;
+            border: 1px solid #c8e6c9;
+            color: #2e7d32;
+        }
+
+        .quiz-question {
+            font-size: 1.2em;
+            margin: 20px 0;
+            line-height: 1.6;
+            color: #333;
+        }
+
+        .quiz-options {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .option {
+            position: relative;
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .option:hover {
+            background-color: #f5f5f5;
+            border-color: #4CAF50;
+        }
+
+        .option input[type="radio"] {
+            position: absolute;
+            opacity: 0;
+        }
+
+        .option label {
+            display: block;
+            padding-left: 30px;
+            position: relative;
+            cursor: pointer;
+        }
+
+        .option label:before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 20px;
+            height: 20px;
+            border: 2px solid #4CAF50;
+            border-radius: 50%;
+        }
+
+        .option input[type="radio"]:checked + label:after {
+            content: '';
+            position: absolute;
+            left: 5px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 12px;
+            height: 12px;
+            background: #4CAF50;
+            border-radius: 50%;
+        }
+
+        .submit-button {
+            display: block;
+            width: 200px;
+            margin: 20px auto 0;
+            padding: 15px 30px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s ease;
+        }
+
+        .submit-button:hover {
+            background-color: #45a049;
+        }
+
+        .submit-button:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+
+        /* スピナーのスタイル */
+        .loading-spinner {
+            display: none;
+            margin-left: 10px;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #4CAF50;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        @media (max-width: 768px) {
+            .message, .flash-success, .flash-error, .flash-ended {
+                font-size: 0.9em; /* Smaller font size on smaller screens */
+            }
+            .welcome-message {
+                font-size: 0.9em; /* Smaller font size on smaller screens */
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="quiz-container">
+        <!-- プログレスバー -->
+        <div class="quiz-progress">
+            {% if total_quizzes > 0 %}
+                <div class="progress-text">
+                    問題 {{ current_quiz_number }} / {{ total_quizzes }}
+                </div>
+                <div class="progress-bar">
+                    <div class="progress" style="width: {{ (current_quiz_number / total_quizzes * 100) }}%"></div>
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- フラッシュメッセージ -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="flash-message {{ category }}" id="flash-{{ loop.index }}">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <!-- クイズ内容 -->
+        {% if quiz %}
+            <div class="quiz-question">
+                {{ quiz.content }}
+            </div>
+
+            <form method="POST" 
+                  action="{{ url_for('quiz', checkpoint_id=checkpoint_id, quiz_order=quiz.quiz_order) }}" 
+                  id="quizForm"
+                  onsubmit="return validateForm()">
+                <div class="quiz-options">
+                    <div class="option">
+                        <input type="radio" name="answer" id="answer1" value="{{ quiz.answer_1 }}">
+                        <label for="answer1">{{ quiz.answer_1 }}</label>
+                    </div>
+                    <div class="option">
+                        <input type="radio" name="answer" id="answer2" value="{{ quiz.answer_2 }}">
+                        <label for="answer2">{{ quiz.answer_2 }}</label>
+                    </div>
+                    <div class="option">
+                        <input type="radio" name="answer" id="answer3" value="{{ quiz.answer_3 }}">
+                        <label for="answer3">{{ quiz.answer_3 }}</label>
+                    </div>
+                </div>
+
+                <button type="submit" class="submit-button" id="submitButton">
+                    回答する
+                </button>
+            </form>
+        {% else %}
+            <p>クイズが見つかりません。</p>
+        {% endif %}
+    </div>
+
+    <script>
+        function validateForm() {
+            const selectedAnswer = document.querySelector('input[name="answer"]:checked');
+            if (!selectedAnswer) {
+                alert('選択肢を選んでください。');
+                return false;
+            }
+
+            const submitButton = document.getElementById('submitButton');
+            submitButton.disabled = true;
+            submitButton.textContent = '送信中...';
+            return true;
+        }
+
+        // 選択肢のクリック領域を改善
+        document.querySelectorAll('.option').forEach(option => {
+            option.addEventListener('click', function(e) {
+                if (e.target !== this) return;
+                const radio = this.querySelector('input[type="radio"]');
+                radio.checked = true;
+            });
+        });
+
+        // フラッシュメッセージの自動非表示
+        document.addEventListener('DOMContentLoaded', function() {
+            const flashMessages = document.querySelectorAll('.flash-message');
+            flashMessages.forEach(function(message) {
+                setTimeout(function() {
+                    message.style.opacity = '0';
+                    message.style.transition = 'opacity 0.5s ease';
+                    setTimeout(function() {
+                        message.remove();
+                    }, 500);
+                }, 3000);
+            });
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>スタンプ一覧</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body {
+            font-family: sans-serif;
+            margin: 0;
+            padding: 0;
+            line-height: 1.6;
+        }
+        .stamp-list {
+            list-style: none;
+            padding: 0;
+        }
+        .stamp-item {
+            margin: 10px 0;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            background-color: white; /* Added for better mobile readability */
+        }
+        .stamp-start {
+            border-color: #2196F3;
+            background-color: #E3F2FD;
+        }
+        .stamp-goal {
+            border-color: #F44336;
+            background-color: #FFEBEE;
+        }
+        .obtained {
+            background-color: #9ad99f;
+        }
+        .progress-bar {
+            width: 100%;
+            background-color: #f0f0f0;
+            padding: 3px;
+            border-radius: 3px;
+            margin: 20px 0;
+        }
+        .progress {
+            background-color: #4CAF50;
+            height: 20px;
+            border-radius: 3px;
+            text-align: center;
+            color: white;
+            line-height: 20px;
+        }
+        .survey-button, .menu-button {
+            display: block; /* Changed to block for better mobile layout */
+            width: 100%; /* Occupy full width on mobile */
+            padding: 15px; /* Increased padding for better tap target */
+            background-color: #4CAF50;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            margin: 10px 0; /* Adjusted margin */
+            text-align: center; /* Center text */
+            box-sizing: border-box; /* Include padding in width calculation */
+        }
+        .survey-button.disabled, .menu-button.disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+        h1, h2 {
+            text-align: center; /* Center headings */
+        }
+        p {
+            text-align: center; /* Center paragraph */
+        }
+        @media (max-width: 768px) {
+            .message, .flash-success, .flash-error, .flash-ended {
+                font-size: 0.9em; /* Smaller font size on smaller screens */
+            }
+            .welcome-message {
+                font-size: 0.9em; /* Smaller font size on smaller screens */
+            }
+        }
+    </style>
+</head>
+<body>
+    <h1>スタンプ一覧</h1>
+
+    <!-- プログレスバー -->
+    <div class="progress-bar">
+        <div class="progress" style="width: {{ (collected_stamps / total_required * 100) | round }}%">
+            {{ collected_stamps }}/{{ total_required }} チェックポイント達成
+        </div>
+    </div>
+
+    <ul class="stamp-list">
+        {% for checkpoint in checkpoints %}
+            <li class="stamp-item 
+                       {% if checkpoint.id == 1 %}stamp-start
+                       {% elif checkpoint.id == 8 %}stamp-goal
+                       {% endif %}
+                       {% if checkpoint.id in user_stamps %}obtained{% endif %}">
+                {{ checkpoint.name }}
+                {% if checkpoint.id in user_stamps %}
+                    <!--✅ 取得済み-->
+                {% else %}
+                    <!--⭕ 未取得-->
+                {% endif %}
+                
+                {% if checkpoint.id == 1 %}
+                    <!--[スタート地点]-->
+                {% elif checkpoint.id == 8 %}
+                    <!--[ゴール地点]-->
+                {% endif %}
+            </li>
+        {% endfor %}
+    </ul>
+
+    {% if active_survey %}
+        <h2>ゴールアンケート</h2>
+        {% for checkpoint in survey_checkpoints %}
+            <a href="{{ url_for('handle_survey', user_id=user_id, checkpoint_id=checkpoint.id) }}" 
+               class="survey-button">
+                ゴールアンケートに回答する
+            </a>
+        {% endfor %}
+    {% else %}
+        {% if collected_stamps < total_required %}
+            <p>ゴールアンケートに回答するには、あと {{ total_required+1 - collected_stamps }} つのチェックポイントを回る必要があります。</p>
+        {% endif %}
+        <button class="survey-button disabled" disabled>
+            ゴールアンケートに回答する
+        </button>
+    {% endif %}
+
+    <a href="/main_menu" class="menu-button">メインメニューに戻る</a>
+</body>
+</html>

@@ -1543,8 +1543,8 @@ def start_survey(checkpoint_id):
                 if question.survey_choices:
                     selected_choice_id = request.form.get(f'question_{question.id}')
                     
-                    # 必須項目（質問文に「（必須）」が含まれる）の場合のみチェック
-                    is_required = '（必須）' in question.question
+                    # 回答必須項目（質問文に「（回答必須）」が含まれる）の場合のみチェック
+                    is_required = '（回答必須）' in question.question
                     
                     if is_required and not selected_choice_id:
                         unanswered_required_questions.append(question.question)
@@ -1684,8 +1684,8 @@ def goal_survey(user_id, checkpoint_id):
                 if question.survey_choices:
                     selected_choice_id = request.form.get(f'question_{question.id}')
                     
-                    # 必須項目（質問文に「（必須）」が含まれる）の場合のみチェック
-                    is_required = '（必須）' in question.question
+                    # 必須項目（質問文に「（回答必須）」が含まれる）の場合のみチェック
+                    is_required = '（回答必須）' in question.question
                     
                     if is_required and not selected_choice_id:
                         unanswered_required_questions.append(question.question)
