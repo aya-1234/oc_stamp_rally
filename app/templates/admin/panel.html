@@ -782,6 +782,73 @@ async function deleteStamp(stampId) {
         </div>
     </div>
 
+    <!-- panel.htmlに追加するセクション -->
+    <section class="section">
+        <div class="section-header">
+            <h2>クイズ不一致エラー 対応済みスタンプ</h2>
+            <div class="section-actions">
+                <div class="search-form">
+                    <input type="text" 
+                        name="error_stamp_search" 
+                        placeholder="検索..."
+                        value="{{ request.args.get('error_stamp_search', '') }}">
+                    <button type="submit">検索</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="table-container">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>スタンプID</th>
+                        <th>ユーザー</th>
+                        <th>チェックポイント</th>
+                        <th>対応日時</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% if error_stamps_pagination.items %}
+                        {% for stamp, user_account, checkpoint_name in error_stamps_pagination.items %}
+                            <tr>
+                                <td>{{ stamp.id }}</td>
+                                <td>{{ user_account }}</td>
+                                <td>{{ checkpoint_name }}</td>
+                                <td>{{ stamp.created_at.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+                            </tr>
+                        {% endfor %}
+                    {% else %}
+                        <tr>
+                            <td colspan="4" class="no-data">対応済みスタンプはありません</td>
+                        </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+
+        <div class="pagination">
+            {% if error_stamps_pagination.has_prev %}
+                <a href="{{ url_for('admin_panel', error_stamp_page=error_stamps_pagination.prev_num) }}" class="pagination-link">« 前へ</a>
+            {% endif %}
+            
+            {% for page_num in error_stamps_pagination.iter_pages(left_edge=2, left_current=2, right_current=2, right_edge=2) %}
+                {% if page_num %}
+                    {% if page_num == error_stamps_pagination.page %}
+                        <span class="current-page">{{ page_num }}</span>
+                    {% else %}
+                        <a href="{{ url_for('admin_panel', error_stamp_page=page_num) }}" class="pagination-link">{{ page_num }}</a>
+                    {% endif %}
+                {% else %}
+                    <span class="ellipsis">...</span>
+                {% endif %}
+            {% endfor %}
+            
+            {% if error_stamps_pagination.has_next %}
+                <a href="{{ url_for('admin_panel', error_stamp_page=error_stamps_pagination.next_num) }}" class="pagination-link">次へ »</a>
+            {% endif %}
+        </div>
+    </section>
+    
     <!-- クイズレスポンス管理セクション -->
     <div class="section">
         <div class="section-header">
