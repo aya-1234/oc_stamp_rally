@@ -1624,11 +1624,7 @@ def start_survey(checkpoint_id):
                     if selected_choice_id:
                         form_data[f'question_{question.id}'] = selected_choice_id
                     
-<<<<<<< HEAD
                     # 回答必須項目（質問文に「（回答必須）」が含まれる）の場合のみチェック
-=======
-                    # 回答必須項目のチェック
->>>>>>> origin/initial
                     is_required = '（回答必須）' in question.question
                     
                     if is_required and not selected_choice_id:
@@ -1783,10 +1779,7 @@ def goal_survey(user_id, checkpoint_id):
                     if selected_choice_id:
                         form_data[f'question_{question.id}'] = selected_choice_id
                     
-<<<<<<< HEAD
                     # 必須項目（質問文に「（回答必須）」が含まれる）の場合のみチェック
-=======
->>>>>>> origin/initial
                     is_required = '（回答必須）' in question.question
                     
                     if is_required and not selected_choice_id:
