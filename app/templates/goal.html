@@ -64,6 +64,7 @@
             perspective: 1000px;
         }
 
+        /* プレゼント箱の基本スタイル */
         .present-box {
             width: 100px;
             height: 100px;
@@ -71,14 +72,27 @@
             position: relative;
             cursor: pointer;
             border-radius: 8px;
-            transition: transform 0.3s;
             transform-style: preserve-3d;
+            margin: 60px auto 20px;
+            /* アニメーションを追加 */
+            animation: floatingBox 3s ease-in-out infinite;
         }
 
+
+        /* ホバー時の効果を変更 */
         .present-box:hover {
-            transform: scale(1.1);
+            animation: floatingBoxHover 1s ease-in-out infinite;
         }
 
+        @keyframes floatingBoxHover {
+            0%, 100% {
+                transform: translateY(-10px) scale(1.05);
+            }
+            50% {
+                transform: translateY(-20px) scale(1.1);
+            }
+        }
+        /* ふたの設定を調整 */
         .present-lid {
             width: 110px;
             height: 20px;
@@ -88,32 +102,120 @@
             left: -5px;
             border-radius: 4px;
             transition: all 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55);
-            transform-origin: right;
-            transform-style: preserve-3d;
-            /* 蓋の上面 */
-            &::before {
-                content: '';
-                position: absolute;
-                width: 100%;
-                height: 100%;
-                background: #b91c1c;
-                transform: rotateX(90deg);
-                transform-origin: bottom;
-            }
-            /* 蓋の側面 */
-            &::after {
-                content: '';
-                position: absolute;
-                width: 100%;
-                height: 20px;
-                background: #991b1b;
-                transform: rotateX(-90deg);
-                transform-origin: top;
-            }
+            transform-origin: center bottom;
         }
 
+        /* リボンの位置をふたに合わせて調整 */
+        .ribbon-container {
+            position: absolute;
+            top: -25px; /* ふたの上に配置 */
+            left: 50%;
+            transform: translateX(-50%);
+            width: 60px;  /* リボンの全体サイズ */
+            height: 40px;
+            z-index: 3;
+        }
+
+        /* リボンのパーツのサイズと位置を調整 */
+        .ribbon-knot {
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            background: #fbbf24;
+            border-radius: 50%;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 4;
+        }
+
+        .ribbon-left {
+            position: absolute;
+            left: 2px;
+            top: 50%;
+            width: 20px;
+            height: 15px;
+            background: #fbbf24;
+            transform-origin: right center;
+            transform: translateY(-50%) rotate(-35deg);
+            border-radius: 40% 40% 0 40%;
+        }
+
+        .ribbon-left:before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 20px;
+            height: 15px;
+            background: #fbbf24;
+            transform-origin: right center;
+            transform: rotate(70deg);
+            border-radius: 40% 40% 40% 0;
+        }
+
+        .ribbon-right {
+            position: absolute;
+            right: 2px;
+            top: 50%;
+            width: 20px;
+            height: 15px;
+            background: #fbbf24;
+            transform-origin: left center;
+            transform: translateY(-50%) rotate(35deg);
+            border-radius: 40% 40% 40% 0;
+        }
+
+        .ribbon-right:before {
+            content: '';
+            position: absolute;
+            right: 0;
+            top: 0;
+            width: 20px;
+            height: 15px;
+            background: #fbbf24;
+            transform-origin: left center;
+            transform: rotate(-70deg);
+            border-radius: 40% 40% 0 40%;
+        }
+
+        .ribbon-tail-left {
+            position: absolute;
+            left: 10px;
+            top: 60%;
+            width: 12px;
+            height: 25px;
+            background: #fbbf24;
+            transform: rotate(-15deg);
+            border-radius: 0 0 0 5px;
+        }
+
+        .ribbon-tail-right {
+            position: absolute;
+            right: 10px;
+            top: 60%;
+            width: 12px;
+            height: 25px;
+            background: #fbbf24;
+            transform: rotate(15deg);
+            border-radius: 0 0 5px 0;
+        }
+
+        /* 開いたときのふたとリボンのアニメーション */
         .present-box.opened .present-lid {
-            transform: rotateZ(-110deg) translateX(10px) translateY(-20px);
+            transform: translateY(-100px);
+            animation: floatingLid 2s ease-out forwards;
+        }
+
+        @keyframes floatingLid {
+            0% {
+                transform: translateY(-100px);
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(-150px);
+                opacity: 0;
+            }
         }
 
         .ribbon-vertical {
@@ -146,6 +248,7 @@
             z-index: 2;
         }
 
+        /* ふたのリボンも同じように動くように調整 */
         .lid-ribbon {
             position: absolute;
             width: 30px;
@@ -155,6 +258,7 @@
             left: 50%;
             top: 50%;
             transform: translate(-50%, -50%);
+            z-index: 2;
         }
 
         .streamer {
@@ -173,21 +277,21 @@
         }
 
         @keyframes streamerFall {
-        0% {
-            opacity: 1;
-            transform: translateY(0) rotate(0deg);
+            0% {
+                opacity: 1;
+                transform: translateY(0) rotate(0deg);
+            }
+            20% {
+                opacity: 1;
+                /* ストリーマーが画面いっぱいに伸びた状態 */
+                transform: translateY(300vh) rotate(180deg);
+            }
+            100% {
+                opacity: 0;
+                /* 最終的な落下位置（画面の4倍分） */
+                transform: translateY(400vh) rotate(720deg);
+            }
         }
-        20% {
-            opacity: 1;
-            /* ストリーマーが画面いっぱいに伸びた状態 */
-            transform: translateY(300vh) rotate(180deg);
-        }
-        100% {
-            opacity: 0;
-            /* 最終的な落下位置（画面の4倍分） */
-            transform: translateY(400vh) rotate(720deg);
-        }
-    }
 
         /* キラキラエフェクトの追加（オプション） */
         .streamer::after {
@@ -221,17 +325,36 @@
             bottom: -10px;
             left: 50%;
             transform: translateX(-50%);
-            width: 90%;
-            height: 20px;
+            width: 90px;
+            height: 10px;
             background: rgba(0, 0, 0, 0.2);
             border-radius: 50%;
             filter: blur(5px);
-            transition: all 0.3s;
+            /* 影もアニメーション */
+            animation: shadowPulse 3s ease-in-out infinite;
+        }
+
+        @keyframes shadowPulse {
+            0%, 100% {
+                transform: translateX(-50%) scale(1);
+                opacity: 0.3;
+            }
+            50% {
+                transform: translateX(-50%) scale(0.8);
+                opacity: 0.2;
+            }
+        }
+
+        /* 開いた時のアニメーションも調整 */
+        .present-box.opened {
+            animation: none;
+            transform: none;
         }
 
         .present-box.opened + .present-shadow {
-            width: 85%;
-            opacity: 0.8;
+            animation: none;
+            opacity: 0;
+            transition: opacity 0.5s;
         }
 
         /* 箱の表面の装飾 */
@@ -278,7 +401,18 @@
 
         .congratulations.visible {
             display: flex;
-            animation: fadeIn 0.3s forwards; /* 短い時間で素早くフェードイン */
+            animation: messageAppear 0.5s ease-out forwards;
+        }
+
+        @keyframes messageAppear {
+            0% { 
+                opacity: 0;
+                transform: scale(0.9);
+            }
+            100% { 
+                opacity: 1;
+                transform: scale(1);
+            }
         }
 
         @keyframes fadeIn {
@@ -380,7 +514,8 @@
             color: white;
             text-align: center;
             font-size: 1.5rem;
-            margin: 1.5rem 0;
+            margin-top: -1rem;  /* より上に移動 */
+            margin-bottom: 3rem;  /* 下のスペースを詰める */
             padding: 1rem;
             background: rgba(0, 0, 0, 0.3);
             border-radius: 15px;
@@ -529,15 +664,20 @@
 
 
 
-    <div class="present-container">
-        <div class="present-box" onclick="openPresent(this)">
-            <div class="present-lid">
-                <div class="ribbon-center"></div>
+    <div class="present-box" onclick="openPresent(this)">
+        <div class="present-lid">
+            <!-- リボンをふたの中に移動 -->
+            <div class="ribbon-container">
+                <div class="ribbon-knot"></div>
+                <div class="ribbon-left"></div>
+                <div class="ribbon-right"></div>
+                <div class="ribbon-tail-left"></div>
+                <div class="ribbon-tail-right"></div>
             </div>
-            <div class="ribbon-vertical"></div>
-            <div class="ribbon-horizontal"></div>
-            <div class="ribbon-center"></div>
         </div>
+        <div class="ribbon-vertical"></div>
+        <div class="ribbon-horizontal"></div>
+        <div class="ribbon-center"></div>
     </div>
 
     <div class="congratulations">
@@ -575,49 +715,7 @@
 
     // ストリーマーを生成する関数
     // ストリーマーを生成する関数を画面全体対応に更新
-    function createConfetti() {
-        const colors = ['#FF0000', '#00FF00', '#0000FF', '#FFFF00', '#FF00FF', '#00FFFF', '#FFD700', '#FFA500'];
-        const shapes = ['円', '四角', '三角'];
-        
-        for (let i = 0; i < 150; i++) {
-            const confetti = document.createElement('div');
-            confetti.className = 'confetti';
-            
-            // 画面幅全体に分散させる
-            const startX = Math.random() * window.innerWidth;
-            confetti.style.left = `${startX}px`;
-            // top: 0 はCSSで設定済み
-            
-            // ランダムな色と形
-            const color = colors[Math.floor(Math.random() * colors.length)];
-            const shape = shapes[Math.floor(Math.random() * shapes.length)];
-            
-            confetti.style.backgroundColor = color;
-            if (shape === '三角') {
-                confetti.style.clipPath = 'polygon(50% 0%, 0% 100%, 100% 100%)';
-            } else if (shape === '四角') {
-                confetti.style.borderRadius = '0';
-            }
-            
-            // サイズをランダムに
-            const size = 5 + Math.random() * 10;
-            confetti.style.width = `${size}px`;
-            confetti.style.height = `${size}px`;
-            
-            // アニメーションパラメータ
-            confetti.style.setProperty('--start-x', `${startX}px`);
-            confetti.style.setProperty('--end-x', `${startX + (Math.random() - 0.5) * 600}px`);
-            confetti.style.setProperty('--rotation', `${Math.random() * 720 - 360}deg`);
-            confetti.style.setProperty('--duration', `${2 + Math.random() * 2}s`); // 2-4秒に短縮
-            
-            document.body.appendChild(confetti);
-            
-            // アニメーション終了後に要素を削除
-            confetti.addEventListener('animationend', () => {
-                confetti.remove();
-            });
-        }
-    }
+
 
     // プレゼントを開く関数
     function openPresent(box) {
@@ -630,12 +728,15 @@
                 prompt.remove();
             }
 
-            // requestAnimationFrameを使用して次のフレームで両方を同時に実行
-            requestAnimationFrame(() => {
-                createConfetti();
+            // 紙吹雪は即時表示
+            createConfetti();
+            
+            // メッセージは遅延して表示（例：0.8秒後）
+            setTimeout(() => {
                 showCongratulations();
-                playPopSound();
-            });
+            }, 800);  // 800ミリ秒の遅延
+            
+            playPopSound();
         }
     }
 
