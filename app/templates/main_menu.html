@@ -55,7 +55,18 @@
             text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
         }
 
-        .welcome-message, .menu-item {
+        .welcome-message {
+            padding: 20px;
+            margin-bottom: 40px;
+            border-radius: 12px;
+            box-shadow: var(--card-shadow);
+            display: flex;
+            align-items: center;
+            background-color: white;
+            border-left: 5px solid var(--accent-color);
+        }
+
+        .menu-item {
             padding: 20px;
             margin-bottom: 20px;
             border-radius: 12px;
@@ -63,6 +74,10 @@
             display: flex;
             align-items: center;
             background-color: white;
+            text-decoration: none;
+            color: var(--text-color);
+            cursor: pointer;
+            border-left: 5px solid var(--primary-color); /* 緑色の縁取りを追加 */
         }
 
         .welcome-message {
@@ -73,12 +88,6 @@
             font-size: 1.2em;
             margin-right: 10px;
             color: var(--accent-color);
-        }
-
-        .menu-item {
-            text-decoration: none;
-            color: var(--text-color);
-            cursor: pointer;
         }
 
         .menu-item:hover {

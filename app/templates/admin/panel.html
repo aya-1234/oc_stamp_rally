@@ -815,7 +815,9 @@ async function deleteStamp(stampId) {
         <div class="section-header">
             <h2>クイズ不一致エラー 対応済みスタンプ</h2>
             <div class="section-actions">
-                <a href="{{ url_for('admin_panel', export='error_stamps') }}" class="export-button">CSVダウンロード</a>
+                <form action="{{ url_for('export_csv', table_name='error_stamps') }}" method="get">
+                    <button type="submit">CSVダウンロード</button>
+                </form>
                 <form class="search-form" method="get">
                     <input type="text" 
                         name="error_stamp_search" 

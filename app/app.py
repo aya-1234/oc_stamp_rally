@@ -100,6 +100,10 @@ def shutdown_session(exception=None):
 #複数Sqlite3と、DBのセッション終了をする。
 #アップデートと削除は書き込み。
 
+#======================
+#最新のスタンプのみのクイズ不一致エラーの機能になってしまっているのでスタンプの情報が一つしかないものは特定できず、最新のもの以外で特定可能な機能になった。
+#テーブルの変更なしだとこれが限界だ。
+#========================
 
 
 
@@ -1080,6 +1084,28 @@ def export_csv(table_name):
                     user.mismatched_checkpoints
                 ])
             filename = "stamp_without_quiz_users.csv"
+
+        elif table_name == 'error_stamps':
+            # エラー対応済みスタンプデータのエクスポート
+            error_stamps = db.session.query(
+                Stamp,
+                Login.account.label('user_account'),
+                Checkpoint.name.label('checkpoint_name')
+            ).join(
+                Login, Stamp.login_id == Login.id
+            ).join(
+                Checkpoint, Stamp.checkpoint_id == Checkpoint.id
+            ).order_by(Stamp.created_at).all()
+            
+            writer.writerow(['スタンプID', 'ユーザー', 'チェックポイント', '対応日時'])
+            for stamp, user_account, checkpoint_name in error_stamps:
+                writer.writerow([
+                    stamp.id,
+                    user_account,
+                    checkpoint_name,
+                    stamp.created_at.strftime('%Y-%m-%d %H:%M:%S')
+                ])
+            filename = "error_stamps.csv"
 
         else:
             return 'Invalid table name', 400

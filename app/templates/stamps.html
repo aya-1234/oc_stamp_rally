@@ -98,21 +98,17 @@
     <ul class="stamp-list">
         {% for checkpoint in checkpoints %}
             <li class="stamp-item 
-                       {% if checkpoint.id == 1 %}stamp-start
-                       {% elif checkpoint.id == 8 %}stamp-goal
-                       {% endif %}
-                       {% if checkpoint.id in user_stamps %}obtained{% endif %}">
-                {{ checkpoint.name }} - 
-                {% if checkpoint.id in user_stamps %}
-                    ✅ 取得済み
-                {% else %}
-                    ⭕ 未取得
+                {% if checkpoint.id == 1 %}stamp-start
+                {% elif checkpoint.id == 8 %}stamp-goal
                 {% endif %}
-                
-                {% if checkpoint.id == 1 %}
-                    [スタート地点]
-                {% elif checkpoint.id == 8 %}
-                    [ゴール地点]
+                {% if checkpoint.id in user_stamps and checkpoint.id != 1 and checkpoint.id != 8 %}obtained{% endif %}">
+                {{ checkpoint.name }}
+                {% if checkpoint.id != 1 and checkpoint.id != 8 %}
+                    {% if checkpoint.id in user_stamps %}
+                        - ✅ 取得済み
+                    {% else %}
+                        - ⭕ 未取得
+                    {% endif %}
                 {% endif %}
             </li>
         {% endfor %}
