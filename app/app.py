@@ -10,7 +10,7 @@ from services.user_service import authenticate_user
 #from flask_wtf import CSRFProtect
 from functools import wraps
 import os
-from sqlalchemy import func, and_
+from sqlalchemy import func, and_,exists
 import csv
 from io import StringIO  
 from flask import send_file
@@ -127,15 +127,15 @@ def hello():
     output=f'''
 <h1>Hello World</h1>
 <ul>
-<li><a href="/handle_checkpoint/{hash_keys[0]}">スタートポイントログイン</a></li>
-<li><a href="/handle_checkpoint/{hash_keys[1]}">チェックポイント地点１ログイン</a></li>
-<li><a href="/handle_checkpoint/{hash_keys[2]}">チェックポイント地点２ログイン</a></li>
-<li><a href="/handle_checkpoint/{hash_keys[3]}">チェックポイント地点３ログイン</a></li>
-<li><a href="/handle_checkpoint/{hash_keys[4]}">チェックポイント地点４ログイン</a></li>
-<li><a href="/handle_checkpoint/{hash_keys[5]}">チェックポイント地点５ログイン</a></li>
-<li><a href="/handle_checkpoint/{hash_keys[6]}">チェックポイント地点６ログイン</a></li>
+<li><a href="/handle_checkpoint/{hash_keys[0]}">スタートポイント「１」ログイン</a></li>
+<li><a href="/handle_checkpoint/{hash_keys[1]}">池田観光案内所「２」ログイン</a></li>
+<li><a href="/handle_checkpoint/{hash_keys[2]}">まがり書房「３」ログイン</a></li>
+<li><a href="/handle_checkpoint/{hash_keys[3]}">井戸の辻（ビリケンさん）「４」ログイン</a></li>
+<li><a href="/handle_checkpoint/{hash_keys[4]}">落語みゅーじあむ「５」ログイン</a></li>
+<li><a href="/handle_checkpoint/{hash_keys[5]}">池田城跡公園「６」ログイン</a></li>
+<li><a href="/handle_checkpoint/{hash_keys[6]}">Shokuの店「７」ログイン</a></li>
 
-<li><a href="/handle_checkpoint/{hash_keys[7]}">ゴールポイントログイン</a></li>
+<li><a href="/handle_checkpoint/{hash_keys[7]}">ゴールポイント「８」ログイン</a></li>
 <li><a href="/{hash_keys[8]}">管理画面</a></li>
 </ul>
 '''
@@ -418,7 +418,15 @@ def admin_panel():
     print(stamp_without_quiz_users)
 
     # エラー対応スタンプのデータを取得
-    error_stamps_pagination = get_error_resolution_stamps()
+    #error_stamps_pagination = get_error_resolution_stamps()
+    error_stamp_page = request.args.get('error_stamp_page', 1, type=int)
+    error_stamp_search = request.args.get('error_stamp_search', '')
+    
+    # エラー対応スタンプの取得時にsearch_queryを渡す
+    error_stamps_pagination = get_error_resolution_stamps(
+        page=error_stamp_page,
+        search_query=error_stamp_search
+    )
 
     return render_template(
         'admin/panel.html',
@@ -440,7 +448,8 @@ def admin_panel():
         survey_response_search=survey_response_search,
         mismatch_users=mismatch_users,
         stamp_without_quiz_users=stamp_without_quiz_users,
-        error_stamps_pagination=error_stamps_pagination
+        error_stamps_pagination=error_stamps_pagination,
+        error_stamp_search=error_stamp_search
     )
 
 # クイズ追加のAPI
@@ -772,28 +781,20 @@ def delete_stamp(stamp_id):
     
 # app.pyに追加する関数
 @app.route(f'/{hash_keys[8]}/error_resolution_stamps')
-def get_error_resolution_stamps():
-    """不一致エラー対応として追加されたスタンプを取得"""
-    page = request.args.get('error_stamp_page', 1, type=int)
+def get_error_resolution_stamps(page=1, search_query=''):
     per_page = 10
-    search_query = request.args.get('error_stamp_search', '')
 
-    # 不一致エラーのあるユーザーとチェックポイントの組み合わせを取得
-    mismatch_records = (
+    # 最初の不一致エラー発生時のスタンプ状態を確認
+    early_stamps = (
         db.session.query(
-            Login.id.label('user_id'),
-            Quiz.checkpoint_id,
-            db.func.max(Quiz_Response.created_at).label('quiz_time')
+            Stamp.login_id,
+            Stamp.checkpoint_id
         )
-        .join(Quiz_Response, Login.id == Quiz_Response.login_id)
-        .join(Quiz, Quiz_Response.quiz_id == Quiz.id)
-        .filter(Quiz_Response.is_corrected == True)
-        .group_by(Login.id, Quiz.checkpoint_id)
+        .filter(Stamp.created_at < Quiz_Response.created_at)
         .subquery()
     )
 
-    # エラー対応として追加されたスタンプを検出
-    # 不一致があったユーザーに対して、クイズ回答後に追加されたスタンプを取得
+    # クイズ回答があり、その時点でスタンプがなかったものを特定
     error_stamps_query = (
         db.session.query(
             Stamp,
@@ -802,17 +803,25 @@ def get_error_resolution_stamps():
         )
         .join(Login, Stamp.login_id == Login.id)
         .join(Checkpoint, Stamp.checkpoint_id == Checkpoint.id)
-        .join(
-            mismatch_records,
-            db.and_(
-                Stamp.login_id == mismatch_records.c.user_id,
-                Stamp.checkpoint_id == mismatch_records.c.checkpoint_id,
-                Stamp.created_at > mismatch_records.c.quiz_time
+        .join(Quiz_Response, Quiz_Response.login_id == Login.id)
+        .join(Quiz, and_(
+            Quiz_Response.quiz_id == Quiz.id,
+            Quiz.checkpoint_id == Stamp.checkpoint_id
+        ))
+        .outerjoin(early_stamps, and_(
+            early_stamps.c.login_id == Stamp.login_id,
+            early_stamps.c.checkpoint_id == Stamp.checkpoint_id
+        ))
+        .filter(
+            and_(
+                Quiz_Response.is_corrected == True,
+                early_stamps.c.login_id.is_(None),
+                Stamp.created_at > Quiz_Response.created_at,
+                Checkpoint.checkpoint_type == 'normal'
             )
         )
     )
 
-    # 検索条件を適用
     if search_query:
         error_stamps_query = error_stamps_query.filter(
             db.or_(
@@ -821,23 +830,7 @@ def get_error_resolution_stamps():
             )
         )
 
-    # ページネーション適用
-    error_stamps_pagination = error_stamps_query.order_by(
-        Stamp.created_at.desc()
-    ).paginate(
-        page=page,
-        per_page=per_page,
-        error_out=False
-    )
-
-    # デバッグ用出力
-    print("Debug - Query:", str(error_stamps_query))
-    print("Debug - Total Results:", error_stamps_pagination.total)
-    if error_stamps_pagination.items:
-        for stamp, account, checkpoint in error_stamps_pagination.items:
-            print(f"Debug - Stamp: {stamp.id}, User: {account}, Checkpoint: {checkpoint}, Time: {stamp.created_at}")
-
-    return error_stamps_pagination
+    return error_stamps_query.paginate(page=page, per_page=per_page, error_out=False)
 
 # CSVエクスポート用の関数を追加
 @app.route(f'/{hash_keys[8]}/export/<table_name>')
@@ -1932,7 +1925,7 @@ def view_stamps():
 
     return render_template(
         'view_stamps.html',
-        title="ゲット済みのスタンプ",
+        title="獲得済みスタンプ",
         checkpoints=checkpoint_data,
         user=user
     )

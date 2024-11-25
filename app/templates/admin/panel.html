@@ -815,13 +815,14 @@ async function deleteStamp(stampId) {
         <div class="section-header">
             <h2>クイズ不一致エラー 対応済みスタンプ</h2>
             <div class="section-actions">
-                <div class="search-form">
+                <a href="{{ url_for('admin_panel', export='error_stamps') }}" class="export-button">CSVダウンロード</a>
+                <form class="search-form" method="get">
                     <input type="text" 
                         name="error_stamp_search" 
                         placeholder="検索..."
-                        value="{{ request.args.get('error_stamp_search', '') }}">
+                        value="{{ error_stamp_search }}">
                     <button type="submit">検索</button>
-                </div>
+                </form>
             </div>
         </div>
 
@@ -856,23 +857,30 @@ async function deleteStamp(stampId) {
 
         <div class="pagination">
             {% if error_stamps_pagination.has_prev %}
-                <a href="{{ url_for('admin_panel', error_stamp_page=error_stamps_pagination.prev_num) }}" class="pagination-link">« 前へ</a>
+                <a href="{{ url_for('admin_panel', 
+                    error_stamp_page=error_stamps_pagination.prev_num,
+                    error_stamp_search=error_stamp_search) }}" 
+                    class="pagination-link">« 前へ</a>
             {% endif %}
             
-            {% for page_num in error_stamps_pagination.iter_pages(left_edge=2, left_current=2, right_current=2, right_edge=2) %}
+            {% for page_num in error_stamps_pagination.iter_pages() %}
                 {% if page_num %}
-                    {% if page_num == error_stamps_pagination.page %}
-                        <span class="current-page">{{ page_num }}</span>
-                    {% else %}
-                        <a href="{{ url_for('admin_panel', error_stamp_page=page_num) }}" class="pagination-link">{{ page_num }}</a>
-                    {% endif %}
+                    <a href="{{ url_for('admin_panel', 
+                        error_stamp_page=page_num,
+                        error_stamp_search=error_stamp_search) }}" 
+                        class="pagination-link {% if page_num == error_stamps_pagination.page %}active{% endif %}">
+                        {{ page_num }}
+                    </a>
                 {% else %}
                     <span class="ellipsis">...</span>
                 {% endif %}
             {% endfor %}
             
             {% if error_stamps_pagination.has_next %}
-                <a href="{{ url_for('admin_panel', error_stamp_page=error_stamps_pagination.next_num) }}" class="pagination-link">次へ »</a>
+                <a href="{{ url_for('admin_panel', 
+                    error_stamp_page=error_stamps_pagination.next_num,
+                    error_stamp_search=error_stamp_search) }}" 
+                    class="pagination-link">次へ »</a>
             {% endif %}
         </div>
     </section>

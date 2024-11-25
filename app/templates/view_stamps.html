@@ -36,21 +36,10 @@
     {% for checkpoint in checkpoints %}
         <div class="checkpoint-card {% if checkpoint.is_obtained %}obtained{% endif %}">
             <h3>{{ checkpoint.name }}</h3>
-            
-            {% if checkpoint.is_obtained %}
-                <div class="stamp-info">
-                    <p class="status obtained">スタンプ取得済み</p>
-                    {#<p class="visit-count">訪問回数: {{ checkpoint.visit_count }}回</p>#}
-                    <p class="latest-visit">最終訪問: {{ checkpoint.latest_stamp.strftime('%Y/%m/%d %H:%M') }}</p>
-                </div>
-            {% else %}
-                <p class="status not-obtained">未取得</p>
-            {% endif %}
-
             {% if checkpoint.type == 'start' %}
-                <span class="badge start">スタート</span>
+                <!-- <span class="badge start">スタート</span> -->
             {% elif checkpoint.type == 'goal' %}
-                <span class="badge goal">ゴール</span>
+                <!-- <span class="badge goal">ゴール</span> -->
             {% endif %}
 
             {#<p class="description">{{ checkpoint.description | safe }}</p>#}
