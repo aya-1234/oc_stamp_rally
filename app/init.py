@@ -1,4 +1,4 @@
-from flask import Flask
+from flask import Flask,session
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import CheckConstraint, Numeric
 from datetime import datetime
@@ -105,6 +105,7 @@ class Survey_Response(db.Model):
 def initialize_db(app):
     db.init_app(app)
     with app.app_context():
+
         db.create_all() 
 
         if db.session.query(Checkpoint).count() == 0:
@@ -341,5 +342,4 @@ def initialize_db(app):
             #]
             #db.session.add_all(test_stamps)
             #db.session.flush()  
-
 

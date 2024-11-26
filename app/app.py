@@ -30,6 +30,17 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.secret_key = 'your_secret_key_here'  # ここにユニークで秘密のキーを設定
 
 initialize_db(app)
+# グローバル変数でセッションクリアフラグを管理
+_session_cleared = False
+###ここでコメントアウトで無効化。
+@app.before_request
+def clear_session():
+    global _session_cleared
+    if not _session_cleared:
+        session.clear()
+        _session_cleared = True
+        print("アプリケーション起動時のセッションをクリアしました。")
+###
 # アプリケーションのテーブルにアクセスした後にセッションを閉じるための teardown_appcontext ハンドラを追加
 @app.teardown_appcontext
 def shutdown_session(exception=None):
@@ -1491,7 +1502,7 @@ def checkpoint_login(checkpoint):
         session['user_id'] = user.id
         
         if not user.is_used:#多重エラー対応。前のルーティングで突破してたらほぼいらない。
-            flash('スタートポイントでのログインを完了してからチェックポイントにアクセスしてください。', 'error')
+            flash('はじめにスタート地点にログインしてから、スタンプラリーを始めてください。', 'error')
             return redirect(url_for('handle_checkpoint', checkpoint_id_hash=hash_keys[0]))
 
         if not user.is_agree:
@@ -1513,7 +1524,7 @@ def checkpoint_login(checkpoint):
         ).first()
         
         if existing_stamp:
-            flash("もうスタンプを獲得しました。", 'error')
+            flash("このチェックポイントはすでにスタンプを獲得済みです。スタンプ獲得済みのチェックポイントにはログインできません。", 'error')
             return render_template('login.html', title="ログイン", checkpoint=checkpoint)
 
         # チェックポイントの説明ページとして表示
@@ -1551,7 +1562,7 @@ def goal_login(checkpoint):
             return redirect(url_for('ended'))  # 修正: render_template から redirect に変更
 
         if not user.is_used:
-            flash('スタートポイントでのログインを完了してからチェックポイントにアクセスしてください。', 'error')
+            flash('はじめにスタート地点にログインしてから、スタンプラリーを始めてください。', 'error')
             return redirect(url_for('handle_checkpoint', checkpoint_id_hash=hash_keys[0])) 
 
         #user = Login.query.get_or_404(user_id)
@@ -2042,7 +2053,7 @@ def checkpoint(checkpoint_id):
    user = Login.query.get_or_404(user_id)
 
    if not user.is_used:#多重エラー対応。前のルーティングで突破してたらほぼいらない。
-       flash('スタートポイントでのログインを完了してからチェックポイントにアクセスしてください。', 'error')
+       flash('はじめにスタート地点にログインしてから、スタンプラリーを始めてください。', 'error')
        return redirect(url_for('handle_checkpoint', checkpoint_id_hash=hash_keys[0])) 
 
    if not user.is_loggedin:
@@ -2075,7 +2086,7 @@ def quiz(checkpoint_id):
 
     # ユーザーの状態チェック
     if not user.is_used:#多重エラー対応。前のルーティングで突破してたらほぼいらない。
-        flash('スタートポイントでのログインを完了してからチェックポイントにアクセスしてください。', 'error')
+        flash('はじめにスタート地点にログインしてから、スタンプラリーを始めてください。', 'error')
         return redirect(url_for('handle_checkpoint', checkpoint_id_hash=hash_keys[0]))
 
     if not user.is_loggedin:
@@ -2194,7 +2205,7 @@ def quiz(checkpoint_id):
                 else:
                     # 全クイズ完了
                     session['quiz_completed'] = True
-                    flash("全てのクイズが完了しました！", 'success')
+                    flash("おめでとうございます！すべて正解しました", 'success')
                     return redirect(url_for('handle_survey', checkpoint_id=checkpoint_id))
             else:
                 flash("不正解です。もう一度挑戦してください。", 'error')

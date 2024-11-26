@@ -622,6 +622,65 @@
                 opacity: 0;
             }
         }
+
+        .small-text {
+        font-size: 0.8em;
+        color: #666;
+        display: inline-block;
+        }
+
+        /* CSS */
+        .follow-section {
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        .follow-title {
+            margin-bottom: 10px;
+            text-align: center;
+        }
+
+        .button-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 100%;
+        }
+
+        .instagram-button {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 300px;
+            height: 50px;
+            padding: 8px 15px;
+            background-color: #E4405F;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            margin-top: 5px;
+            font-weight: bold;
+            font-size: 22px;
+            line-height: 24px;
+        }
+
+        .instagram-button:hover {
+            background-color: #dc2743;  /* ホバー時の色を少し暗く */
+            transform: translateY(-2px);  /* ホバー時に少し上に移動 */
+            transition: all 0.3s ease;  /* スムーズな遷移 */
+        }
+
+        /* レスポンシブ対応 */
+        @media screen and (max-width: 768px) {
+            .follow-title {
+                font-size: 20px;  /* モバイル用のタイトルサイズ */
+            }
+            
+            .instagram-button {
+                font-size: 18px;  /* モバイル用のボタンテキストサイズ */
+                line-height: 22px;
+            }
+        }
     </style>
 </head>
 <body>
@@ -685,24 +744,20 @@
             <h2 style="color: #2d3748;">🎉 おめでとうございます！ 🎉</h2>
             <p style="font-size: 1.2rem; color: #4a5568;">
                 おめでとうございます！ゴールしました！<br><br>
-                ゴール地点の受付担当者に、<strong>この画面</strong>
-                をお見せください。<br>
-                <strong>景品</strong>をお渡しします。<br><br>
+                ゴール地点の受付担当者に、<strong>この画面</strong>をお見せください。<br>
+                <strong>景品</strong>をお渡しします。<br>
+                <span class="small-text">※研究に参加している大阪成蹊大学生は除きます。</span><br><br>
                 最後までご参加いただき、ありがとうございました。<br><br>
-                公式アカウントをフォローして応援！！<br>
-                <a href="https://www.instagram.com/ikeda_odekake?igsh=eWs5bHBsaDJ6cW1h&utm_source=qr" 
-                style="display: inline-block; 
-                    padding: 10px 20px; 
-                    background-color: #E4405F; 
-                    color: white; 
-                    text-decoration: none; 
-                    border-radius: 5px; 
-                    margin-top: 10px;
-                    font-weight: bold;">
-                池田市おでかけInstagramをフォロー
-            </a>
             </p>
-            </p>
+            <div class="follow-section">
+                <h1 class="follow-title">公式アカウントをフォローして応援！！</h1>
+                <div class="button-container">
+                    <a href="https://www.instagram.com/ikeda_odekake?igsh=eWs5bHBsaDJ6cW1h&utm_source=qr" 
+                       class="instagram-button">
+                        池田市おでかけInstagramをフォロー
+                    </a>
+                </div>
+            </div>
         </div>
     </div>
 

@@ -117,11 +117,14 @@
             border-radius: 10px;
         }
         .menu-button {
+            /* 基本的なボタンの大きさと表示設定 */
             display: inline-block;
+            padding: 12px 30px;  /* 上下12px、左右30px のパディング */
+            
+            /* ボタンのスタイル */
             text-decoration: none;
             background: linear-gradient(135deg, #4CAF50, #45a049);
             color: white;
-            padding: 12px 30px;
             border-radius: 25px;
             font-weight: 500;
             margin: 20px 0;
@@ -131,7 +134,60 @@
             position: relative;
             overflow: hidden;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+             /* フォントサイズの自動調整 */
+            font-size: clamp(20px, calc(0.8em + 1vw), 30px);  /* 最小16px、最大24px */
+            line-height: 60px;  /* heightと同じ値で垂直中央揃え */
+            white-space: nowrap;  /* テキストの折り返しを防ぐ */
+            overflow: hidden;     /* はみ出したテキストを隠す */
+            text-overflow: ellipsis;  /* はみ出した場合は...で表示 */
+            
+            /* Flexboxでテキストを中央配置 */
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
+
+        .menu-button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, rgba(255,255,255,0.1), rgba(255,255,255,0));
+            transform: translateX(-100%);
+            transition: transform 0.5s ease;
+        }
+
+        .menu-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+            color: white;
+        }
+
+        .menu-button:hover::before {
+            transform: translateX(100%);
+        }
+
+        .menu-button:active {
+            transform: translateY(1px);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .small-text {
+        font-size: 1.8em;
+        color: #434242;
+        display: inline-block;
+        }
+
+        /* ボタンの配置を中央に */
+        .button-container {
+            text-align: center;
+            margin: 30px 0;
+            width: 100%;
+        }
+
+
 
     </style>
 </head>
@@ -139,22 +195,19 @@
     <h3>スタンプラリーの参加方法</h3>
     <section>
 
-        <p>このスタンプラリーアプリは、「池田おでかけスタンプラリー」専用のアプリです。ほかの目的には利用できません。</p>
-        <p>※このWebアプリは、大阪成蹊大学の「せいけいデジタルサークル」が開発しました。このWebアプリには、次の画面があります。</p>
+        <p>このスタンプラリーアプリは、「池田おでかけスタンプラリー」専用のアプリです。ほかの目的には利用できません。
+            <span class="small-text">※このWebアプリは、大阪成蹊大学の「せいけいデジタルサークル」が開発しました。</span>
+            <br>このWebアプリには、次の画面があります。
+          </p>
         <h3>メインメニュー画面</h3>
-        <p>メインメニュー画面は、スタート時に
-        お渡ししたIDカードのQRコードから、
-        いつでもアクセスできます。</p>
+        <p>メインメニュー画面は、スタート時にお渡ししたIDカードのQRコードから、いつでもアクセスできます。</p>
         <ul>
         <li><h3>スタンプラリーの参加方法</h3></li>
-            <p>スタンプラリーの参加方法とコー
-            スの地図を確認できます</p>
+            <p>スタンプラリーの使い方とコースの地図を確認できます</p>
         <li><h3>スタンプラリーアプリの使い方</h3></li>
-            <p>アプリの基本的な操作方法を確認
-            できます</p>
+            <p>アプリの基本的な操作方法を確認できます</p>
         <li><h3>獲得スタンプ確認</h3></li>
-            <p>獲得済みのスタンプを確認できま
-            す</p>
+            <p>獲得済みのスタンプを確認できます</p>
         </ul>
         <h3>チェックポイントごとの画面</h3>
         <p>チェックポイントに設置されているQRコードからアクセスできます。
@@ -164,7 +217,7 @@
         <h3>ゴール画面</h3>
         <p>ゴール時に使用するメニュー画面です。ゴール地点に設置されている専用のQRコードからアクセスし、アンケートにご回答ください。</p>
         <h3>不具合等対応について</h3>
-        <p>アプリの不具合等ありましたらゴールまでお越しください</p>
+        <p>アプリの不具合等ありましたらゴールまでお越しください。</p>
     </section>
         <div class="button-container">
             <a href="/main_menu" class="menu-button">

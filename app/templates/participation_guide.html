@@ -129,11 +129,14 @@
             border-radius: 10px;
         }
         .menu-button {
+            /* 基本的なボタンの大きさと表示設定 */
             display: inline-block;
+            padding: 12px 30px;  /* 上下12px、左右30px のパディング */
+            
+            /* ボタンのスタイル */
             text-decoration: none;
             background: linear-gradient(135deg, #4CAF50, #45a049);
             color: white;
-            padding: 12px 30px;
             border-radius: 25px;
             font-weight: 500;
             margin: 20px 0;
@@ -143,6 +146,51 @@
             position: relative;
             overflow: hidden;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+             /* フォントサイズの自動調整 */
+            font-size: clamp(20px, calc(0.8em + 1vw), 30px);  /* 最小16px、最大24px */
+            line-height: 60px;  /* heightと同じ値で垂直中央揃え */
+            white-space: nowrap;  /* テキストの折り返しを防ぐ */
+            overflow: hidden;     /* はみ出したテキストを隠す */
+            text-overflow: ellipsis;  /* はみ出した場合は...で表示 */
+            
+            /* Flexboxでテキストを中央配置 */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .menu-button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, rgba(255,255,255,0.1), rgba(255,255,255,0));
+            transform: translateX(-100%);
+            transition: transform 0.5s ease;
+        }
+
+        .menu-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+            color: white;
+        }
+
+        .menu-button:hover::before {
+            transform: translateX(100%);
+        }
+
+        .menu-button:active {
+            transform: translateY(1px);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+                /* ボタンの配置を中央に */
+        .button-container {
+            text-align: center;
+            margin: 30px 0;
+            width: 100%;
         }
     </style>
 </head>
@@ -152,29 +200,13 @@
     <div class="content-container">
         <section>
         
-            <p>このスタンプラリーでは、６ヶ所の
-                チェックポイントを訪問して、<strong>それぞ
-                れ３問のクイズ</strong>に回答していただきま
-                す。
-                <br>すべてのクイズに正解し、そのあと簡
-                単なアンケートにお答えいただくと、
+            <p>このスタンプラリーでは、６ヶ所のチェックポイントを訪問して、<strong>それぞれ３問のクイズ</strong>に回答していただきます。
+                <br>すべてのクイズに正解し、そのあと簡単なアンケートにお答えいただくと、
                 <strong>スタンプを獲得</strong>できます。
-                <br>チェックポイントの位置は、下の地図
-                でご確認ください。
-                <br>チェックポイントに到着したら、その
-                <strong>チェックポイント専用のQRコード</strong>を探
-                してください。QRコードを見つけたら、
-                スマートフォンのカメラで読み込んで、
-                Webにアクセスしてください。
-                <br>ログイン画面が表示されるので、<strong>ス
-                タート時にお渡しした</strong>カードにかか
-                れているアカウント名を入力してくだ
-                さい。
-                <br>「ログイン」ボタンをクリックすると、
-                チェックポイントの紹介が表示されま
-                す。<strong>「クイズに回答する」ボタン</strong>をク
-                リックすると、クイズが表示されるの
-                で、順に回答してください。
+                <br>チェックポイントの位置は、下の地図でご確認ください。
+                <br>チェックポイントに到着したら、その<strong>チェックポイント専用のQRコード</strong>を探してください。QRコードを見つけたら、スマートフォンのカメラで読み込んで、Webにアクセスしてください。
+                <br>ログイン画面が表示されるので、<strong>スタート時にお渡しした</strong>カードにかかれているアカウント名を入力してください。
+                <br>「ログイン」ボタンをクリックすると、チェックポイントの紹介が表示されます。<strong>「クイズに回答する」ボタン</strong>をクリックすると、クイズが表示されるので、順に回答してください。
             </p>
             <p>
                 スタンプラリースタートの場所は池田駅前公園です。
