@@ -1694,7 +1694,41 @@ def handle_survey(checkpoint_id):
     else:
         flash('無効なチェックポイントIDです。', 'error')
         return redirect(url_for('view_stamps'))
-    
+
+def validate_survey_responses(user, questions, request_form):
+    """
+    アンケート回答のバリデーション
+    """
+    responses = []
+    unanswered_questions = []
+    form_data = {}
+
+    # アカウントの5桁目が'A'かどうかをチェック
+    is_type_a_user = len(user.account) >= 5 and user.account[4] == 'A'
+
+    for question in questions:
+        if question.survey_choices:
+            selected_choice_id = request_form.get(f'question_{question.id}')
+            if selected_choice_id:
+                form_data[f'question_{question.id}'] = selected_choice_id
+                responses.append(Survey_Response(
+                    login_id=user.id,
+                    survey_id=question.id,
+                    value=selected_choice_id
+                ))
+            
+            # 必須回答チェック
+            if is_type_a_user:
+                # Aユーザーは全質問必須
+                if not selected_choice_id:
+                    unanswered_questions.append(question.question)
+            else:
+                # 通常ユーザーは必須マークのある質問のみチェック
+                if '（回答必須）' in question.question and not selected_choice_id:
+                    unanswered_questions.append(question.question)
+
+    return responses, unanswered_questions, form_data
+
 # スタートポイントのアンケート画面
 def start_survey(checkpoint_id):
     user_id = session.get('user_id')
@@ -1712,72 +1746,70 @@ def start_survey(checkpoint_id):
     if request.method == 'POST':
         try:
             responses = []
-            unanswered_required_questions = []
-            form_data = {}  # 追加: フォームデータを保持
+            form_data = {}
+            all_questions_answered = True
+
+            # アカウントの5桁目が'A'かどうかをチェック
+            is_type_a_user = len(user.account) >= 5 and user.account[4] == 'A'
 
             # すべての質問をチェック
             for question in questions:
                 if question.survey_choices:
                     selected_choice_id = request.form.get(f'question_{question.id}')
-                    # 追加: フォームデータを保存
                     if selected_choice_id:
                         form_data[f'question_{question.id}'] = selected_choice_id
-                    
-                    # 回答必須項目（質問文に「（回答必須）」が含まれる）の場合のみチェック
-                    is_required = '（回答必須）' in question.question
-                    
-                    if is_required and not selected_choice_id:
-                        unanswered_required_questions.append(question.question)
+                        responses.append(Survey_Response(
+                            login_id=user.id,
+                            survey_id=question.id,
+                            value=selected_choice_id
+                        ))
                     else:
-                        if selected_choice_id:
-                            responses.append(Survey_Response(
-                                login_id=user.id,
-                                survey_id=question.id,
-                                value=selected_choice_id
-                            ))
+                        # Aユーザーは全質問必須、それ以外は通常の必須チェック
+                        is_required = is_type_a_user or ('（回答必須）' in question.question)
+                        if is_required:
+                            all_questions_answered = False
+                            break
 
-            # 未回答の必須質問がある場合
-            if unanswered_required_questions:
-                error_message = "以下の必須質問に回答してください：<br>" + "<br>".join([
-                    f"・{q}" for q in unanswered_required_questions
-                ])
-                flash(error_message, 'error')
-                # 修正: フォームデータを渡してテンプレートをレンダリング
-                return render_template(
-                    'survey.html',
-                    title=message_info["title"],
-                    initial_message=message_info["message"],
-                    checkpoint=checkpoint,
-                    questions=questions,
-                    form_data=form_data  # 追加: フォームデータを渡す
-                )
+            # 必要な質問に全て回答済みの場合のみ処理を進める
+            if all_questions_answered:
+                db.session.add_all(responses)
+                user.is_loggedin = True
+                db.session.commit()
+                flash('スタートアンケートが完了しました！<br>ご協力ありがとうございます。', 'ended')
+                return redirect(url_for('main_menu', user=user.account))
 
-            # 必須質問に全て回答済みの場合
-            db.session.add_all(responses)
-            user.is_loggedin = True
-            db.session.commit()
-            flash('スタートアンケートが完了しました！<br>ご協力ありがとうございます。', 'ended')
-            return redirect(url_for('main_menu', user=user.account))
-
-        except SQLAlchemyError:
-            db.session.rollback()
-            flash('エラーが発生しました。<br>もう一度お試しください。', 'error')
-            # エラー時もフォームデータを保持
+            # 未回答の質問がある場合は単にフォームを再表示
             return render_template(
                 'survey.html',
                 title=message_info["title"],
                 initial_message=message_info["message"],
                 checkpoint=checkpoint,
                 questions=questions,
-                form_data=form_data  # 追加: フォームデータを渡す
+                form_data=form_data,
+                user=user
             )
 
+        except SQLAlchemyError:
+            db.session.rollback()
+            flash('エラーが発生しました。<br>もう一度お試しください。', 'error')
+            return render_template(
+                'survey.html',
+                title=message_info["title"],
+                initial_message=message_info["message"],
+                checkpoint=checkpoint,
+                questions=questions,
+                form_data=form_data,
+                user=user
+            )
+
+    # GETリクエストの場合
     return render_template(
         'survey.html',
         title=message_info["title"],
         initial_message=message_info["message"],
         checkpoint=checkpoint,
-        questions=questions
+        questions=questions,
+        user=user
     )
 
 # チェックポイントのアンケート画面
@@ -1823,7 +1855,8 @@ def checkpoint_survey(checkpoint_id):
                     title=message_info["title"],
                     initial_message=message_info["message"],
                     checkpoint=checkpoint,
-                    questions=questions
+                    questions=questions,
+                    user=user
                 )
 #スタンプ取得
             # 全ての質問に回答済みの場合
@@ -1846,7 +1879,8 @@ def checkpoint_survey(checkpoint_id):
         initial_message=message_info["message"],
         checkpoint=checkpoint,
         questions=questions,
-        checkpoint_id=checkpoint_id 
+        checkpoint_id=checkpoint_id,
+        user=user
     )
 
 # ゴールのアンケート画面
@@ -1867,57 +1901,49 @@ def goal_survey(user_id, checkpoint_id):
     if request.method == "POST":
         try:
             responses = []
-            unanswered_required_questions = []
+            
             form_data = {}  # フォームデータ保持用の追加
+            all_questions_answered = True
+            is_type_a_user = len(user.account) >= 5 and user.account[4] == 'A'
 
+            # すべての質問をチェック
             # すべての質問をチェック
             for question in questions:
                 if question.survey_choices:
                     selected_choice_id = request.form.get(f'question_{question.id}')
-                    # フォームデータを保存
                     if selected_choice_id:
                         form_data[f'question_{question.id}'] = selected_choice_id
-                    
-                    # 必須項目（質問文に「（回答必須）」が含まれる）の場合のみチェック
-                    is_required = '（回答必須）' in question.question
-                    
-                    if is_required and not selected_choice_id:
-                        unanswered_required_questions.append(question.question)
+                        responses.append(Survey_Response(
+                            login_id=user.id,
+                            survey_id=question.id,
+                            value=selected_choice_id
+                        ))
                     else:
-                        if selected_choice_id:
-                            responses.append(Survey_Response(
-                                login_id=user_id,
-                                survey_id=question.id,
-                                value=selected_choice_id
-                            ))
+                        # Aユーザーは全質問必須、それ以外は通常の必須チェック
+                        is_required = is_type_a_user or ('（回答必須）' in question.question)
+                        if is_required:
+                            all_questions_answered = False
+                            break
 
             # 未回答の必須質問がある場合
-            if unanswered_required_questions:
-                error_message = "以下の必須質問に回答してください：<br>" + "<br>".join([
-                    f"・{q}" for q in unanswered_required_questions
-                ])
-                flash(error_message, 'error')
-                return render_template(
-                    'survey.html',
-                    title=message_info["title"],
-                    initial_message=message_info["message"],
-                    checkpoint=checkpoint,
-                    questions=questions,
-                    form_data=form_data  # フォームデータを渡す
+            if all_questions_answered:
+                db.session.add_all(responses)
+                user.is_loggedin = True
+                db.session.commit()
+                #flash('スタートアンケートが完了しました！<br>ご協力ありがとうございます。', 'ended')
+                #return redirect(url_for('main_menu', user=user.account))
+                # 必須質問に全て回答済みの場合
+                new_stamp = Stamp(
+                    checkpoint_id=checkpoint_id,
+                    login_id=user_id
                 )
+                db.session.add(new_stamp)
+                db.session.add_all(responses)
+                user.is_ended = True
+                db.session.commit()
 
-            # 必須質問に全て回答済みの場合
-            new_stamp = Stamp(
-                checkpoint_id=checkpoint_id,
-                login_id=user_id
-            )
-            db.session.add(new_stamp)
-            db.session.add_all(responses)
-            user.is_ended = True
-            db.session.commit()
-
-            #flash('ゴールおめでとうございます！<br>スタンプラリーは終了です。<br>最後までご参加いただき、ありがとうございました。', 'success')
-            return redirect(url_for("goal"))
+                #flash('ゴールおめでとうございます！<br>スタンプラリーは終了です。<br>最後までご参加いただき、ありがとうございました。', 'success')
+                return redirect(url_for("goal"))
 
         except SQLAlchemyError:
             db.session.rollback()
@@ -1928,7 +1954,8 @@ def goal_survey(user_id, checkpoint_id):
                 initial_message=message_info["message"],
                 checkpoint=checkpoint,
                 questions=questions,
-                form_data=form_data  # エラー時もフォームデータを保持
+                form_data=form_data,
+                user=user  # エラー時もフォームデータを保持
             )
 
     return render_template(
@@ -1936,7 +1963,8 @@ def goal_survey(user_id, checkpoint_id):
         title=message_info["title"],
         initial_message=message_info["message"],
         checkpoint=checkpoint,
-        questions=questions
+        questions=questions,
+        user=user
     )
 
 # メインメニュー画面
