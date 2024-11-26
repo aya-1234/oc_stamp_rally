@@ -146,6 +146,59 @@ def hello():
     return output
 
 
+def save_mismatch_error(user_id, account, mismatched_checkpoints):
+    """エラー情報をセッションに保存する改善版"""
+    if 'mismatch_errors' not in session:
+        session['mismatch_errors'] = []
+
+    # セッション内の現在のエラー情報を取得
+    current_errors = session['mismatch_errors']
+    
+    # 既存のエラー情報を探す
+    existing_error = None
+    for error in current_errors:
+        if error['user_id'] == user_id:
+            existing_error = error
+            break
+    
+    if existing_error:
+        # 既存のチェックポイント情報を分割してリストにする
+        existing_checkpoints = set(cp.strip() for cp in existing_error['mismatched_checkpoints'].split(','))
+        # 新しいチェックポイントを追加
+        existing_checkpoints.add(mismatched_checkpoints.strip())
+        # 更新された情報を保存
+        existing_error['mismatched_checkpoints'] = ', '.join(sorted(existing_checkpoints))
+    else:
+        # 新しいエラー情報を追加
+        current_errors.append({
+            'user_id': user_id,
+            'account': account,
+            'mismatched_checkpoints': mismatched_checkpoints
+        })
+    
+    # セッションを明示的に更新
+    session.modified = True
+
+def remove_resolved_checkpoint(user_id, checkpoint_name):
+    """解決されたチェックポイントをエラーリストから削除"""
+    if 'mismatch_errors' not in session:
+        return
+    
+    current_errors = session['mismatch_errors']
+    for error in current_errors:
+        if error['user_id'] == user_id:
+            checkpoints = [cp.strip() for cp in error['mismatched_checkpoints'].split(',')]
+            if checkpoint_name in checkpoints:
+                checkpoints.remove(checkpoint_name)
+                if checkpoints:  # まだ他のエラーが残っている場合
+                    error['mismatched_checkpoints'] = ', '.join(checkpoints)
+                else:  # すべてのエラーが解決された場合
+                    current_errors.remove(error)
+            break
+    
+    session['mismatch_errors'] = current_errors
+    session.modified = True
+
 
 # 管理画面
 # 管理画面のメインページ
@@ -381,25 +434,7 @@ def admin_panel():
         error_out=False
     )
 
-    # クイズレスポンスとスタンプの不一致を検出
-    # クイズレスポンスとスタンプの不一致を検出
-    mismatch_users = (
-        db.session.query(
-            Login.id.label('user_id'), 
-            Login.account, 
-            Checkpoint.name.label('mismatched_checkpoints')
-        )
-        .select_from(Login)
-        .join(Quiz_Response, Login.id == Quiz_Response.login_id)
-        .join(Quiz, Quiz_Response.quiz_id == Quiz.id)
-        .join(Checkpoint, Quiz.checkpoint_id == Checkpoint.id)
-        .outerjoin(Stamp, and_(Login.id == Stamp.login_id, Checkpoint.id == Stamp.checkpoint_id))
-        .filter(Stamp.id.is_(None), Quiz_Response.is_corrected == True)
-        .group_by(Login.id, Login.account, Checkpoint.id)
-        .all()
-    )
-
-    # スタンプを獲得したがクイズに回答していないユーザーを検出
+# スタンプを獲得したがクイズに回答していないユーザーを検出
     stamp_without_quiz_users = (
         db.session.query(
             Login.id.label('user_id'),
@@ -418,18 +453,46 @@ def admin_panel():
         .group_by(Login.id, Login.account, Checkpoint.id)
         .all()
     )
-    print(mismatch_users)
     print(stamp_without_quiz_users)
 
+    # クイズ不一致エラーが発生した際に、エラー情報を保存する
+    # クイズ不一致エラーが発生した際に、エラー情報を保存する
+    #def save_mismatch_error(user_id, account, mismatched_checkpoints):
+
+
+    # クイズレスポンスとスタンプの不一致を検出
+    mismatch_users = (
+        db.session.query(
+            Login.id.label('user_id'),
+            Login.account,
+            Checkpoint.name.label('mismatched_checkpoints')
+        )
+        .select_from(Login)
+        .join(Quiz_Response, Login.id == Quiz_Response.login_id)
+        .join(Quiz, Quiz_Response.quiz_id == Quiz.id)
+        .join(Checkpoint, Quiz.checkpoint_id == Checkpoint.id)
+        .outerjoin(Stamp, and_(Login.id == Stamp.login_id, Checkpoint.id == Stamp.checkpoint_id))
+        .filter(Stamp.id.is_(None), Quiz_Response.is_corrected == True)
+        .group_by(Login.id, Login.account, Checkpoint.id)
+        .all()
+    )
+
+    # 検出された不一致情報をセッション変数に保存
+    for user in mismatch_users:
+        save_mismatch_error(user.user_id, user.account, user.mismatched_checkpoints)
+
     # エラー対応スタンプのデータを取得
-    #error_stamps_pagination = get_error_resolution_stamps()
     error_stamp_page = request.args.get('error_stamp_page', 1, type=int)
     error_stamp_search = request.args.get('error_stamp_search', '')
-    
-    # エラー対応スタンプの取得時にsearch_queryを渡す
+
+    # セッション変数からエラー情報を取得
+    error_stamp_data = session.get('mismatch_errors', [])
+
+    # error_stamp_dataを渡して呼び出し
     error_stamps_pagination = get_error_resolution_stamps(
         page=error_stamp_page,
-        search_query=error_stamp_search
+        search_query=error_stamp_search,
+        mismatch_data=error_stamp_data  # error_stamp_dataを渡す
     )
 
     return render_template(
@@ -785,56 +848,63 @@ def delete_stamp(stamp_id):
     
 # app.pyに追加する関数
 @app.route(f'/{hash_keys[8]}/error_resolution_stamps')
-def get_error_resolution_stamps(page=1, search_query=''):
+def get_error_resolution_stamps(page=1, search_query='', mismatch_data=None): 
     per_page = 10
+  
+    # 渡されたmismatch_dataを使用
+    error_stamps_base = mismatch_data if mismatch_data is not None else []
 
-    # 最初の不一致エラー発生時のスタンプ状態を確認
-    early_stamps = (
-        db.session.query(
-            Stamp.login_id,
-            Stamp.checkpoint_id
-        )
-        .filter(Stamp.created_at < Quiz_Response.created_at)
-        .subquery()
-    )
-
-    # クイズ回答があり、その時点でスタンプがなかったものを特定
-    error_stamps_query = (
-        db.session.query(
-            Stamp,
-            Login.account.label('user_account'),
-            Checkpoint.name.label('checkpoint_name')
-        )
-        .join(Login, Stamp.login_id == Login.id)
-        .join(Checkpoint, Stamp.checkpoint_id == Checkpoint.id)
-        .join(Quiz_Response, Quiz_Response.login_id == Login.id)
-        .join(Quiz, and_(
-            Quiz_Response.quiz_id == Quiz.id,
-            Quiz.checkpoint_id == Stamp.checkpoint_id
-        ))
-        .outerjoin(early_stamps, and_(
-            early_stamps.c.login_id == Stamp.login_id,
-            early_stamps.c.checkpoint_id == Stamp.checkpoint_id
-        ))
-        .filter(
-            and_(
-                Quiz_Response.is_corrected == True,
-                early_stamps.c.login_id.is_(None),
-                Stamp.created_at > Quiz_Response.created_at,
-                Checkpoint.checkpoint_type == 'normal'
-            )
-        )
-    )
-
+    # 検索とページネーション用にリスト処理
+    filtered_records = error_stamps_base
     if search_query:
-        error_stamps_query = error_stamps_query.filter(
-            db.or_(
-                Login.account.like(f'%{search_query}%'),
-                Checkpoint.name.like(f'%{search_query}%')
-            )
-        )
+        filtered_records = [
+            record for record in error_stamps_base
+            if search_query.lower() in record['account'].lower() or 
+               search_query.lower() in record['mismatched_checkpoints'].lower()
+        ]
 
-    return error_stamps_query.paginate(page=page, per_page=per_page, error_out=False)
+    # 手動でページネーションを実装
+    total = len(filtered_records)
+    start = (page - 1) * per_page
+    end = start + per_page
+    items = filtered_records[start:end]
+
+    class CustomPagination:
+        def __init__(self, items, page, per_page, total):
+            self.items = items
+            self.page = page
+            self.per_page = per_page
+            self.total = total
+
+        @property
+        def pages(self):
+            return (self.total + self.per_page - 1) // self.per_page
+
+        @property
+        def has_prev(self):
+            return self.page > 1
+
+        @property
+        def has_next(self):
+            return self.page < self.pages
+
+        @property
+        def prev_num(self):
+            return self.page - 1
+
+        @property
+        def next_num(self):
+            return self.page + 1
+
+        def iter_pages(self):
+            return range(1, self.pages + 1)
+
+    return CustomPagination(
+        items=items,
+        page=page,
+        per_page=per_page,
+        total=total
+    )
 
 # CSVエクスポート用の関数を追加
 @app.route(f'/{hash_keys[8]}/export/<table_name>')
@@ -1085,27 +1155,26 @@ def export_csv(table_name):
                 ])
             filename = "stamp_without_quiz_users.csv"
 
-        elif table_name == 'error_stamps':
-            # エラー対応済みスタンプデータのエクスポート
-            error_stamps = db.session.query(
-                Stamp,
-                Login.account.label('user_account'),
-                Checkpoint.name.label('checkpoint_name')
-            ).join(
-                Login, Stamp.login_id == Login.id
-            ).join(
-                Checkpoint, Stamp.checkpoint_id == Checkpoint.id
-            ).order_by(Stamp.created_at).all()
+        elif table_name == 'error_history':
+            # セッションからエラー履歴データを取得
+            error_data = session.get('mismatch_errors', [])
             
-            writer.writerow(['スタンプID', 'ユーザー', 'チェックポイント', '対応日時'])
-            for stamp, user_account, checkpoint_name in error_stamps:
+            # ヘッダーの書き込み
+            writer.writerow([
+                'ユーザーID',
+                'アカウント',
+                '不一致のチェックポイント'
+            ])
+            
+            # データの書き込み
+            for error in error_data:
                 writer.writerow([
-                    stamp.id,
-                    user_account,
-                    checkpoint_name,
-                    stamp.created_at.strftime('%Y-%m-%d %H:%M:%S')
+                    error['user_id'],
+                    error['account'],
+                    error['mismatched_checkpoints']
                 ])
-            filename = "error_stamps.csv"
+            
+            filename = "error_history.csv"
 
         else:
             return 'Invalid table name', 400

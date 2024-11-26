@@ -8,7 +8,7 @@
             font-family: Arial, sans-serif;
             max-width: 800px;
             margin: 0 auto;
-            padding: 20px;
+            padding: 5px;
             background-color: #f5f5f5;
         }
 
@@ -26,7 +26,7 @@
 
         p {
             background-color: #fff;
-            padding: 20px;
+            padding: 5px;
             border-radius: 8px;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
             margin-bottom: 30px;
@@ -98,33 +98,21 @@
             height: 100%;
         }
 
-        section {
+        .section {
             margin-bottom: 20px; /* セクション間の余白 */
+            padding: auto;
         }
-        ul {
-            list-style-type: disc; /* リストマーカーの種類 */
-            padding-left: 20px;  /* リストのインデント */
-            background-color: #fff;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            margin-bottom: 30px;
-            line-height: 1.6;
+        .ul {
+            list-style: none;
         }
-        li {
-            margin-bottom: 5px; /* リスト項目間の余白 */
-            background-color: #fff;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            margin-bottom: 30px;
-            line-height: 1.6;
+        .li {
+            list-style: none;
         }
         .container {
             max-width: 500px;
             width: 100%;
             background-color: #fff;
-            padding: 20px;
+            padding: 5px;
             box-shadow: 0px 0px 15px rgba(0, 0, 0, 0.1);
             border-radius: 10px;
         }
@@ -150,31 +138,34 @@
 <body>
     <h3>スタンプラリーの参加方法</h3>
     <section>
-</section>
-    <p>このスタンプラリーアプリは、「池田おでかけスタンプラリー」専用のアプリです。ほかの目的には利用できません。</p>
-    <p>※このWebアプリは、大阪成蹊大学の「せいけいデジタルサークル」が開発しました。このWebアプリには、次の画面があります。</p>
-    <h3>メインメニュー画面</h3>
-    <p>メインメニュー画面は、スタート時に
-    お渡ししたIDカードのQRコードから、
-    いつでもアクセスできます。</p>
-    <ul>
-    <li>スタンプラリーの使い方</li>
-        <p>スタンプラリーの使い方とコー
-        スの地図を確認できます</p>
-    <li>スタンプラリーアプリの使い方</li>
-        <p>アプリの基本的な操作方法を確認
-        できます</p>
-    <li>獲得スタンプ確認</li>
-        <p>獲得済みのスタンプを確認できま
-        す</p>
-    </ul>
-    <h3>チェックポイントごとの画面</h3>
-    <p>チェックポイントに設置されているQRコードからアクセスできます。
-    <br>チェックポイントごとにQRコードは異なっているので、チェックポイントに到着したら、
-    <br>そのチェックポイントのQRコードをスマートフォンのカメラで読み込んでください。
-    <br>アクセス後は、画面の記載に従って、クイズとアンケートにご回答ください。</p>
-    <h3>ゴール画面</h3>
-    <p>ゴール時に使用するメニュー画面です。ゴール地点に設置されている専用のQRコードからアクセスし、アンケートにご回答ください。</p>
+
+        <p>このスタンプラリーアプリは、「池田おでかけスタンプラリー」専用のアプリです。ほかの目的には利用できません。</p>
+        <p>※このWebアプリは、大阪成蹊大学の「せいけいデジタルサークル」が開発しました。このWebアプリには、次の画面があります。</p>
+        <h3>メインメニュー画面</h3>
+        <p>メインメニュー画面は、スタート時に
+        お渡ししたIDカードのQRコードから、
+        いつでもアクセスできます。</p>
+        <ul>
+        <li><h3>スタンプラリーの参加方法</h3></li>
+            <p>スタンプラリーの参加方法とコー
+            スの地図を確認できます</p>
+        <li><h3>スタンプラリーアプリの使い方</h3></li>
+            <p>アプリの基本的な操作方法を確認
+            できます</p>
+        <li><h3>獲得スタンプ確認</h3></li>
+            <p>獲得済みのスタンプを確認できま
+            す</p>
+        </ul>
+        <h3>チェックポイントごとの画面</h3>
+        <p>チェックポイントに設置されているQRコードからアクセスできます。
+        <br>チェックポイントごとにQRコードは異なっているので、チェックポイントに到着したら、
+        <br>そのチェックポイントのQRコードをスマートフォンのカメラで読み込んでください。
+        <br>アクセス後は、画面の記載に従って、クイズとアンケートにご回答ください。</p>
+        <h3>ゴール画面</h3>
+        <p>ゴール時に使用するメニュー画面です。ゴール地点に設置されている専用のQRコードからアクセスし、アンケートにご回答ください。</p>
+        <h3>不具合等対応について</h3>
+        <p>アプリの不具合等ありましたらゴールまでお越しください</p>
+    </section>
         <div class="button-container">
             <a href="/main_menu" class="menu-button">
                 <i class="fas fa-home"></i> メインメニューに戻る

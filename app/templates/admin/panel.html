@@ -114,7 +114,7 @@
         <button class="button" data-target="stamps_btn">スタンプ管理</button>
         <button class="button" data-target="login_btn">ログイン管理</button>
         <button class="button" data-target="Unanswered_btn">クイズ未回答</button>
-        <button class="button" data-target="Discrepancy_btn">スタンプ獲得の不一致</button>
+        <button class="button" data-target="Discrepancy_btn">クイズ不一致エラー 発生履歴</button>
         <button class="button" data-target="Answer_Management_btn">クイズ回答管理</button>
         <button class="button" data-target="Survey_response_management_btn">アンケート回答管理</button>
         <button class="button" data-target="survey_btn">アンケート管理</button>
@@ -811,79 +811,84 @@ async function deleteStamp(stampId) {
     </div>
 
     <!-- panel.htmlに追加するセクション -->
-    <section class="section">
+    <div class="section" id="error_history_section">
         <div class="section-header">
-            <h2>クイズ不一致エラー 対応済みスタンプ</h2>
+            <div class="section-title">
+                <div class="section-content content-hidden active" id="error_history_btn"></div>
+                <h2>クイズ不一致エラー 発生履歴</h2>
+            </div>
             <div class="section-actions">
-                <form action="{{ url_for('export_csv', table_name='error_stamps') }}" method="get">
-                    <button type="submit">CSVダウンロード</button>
-                </form>
-                <form class="search-form" method="get">
-                    <input type="text" 
-                        name="error_stamp_search" 
-                        placeholder="検索..."
-                        value="{{ error_stamp_search }}">
-                    <button type="submit">検索</button>
-                </form>
+                <a href="{{ url_for('export_csv', table_name='error_history') }}" class="download-button">
+                    CSVダウンロード
+                </a>
             </div>
         </div>
-
+    
+        <div class="search-form">
+            <form method="GET" action="{{ url_for('admin_panel') }}">
+                <input type="text" 
+                       name="error_stamp_search" 
+                       value="{{ error_stamp_search if error_stamp_search }}" 
+                       placeholder="ユーザー名やチェックポイントで検索..."
+                       class="search-input">
+                <button type="submit" class="search-button">検索</button>
+            </form>
+        </div>
+    
         <div class="table-container">
-            <table class="data-table">
+            <table>
                 <thead>
                     <tr>
-                        <th>スタンプID</th>
+                        <th>ユーザーID</th>
                         <th>ユーザー</th>
                         <th>チェックポイント</th>
-                        <th>対応日時</th>
                     </tr>
                 </thead>
                 <tbody>
                     {% if error_stamps_pagination.items %}
-                        {% for stamp, user_account, checkpoint_name in error_stamps_pagination.items %}
+                        {% for record in error_stamps_pagination.items %}
                             <tr>
-                                <td>{{ stamp.id }}</td>
-                                <td>{{ user_account }}</td>
-                                <td>{{ checkpoint_name }}</td>
-                                <td>{{ stamp.created_at.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+                                <td>{{ record['user_id'] }}</td>
+                                <td>{{ record['account'] }}</td>
+                                <td>{{ record['mismatched_checkpoints'] }}</td>
                             </tr>
                         {% endfor %}
                     {% else %}
                         <tr>
-                            <td colspan="4" class="no-data">対応済みスタンプはありません</td>
+                            <td colspan="3">不一致履歴はありません</td>
                         </tr>
                     {% endif %}
                 </tbody>
             </table>
         </div>
-
+    
         <div class="pagination">
             {% if error_stamps_pagination.has_prev %}
-                <a href="{{ url_for('admin_panel', 
-                    error_stamp_page=error_stamps_pagination.prev_num,
-                    error_stamp_search=error_stamp_search) }}" 
-                    class="pagination-link">« 前へ</a>
+            <a href="{{ url_for('admin_panel', 
+                               error_stamp_page=error_stamps_pagination.prev_num,
+                               error_stamp_search=error_stamp_search) }}" 
+               class="pagination-link">« 前へ</a>
+        {% endif %}
+    
+        {% for page_num in error_stamps_pagination.iter_pages() %}
+            {% if page_num %}
+                <a href="{{ url_for('admin_panel',
+                                   error_stamp_page=page_num,
+                                   error_stamp_search=error_stamp_search) }}"
+                   class="pagination-link {% if page_num == error_stamps_pagination.page %}active{% endif %}">
+                    {{ page_num }}
+                </a>
+            {% else %}
+                <span class="ellipsis">...</span>
             {% endif %}
-            
-            {% for page_num in error_stamps_pagination.iter_pages() %}
-                {% if page_num %}
-                    <a href="{{ url_for('admin_panel', 
-                        error_stamp_page=page_num,
-                        error_stamp_search=error_stamp_search) }}" 
-                        class="pagination-link {% if page_num == error_stamps_pagination.page %}active{% endif %}">
-                        {{ page_num }}
-                    </a>
-                {% else %}
-                    <span class="ellipsis">...</span>
-                {% endif %}
-            {% endfor %}
-            
-            {% if error_stamps_pagination.has_next %}
-                <a href="{{ url_for('admin_panel', 
-                    error_stamp_page=error_stamps_pagination.next_num,
-                    error_stamp_search=error_stamp_search) }}" 
-                    class="pagination-link">次へ »</a>
-            {% endif %}
+        {% endfor %}
+    
+        {% if error_stamps_pagination.has_next %}
+            <a href="{{ url_for('admin_panel',
+                               error_stamp_page=error_stamps_pagination.next_num,
+                               error_stamp_search=error_stamp_search) }}"
+               class="pagination-link">次へ »</a>
+        {% endif %}
         </div>
     </section>
     
