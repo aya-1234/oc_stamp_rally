@@ -1751,7 +1751,6 @@ def start_survey(checkpoint_id):
             is_type_a_user = len(user.account) >= 5 and user.account[4] == 'A'
 
             # すべての質問をチェック
-            # すべての質問をチェック部分の修正
             for question in questions:
                 if question.survey_choices:
                     selected_choice_id = request.form.get(f'question_{question.id}')
@@ -1765,20 +1764,26 @@ def start_survey(checkpoint_id):
                     else:
                         is_aop_question = '（AOP）' in question.question
                         if is_type_a_user:
-                            # Aユーザーの場合、（AOP）マーカーがある質問は任意、それ以外は必須
                             if not is_aop_question:
                                 all_questions_answered = False
                                 break
                         else:
-                            # 通常ユーザーは必須マークがある質問のみ必須
                             if '（回答必須）' in question.question:
                                 all_questions_answered = False
                                 break
+
             # 必要な質問に全て回答済みの場合のみ処理を進める
             if all_questions_answered:
+                # スタンプを追加
+                new_stamp = Stamp(
+                    checkpoint_id=checkpoint_id,
+                    login_id=user.id
+                )
+                db.session.add(new_stamp)
                 db.session.add_all(responses)
                 user.is_loggedin = True
                 db.session.commit()
+
                 flash('スタートアンケートが完了しました！<br>ご協力ありがとうございます。', 'ended')
                 return redirect(url_for('main_menu', user=user.account))
 
@@ -1790,7 +1795,8 @@ def start_survey(checkpoint_id):
                 checkpoint=checkpoint,
                 questions=questions,
                 form_data=form_data,
-                user=user
+                user=user,
+                is_type_a_user=is_type_a_user
             )
 
         except SQLAlchemyError:
@@ -1803,10 +1809,10 @@ def start_survey(checkpoint_id):
                 checkpoint=checkpoint,
                 questions=questions,
                 form_data=form_data,
-                user=user
+                user=user,
+                is_type_a_user=is_type_a_user
             )
 
-    # GETリクエストの場合
     # GETリクエストの場合
     return render_template(
         'survey.html',
@@ -1815,8 +1821,8 @@ def start_survey(checkpoint_id):
         checkpoint=checkpoint,
         questions=questions,
         user=user,
-        form_data={},  # 空のform_dataを追加
-        is_type_a_user=len(user.account) >= 5 and user.account[4] == 'A'  # ユーザータイプも渡す
+        form_data={},
+        is_type_a_user=len(user.account) >= 5 and user.account[4] == 'A'
     )
 
 # チェックポイントのアンケート画面
@@ -1909,15 +1915,15 @@ def goal_survey(user_id, checkpoint_id):
     if request.method == "POST":
         try:
             responses = []
-            form_data = {}  # フォームデータを保持
+            form_data = {}  
             all_questions_answered = True
             unanswered_required = []
 
             # すべての質問をチェック
             for question in questions:
-                if question.survey_choices:
+                if question.survey_choices:  # 選択肢がある質問のみ処理
                     selected_choice_id = request.form.get(f'question_{question.id}')
-                    form_data[f'question_{question.id}'] = selected_choice_id  # 選択状態を保存
+                    form_data[f'question_{question.id}'] = selected_choice_id
                     
                     if selected_choice_id:
                         responses.append(Survey_Response(
@@ -1926,11 +1932,17 @@ def goal_survey(user_id, checkpoint_id):
                             value=selected_choice_id
                         ))
                     else:
-                        # Aユーザーは全質問必須、それ以外は通常の必須チェック
-                        is_required = is_type_a_user or ('（回答必須）' in question.question)
-                        if is_required:
-                            all_questions_answered = False
-                            unanswered_required.append(question.question)
+                        is_aop_question = '（AOP）' in question.question
+                        if is_type_a_user:
+                            # Aユーザーの場合、（AOP）がない選択式質問は必須
+                            if not is_aop_question:
+                                all_questions_answered = False
+                                unanswered_required.append(question.question)
+                        else:
+                            # 通常ユーザーは（回答必須）の質問のみ必須
+                            if '（回答必須）' in question.question:
+                                all_questions_answered = False
+                                unanswered_required.append(question.question)
 
             # 必須質問の未回答チェック
             if not all_questions_answered:
@@ -1944,7 +1956,7 @@ def goal_survey(user_id, checkpoint_id):
                     initial_message=message_info["message"],
                     checkpoint=checkpoint,
                     questions=questions,
-                    form_data=form_data,  # 入力データを保持して表示
+                    form_data=form_data,
                     user=user,
                     is_type_a_user=is_type_a_user
                 )
@@ -1970,7 +1982,7 @@ def goal_survey(user_id, checkpoint_id):
                 initial_message=message_info["message"],
                 checkpoint=checkpoint,
                 questions=questions,
-                form_data=form_data,  # エラー時も入力データを保持
+                form_data=form_data,
                 user=user,
                 is_type_a_user=is_type_a_user
             )
@@ -1983,7 +1995,7 @@ def goal_survey(user_id, checkpoint_id):
         checkpoint=checkpoint,
         questions=questions,
         user=user,
-        form_data={},  # 空のform_dataを渡す
+        form_data={},
         is_type_a_user=is_type_a_user
     )
 
@@ -2020,17 +2032,12 @@ def agreement(login_id):
         user.is_agree = True
         db.session.commit()
 
-        # STAMPテーブルに新しいレコードを挿入
-        new_stamp = Stamp(checkpoint_id=1, login_id=user.id) #created_at=datetime.now(pytz.timezone('Asia/Tokyo')))
-        db.session.add(new_stamp)
-        db.session.commit()
-
-        # is_loggedinのチェック
+        # スタンプの登録はここでは行わない
         if user.is_loggedin:
             return redirect(url_for('main_menu'))
 
         # アンケート画面にリダイレクト
-        return redirect(url_for('handle_survey', checkpoint_id=new_stamp.checkpoint_id))  # 新しく作成したスタンプのcheckpoint_idを使用 # ここで適切なcheckpoint_idを指定
+        return redirect(url_for('handle_survey', checkpoint_id=1))
 
     return render_template('agreement.html', title="同意確認", user=user)
 
