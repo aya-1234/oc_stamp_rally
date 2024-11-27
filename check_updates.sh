@@ -43,10 +43,15 @@ elif [ $LOCAL = $BASE ]; then
     if git -c pull.rebase=false pull origin initial; then
         log_message "git pull successful"
         
-        # Restart application with timeout
-        timeout 300 bash /home/bitnami/Stamp-rally-Digital/start_app.sh
-        if [ $? -eq 0 ]; then
+        # アプリケーション再起動前の状態をログ
+        log_message "Current running processes: $(ps aux | grep node)"
+
+        # start_app.shの出力もログに記録
+        if timeout 300 bash start_app.sh >> "$LOG_FILE" 2>&1; then
             log_message "Application restart successful"
+            # 起動後の状態確認
+            log_message "Process status after restart: $(ps aux | grep node)"
+            log_message "Port status: $(netstat -tulpn 2>/dev/null | grep node)"
         elif [ $? -eq 124 ]; then
             log_message "Application restart timed out after 5 minutes"
         else
