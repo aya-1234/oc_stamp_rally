@@ -57,3 +57,4 @@ app/instance/data.db
 .DS_Store
 *:Zone.Identifier
 app.log
+.DS_Store
