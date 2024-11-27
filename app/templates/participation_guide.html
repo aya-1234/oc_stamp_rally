@@ -4,17 +4,216 @@
     <meta charset="UTF-8">
     <title>{{ title }}</title>
     <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+
         h1 {
+            color: #333;
             text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        h3 {
+            font-size: 1.5em;
+            color: #FF8C00;
+            position: relative; /* 帯を配置するために必要 */
+        }
+
+        p {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+            line-height: 1.6;
+        }
+
+        .quiz-info {
+            text-align: center;
+            margin-bottom: 20px;
+            color: #666;
+        }
+
+        .submit-button {
+            display: block;
+            width: 200px;
+            margin: 20px auto;
+            padding: 15px 30px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s ease;
+        }
+
+        .submit-button:hover {
+            background-color: #45a049;
+        }
+
+        .submit-button:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+
+        .flash-message {
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 4px;
+        }
+
+        .flash-message.error {
+            background-color: #ffebee;
+            border: 1px solid #ffcdd2;
+            color: #c62828;
+        }
+
+        .flash-message.success {
+            background-color: #e8f5e9;
+            border: 1px solid #c8e6c9;
+            color: #2e7d32;
+        }
+
+        .image-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+        }
+
+        .checkpoint-image {
+            max-width: 100%;
+            height: auto;
+            display: block;
+        }
+        img {
+            width: 100%;
+            height: 100%;
+        }
+
+        section {
+            margin-bottom: 20px; /* セクション間の余白 */
+        }
+        ul {
+            list-style-type: disc; /* リストマーカーの種類 */
+            padding-left: 20px;  /* リストのインデント */
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+            line-height: 1.6;
+        }
+        li {
+            margin-bottom: 5px; /* リスト項目間の余白 */
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+            line-height: 1.6;
+        }
+        .container {
+            max-width: 500px;
+            width: 100%;
+            background-color: #fff;
+            padding: 20px;
+            box-shadow: 0px 0px 15px rgba(0, 0, 0, 0.1);
+            border-radius: 10px;
+        }
+        .menu-button {
+            /* 基本的なボタンの大きさと表示設定 */
+            display: inline-block;
+            padding: 12px 30px;  /* 上下12px、左右30px のパディング */
+            
+            /* ボタンのスタイル */
+            text-decoration: none;
+            background: linear-gradient(135deg, #4CAF50, #45a049);
+            color: white;
+            border-radius: 25px;
+            font-weight: 500;
+            margin: 20px 0;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+            border: none;
+            position: relative;
+            overflow: hidden;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+             /* フォントサイズの自動調整 */
+            font-size: clamp(20px, calc(0.8em + 1vw), 30px);  /* 最小16px、最大24px */
+            line-height: 60px;  /* heightと同じ値で垂直中央揃え */
+            white-space: nowrap;  /* テキストの折り返しを防ぐ */
+            overflow: hidden;     /* はみ出したテキストを隠す */
+            text-overflow: ellipsis;  /* はみ出した場合は...で表示 */
+            
+            /* Flexboxでテキストを中央配置 */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .menu-button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, rgba(255,255,255,0.1), rgba(255,255,255,0));
+            transform: translateX(-100%);
+            transition: transform 0.5s ease;
+        }
+
+        .menu-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+            color: white;
+        }
+
+        .menu-button:hover::before {
+            transform: translateX(100%);
+        }
+
+        .menu-button:active {
+            transform: translateY(1px);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+                /* ボタンの配置を中央に */
+        .button-container {
+            text-align: center;
+            margin: 30px 0;
+            width: 100%;
         }
     </style>
 </head>
 
 <body>
-    <h1>{{ title }}</h1>
+    <h3>{{ title }}</h3>
     <div class="content-container">
-        <p>スタンプラリーの参加方法についての説明文をここに記載します。</p>
-        <img src="{{ url_for('static', filename='images/map.png') }}" alt="地図">
+        <section>
+        
+            <p>このスタンプラリーでは、６ヶ所のチェックポイントを訪問して、<strong>それぞれ３問のクイズ</strong>に回答していただきます。
+                <br>すべてのクイズに正解し、そのあと簡単なアンケートにお答えいただくと、
+                <strong>スタンプを獲得</strong>できます。
+                <br>チェックポイントの位置は、下の地図でご確認ください。
+                <br>チェックポイントに到着したら、その<strong>チェックポイント専用のQRコード</strong>を探してください。QRコードを見つけたら、スマートフォンのカメラで読み込んで、Webにアクセスしてください。
+                <br>ログイン画面が表示されるので、<strong>スタート時にお渡しした</strong>カードにかかれているアカウント名を入力してください。
+                <br>「ログイン」ボタンをクリックすると、チェックポイントの紹介が表示されます。<strong>「クイズに回答する」ボタン</strong>をクリックすると、クイズが表示されるので、順に回答してください。
+            </p>
+            <p>
+                スタンプラリースタートの場所は池田駅前公園です。
+                <br>ゴールの場所はSUBACOです。地図を参考にしてください。
+            </p>
+    </section>
+        <img src="{{ url_for('static', filename='images/map.jpg') }}" alt="地図">
     </div>
     <div class="button-container">
         <a href="/main_menu" class="menu-button">
@@ -22,64 +221,4 @@
         </a>
     </div>
 </body>
-
-<style>
-.menu-button {
-    display: inline-block;
-    text-decoration: none;
-    background: linear-gradient(135deg, #4CAF50, #45a049);
-    color: white;
-    padding: 12px 30px;
-    border-radius: 25px;
-    font-weight: 500;
-    margin: 20px 0;
-    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-    transition: all 0.3s ease;
-    border: none;
-    position: relative;
-    overflow: hidden;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-}
-
-.menu-button::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(135deg, rgba(255,255,255,0.1), rgba(255,255,255,0));
-    transform: translateX(-100%);
-    transition: transform 0.5s ease;
-}
-
-.menu-button:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 12px rgba(0,0,0,0.15);
-    color: white;
-}
-
-.menu-button:hover::before {
-    transform: translateX(100%);
-}
-
-.menu-button:active {
-    transform: translateY(1px);
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-}
-
-/* ボタンの配置を中央に */
-.button-container {
-    text-align: center;
-    margin: 30px 0;
-    width: 100%;
-}
-
-
-.content-container {
-        text-align: center;
-        margin: 30px 0;
-        width: 100%;
-    }
-</style>
 </html>

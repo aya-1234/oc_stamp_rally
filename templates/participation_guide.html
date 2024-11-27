@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>{{ title }}</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">  <!-- Added for responsiveness -->
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        h3 {
+            font-size: 1.5em;
+            color: #FF8C00;
+            position: relative;
+        }
+
+        p {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+            line-height: 1.6;
+        }
+
+        .quiz-info {
+            text-align: center;
+            margin-bottom: 20px;
+            color: #666;
+        }
+
+        .submit-button {
+            display: block;
+            width: 200px;
+            margin: 20px auto;
+            padding: 15px 30px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s ease;
+        }
+
+        .submit-button:hover {
+            background-color: #45a049;
+        }
+
+        .submit-button:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+
+        .flash-message {
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 4px;
+        }
+
+        .flash-message.error {
+            background-color: #ffebee;
+            border: 1px solid #ffcdd2;
+            color: #c62828;
+        }
+
+        .flash-message.success {
+            background-color: #e8f5e9;
+            border: 1px solid #c8e6c9;
+            color: #2e7d32;
+        }
+
+        .image-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+        }
+
+        .checkpoint-image {
+            max-width: 100%; /* Crucial for responsiveness */
+            height: auto;     /* Maintains aspect ratio */
+            display: block;
+        }
+
+        .image-caption {
+            margin-top: 10px;
+            font-size: 14px;
+            color: #666;
+        }
+        .section {
+            margin-bottom: 20px;
+        }
+        .ul {
+            list-style-type: disc;
+            padding-left: 20px;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+            line-height: 1.6;
+        }
+        .li {
+            margin-bottom: 5px;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+            line-height: 1.6;
+        }
+        .container {
+            max-width: 500px;
+            width: 100%;
+            background-color: #fff;
+            padding: 20px;
+            box-shadow: 0px 0px 15px rgba(0, 0, 0, 0.1);
+            border-radius: 10px;
+        }
+
+        .button {
+            display: block;
+            margin: 20px auto;
+            padding: 10px 20px;
+        }
+        @media (max-width: 768px) {
+            .message, .flash-success, .flash-error, .flash-ended {
+                font-size: 0.9em; /* Smaller font size on smaller screens */
+            }
+            .welcome-message {
+                font-size: 0.9em; /* Smaller font size on smaller screens */
+            }
+        }
+    </style>
+</head>
+<body>
+    <h1>スタンプラリーの地図</h1>
+    <div class="image-container">  <!-- Added a container for better styling -->
+        <img class="checkpoint-image" src="{{ url_for('static', filename='images/map.png') }}" alt="地図">
+    </div>
+    <button onclick="location.href='{{ url_for('main_menu') }}'">メインメニューに戻る</button>
+</body>
+</html>

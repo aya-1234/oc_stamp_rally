@@ -41,7 +41,7 @@
             margin: 20px 0;
             padding: 10px;
             border-radius: 4px;
-            /* text-align: center を削除 */
+            text-align: center;
             font-weight: bold;
         }
         .flash-message.error {
@@ -54,6 +54,14 @@
             border: 1px solid #c8e6c9;
             color: #2e7d32;
         }
+        @media (max-width: 768px) {
+            .message, .flash-success, .flash-error, .flash-ended {
+                font-size: 0.9em; /* Smaller font size on smaller screens */
+            }
+            .welcome-message {
+                font-size: 0.9em; /* Smaller font size on smaller screens */
+            }
+        }
     </style>
 </head>
 <h1>{{ title }}</h1>
@@ -62,7 +70,7 @@
     {% if messages %}
         {% for category, message in messages %}
             <div class="flash-message {{ category }}">
-                {{ message | safe }}
+                {{ message }}
             </div>
         {% endfor %}
     {% endif %}

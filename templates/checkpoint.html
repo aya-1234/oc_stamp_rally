@@ -94,6 +94,14 @@
             font-size: 14px;
             color: #666;
         }
+        @media (max-width: 768px) {
+            .message, .flash-success, .flash-error, .flash-ended {
+                font-size: 0.9em; /* Smaller font size on smaller screens */
+            }
+            .welcome-message {
+                font-size: 0.9em; /* Smaller font size on smaller screens */
+            }
+        }
     </style>
 </head>
 <body>
@@ -108,35 +116,35 @@
         {% endif %}
     {% endwith %}
 
-    <h1>{{ checkpoint.name }}</h1>
+    <h1>チェックポイント: {{ checkpoint.name }}</h1>
     
     <!-- 写真の表示 -->
     <div class="image-container">
         {% if checkpoint.checkpoint_order == 1 %}
             <img src="{{ url_for('static', filename='images/start_point.jpg') }}" alt="スタート地点" class="checkpoint-image">
-            
+            <div class="image-caption">スタート地点の様子</div>
         {% elif checkpoint.checkpoint_order == 2 %}
             <img src="{{ url_for('static', filename='images/point1.jpg') }}" alt="チェックポイント1" class="checkpoint-image">
-            
+            <div class="image-caption">池田市観光案内所は、阪急池田駅から出て徒歩2分の場所にあります。<br>観光案内はもちろん他の観光案内所ではあまり見られないグルメなどが販売されており、<br>外国人旅行客にも地元民からも愛されている憩いの場です。</div>
         {% elif checkpoint.checkpoint_order == 3 %}
             <img src="{{ url_for('static', filename='images/point2.jpg') }}" alt="チェックポイント2" class="checkpoint-image">
-            
+            <div class="image-caption">静かな住宅街にひっそりと佇んでいる<br>週末だけ暖簾（のれん）がかかる街の本屋さんです。<br>本棚に並べられているいろんな本を見ていると、<br>好奇心が刺激されて何時間でもその空間にいたくなる、そんな本屋さんです。</div>
         {% elif checkpoint.checkpoint_order == 4 %}
             <img src="{{ url_for('static', filename='images/point3.jpg') }}" alt="チェックポイント3" class="checkpoint-image">
-            
+            <div class="image-caption">江戸時代の能勢街道（当時は大坂道と呼ばれていました）や<br>勝尾寺と中山寺を結ぶ西国巡礼道と尼崎伊丹道の交差する場所に井戸があったため、<br>「井戸の辻」と呼ばれていました。現在の井戸の辻の跡には「ビリケンさん」の像があります。<br>通天閣のシンボルにもなっている「ビリケンさん」は、足の裏をなでると願いが叶う幸運の神の象徴で、<br>商売や受験にご利益があるとされています。</div>
         {% elif checkpoint.checkpoint_order == 5 %}
             <img src="{{ url_for('static', filename='images/point4.jpg') }}" alt="チェックポイント4" class="checkpoint-image">
-            
+            <div class="image-caption">上方落語の資料を常設展示しており、館内は映像による落語の紹介や、<br>お好みの落語家DVDやCDを視聴できるコーナー、「池田の猪買い」「池田の牛ほめ」展示コーナーがあります。<br>毎月第２土曜日の午後２時からは落語会を開催しています。</div>
         {% elif checkpoint.checkpoint_order == 6 %}
             <img src="{{ url_for('static', filename='images/point5.jpg') }}" alt="チェックポイント5" class="checkpoint-image">
-            
+            <div class="image-caption">池田城は大阪府池田市にある歴史的な城跡で、戦国時代の名残を感じられる場所です。<br>現在は池田城跡公園として整備され、日本庭園や茶室、展望台などがあり、<br>春の桜や秋の紅葉が美しい風景を楽しむことができ、地元や観光客に親しまれています。</div>
         {% elif checkpoint.checkpoint_order == 7 %}
             <img src="{{ url_for('static', filename='images/point6.jpg') }}" alt="チェックポイント6" class="checkpoint-image">
-           
+            <div class="image-caption">1977に工房「しょく」として始まったお店で、現在の名称は「Shokuの店」となっています。<br>Shokuの店は、ラオスからすべて手作りの生地を輸入し、国内で縫製した服や雑貨を販売しています。<br>ラオスの若者が将来に希望を持ち、伝統を守りながら地域産業として引き継いでくれることを期待し、<br>ラオスの伝統を守りつつ新しいデザインを取り入れた商品開発を常に心がけています。</div>
 
         {% elif checkpoint.checkpoint_order == 8 %}
             <img src="{{ url_for('static', filename='images/goal_point.jpg') }}" alt="ゴール地点" class="checkpoint-image">
-            
+            <div class="image-caption">ゴール地点の様子</div>
         {% endif %}
     </div>
 

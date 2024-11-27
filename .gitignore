@@ -32,7 +32,7 @@ ENV/
 .vscode/
 *.swp
 *.swo
-.DS_Store
+
 
 # Logs
 *.log
@@ -54,3 +54,5 @@ coverage.xml
 
 # Database
 app/instance/data.db
+.DS_Store
+*:Zone.Identifier

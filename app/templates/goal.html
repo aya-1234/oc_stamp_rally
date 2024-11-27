@@ -4,19 +4,682 @@
     <meta charset="UTF-8">
     <title>ゴール</title>
     <style>
+        body {
+            margin: 0;
+            min-height: 100vh;
+            background: linear-gradient(to bottom, #1a365d, #2d3748);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-family: sans-serif;
+            overflow: hidden;
+            position: relative;
+            padding: 20px;
+        }
+
+        .page-title {
+            color: white;
+            text-align: center;
+            font-size: 2rem;
+            margin-bottom: 2rem;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+        }
+
         .flash-success {
             background-color: #dff0d8;
             border: 1px solid #d6e9c6;
             color: #3c763d;
             padding: 10px;
             margin: 10px 0;
+            z-index: 100;
+            border-radius: 4px;
         }
+
         .flash-error {
             background-color: #f2dede;
             border: 1px solid #ebccd1;
             color: #a94442;
             padding: 10px;
             margin: 10px 0;
+            z-index: 100;
+            border-radius: 4px;
+        }
+
+        .snowflake {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: white;
+            border-radius: 50%;
+            pointer-events: none;
+        }
+
+                /* 既存のスタイルは維持したまま、プレゼント関連のスタイルを更新 */
+        .present-container {
+            position: relative;
+            width: 100px;
+            height: 100px;
+            margin-top: 40px; /* 蓋が開くスペースを確保 */
+            perspective: 1000px;
+        }
+
+        /* プレゼント箱の基本スタイル */
+        .present-box {
+            width: 100px;
+            height: 100px;
+            background: #dc2626;
+            position: relative;
+            cursor: pointer;
+            border-radius: 8px;
+            transform-style: preserve-3d;
+            margin: 60px auto 20px;
+            /* アニメーションを追加 */
+            animation: floatingBox 3s ease-in-out infinite;
+        }
+
+
+        /* ホバー時の効果を変更 */
+        .present-box:hover {
+            animation: floatingBoxHover 1s ease-in-out infinite;
+        }
+
+        @keyframes floatingBoxHover {
+            0%, 100% {
+                transform: translateY(-10px) scale(1.05);
+            }
+            50% {
+                transform: translateY(-20px) scale(1.1);
+            }
+        }
+        /* ふたの設定を調整 */
+        .present-lid {
+            width: 110px;
+            height: 20px;
+            background: #dc2626;
+            position: absolute;
+            top: -20px;
+            left: -5px;
+            border-radius: 4px;
+            transition: all 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            transform-origin: center bottom;
+        }
+
+        /* リボンの位置をふたに合わせて調整 */
+        .ribbon-container {
+            position: absolute;
+            top: -25px; /* ふたの上に配置 */
+            left: 50%;
+            transform: translateX(-50%);
+            width: 60px;  /* リボンの全体サイズ */
+            height: 40px;
+            z-index: 3;
+        }
+
+        /* リボンのパーツのサイズと位置を調整 */
+        .ribbon-knot {
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            background: #fbbf24;
+            border-radius: 50%;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 4;
+        }
+
+        .ribbon-left {
+            position: absolute;
+            left: 2px;
+            top: 50%;
+            width: 20px;
+            height: 15px;
+            background: #fbbf24;
+            transform-origin: right center;
+            transform: translateY(-50%) rotate(-35deg);
+            border-radius: 40% 40% 0 40%;
+        }
+
+        .ribbon-left:before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 20px;
+            height: 15px;
+            background: #fbbf24;
+            transform-origin: right center;
+            transform: rotate(70deg);
+            border-radius: 40% 40% 40% 0;
+        }
+
+        .ribbon-right {
+            position: absolute;
+            right: 2px;
+            top: 50%;
+            width: 20px;
+            height: 15px;
+            background: #fbbf24;
+            transform-origin: left center;
+            transform: translateY(-50%) rotate(35deg);
+            border-radius: 40% 40% 40% 0;
+        }
+
+        .ribbon-right:before {
+            content: '';
+            position: absolute;
+            right: 0;
+            top: 0;
+            width: 20px;
+            height: 15px;
+            background: #fbbf24;
+            transform-origin: left center;
+            transform: rotate(-70deg);
+            border-radius: 40% 40% 0 40%;
+        }
+
+        .ribbon-tail-left {
+            position: absolute;
+            left: 10px;
+            top: 60%;
+            width: 12px;
+            height: 25px;
+            background: #fbbf24;
+            transform: rotate(-15deg);
+            border-radius: 0 0 0 5px;
+        }
+
+        .ribbon-tail-right {
+            position: absolute;
+            right: 10px;
+            top: 60%;
+            width: 12px;
+            height: 25px;
+            background: #fbbf24;
+            transform: rotate(15deg);
+            border-radius: 0 0 5px 0;
+        }
+
+        /* 開いたときのふたとリボンのアニメーション */
+        .present-box.opened .present-lid {
+            transform: translateY(-100px);
+            animation: floatingLid 2s ease-out forwards;
+        }
+
+        @keyframes floatingLid {
+            0% {
+                transform: translateY(-100px);
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(-150px);
+                opacity: 0;
+            }
+        }
+
+        .ribbon-vertical {
+            position: absolute;
+            width: 20px;
+            height: 100%;
+            background: #fbbf24;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        .ribbon-horizontal {
+            position: absolute;
+            height: 20px;
+            width: 100%;
+            background: #fbbf24;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+
+        .ribbon-center {
+            position: absolute;
+            width: 30px;
+            height: 30px;
+            background: #fbbf24;
+            border-radius: 50%;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 2;
+        }
+
+        /* ふたのリボンも同じように動くように調整 */
+        .lid-ribbon {
+            position: absolute;
+            width: 30px;
+            height: 30px;
+            background: #fbbf24;
+            border-radius: 50%;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 2;
+        }
+
+        .streamer {
+            position: fixed;
+            top: -100px; /* 画面外から開始 */
+            width: 6px;
+            opacity: 0;
+            pointer-events: none;
+            filter: drop-shadow(0 0 3px rgba(255,255,255,0.3));
+            transform-origin: center top;
+            z-index: 100;
+        }
+
+        .streamer.animate {
+            animation: streamerFall 5s ease-out forwards;
+        }
+
+        @keyframes streamerFall {
+            0% {
+                opacity: 1;
+                transform: translateY(0) rotate(0deg);
+            }
+            20% {
+                opacity: 1;
+                /* ストリーマーが画面いっぱいに伸びた状態 */
+                transform: translateY(300vh) rotate(180deg);
+            }
+            100% {
+                opacity: 0;
+                /* 最終的な落下位置（画面の4倍分） */
+                transform: translateY(400vh) rotate(720deg);
+            }
+        }
+
+        /* キラキラエフェクトの追加（オプション） */
+        .streamer::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(
+                45deg,
+                rgba(255,255,255,0.2) 0%,
+                rgba(255,255,255,0.8) 50%,
+                rgba(255,255,255,0.2) 100%
+            );
+            animation: sparkle 0.5s linear infinite;
+        }
+
+        @keyframes sparkle {
+            0% {
+                background-position: 0 0;
+            }
+            100% {
+                background-position: 50px 50px;
+            }
+        }
+
+        /* 箱の影を追加 */
+        .present-shadow {
+            position: absolute;
+            bottom: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 90px;
+            height: 10px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 50%;
+            filter: blur(5px);
+            /* 影もアニメーション */
+            animation: shadowPulse 3s ease-in-out infinite;
+        }
+
+        @keyframes shadowPulse {
+            0%, 100% {
+                transform: translateX(-50%) scale(1);
+                opacity: 0.3;
+            }
+            50% {
+                transform: translateX(-50%) scale(0.8);
+                opacity: 0.2;
+            }
+        }
+
+        /* 開いた時のアニメーションも調整 */
+        .present-box.opened {
+            animation: none;
+            transform: none;
+        }
+
+        .present-box.opened + .present-shadow {
+            animation: none;
+            opacity: 0;
+            transition: opacity 0.5s;
+        }
+
+        /* 箱の表面の装飾 */
+        .present-front,
+        .present-back,
+        .present-left,
+        .present-right {
+            position: absolute;
+            background: #dc2626;
+        }
+
+        .present-left,
+        .present-right {
+            width: 20px;
+            height: 100%;
+            top: 0;
+        }
+
+        .present-left {
+            left: -20px;
+            transform: rotateY(90deg);
+            transform-origin: right;
+        }
+
+        .present-right {
+            right: -20px;
+            transform: rotateY(-90deg);
+            transform-origin: left;
+        }
+
+        .congratulations {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(5px);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .congratulations.visible {
+            display: flex;
+            animation: messageAppear 0.5s ease-out forwards;
+        }
+
+        @keyframes messageAppear {
+            0% { 
+                opacity: 0;
+                transform: scale(0.9);
+            }
+            100% { 
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        @keyframes fadeIn {
+            0% { opacity: 0; }
+            100% { opacity: 1; }
+        }
+
+        .congratulations-content {
+            background: white;
+            padding: 2rem;
+            border-radius: 1rem;
+            text-align: center;
+            margin: 20px;
+            max-width: 90%;
+        }
+
+        .congratulations-content h2 {
+            font-size: 2rem;
+            color: #2d3748;
+            margin-bottom: 1rem;
+        }
+
+        .congratulations-content p {
+            font-size: 1.3rem;
+            line-height: 1.6;
+            color: #4a5568;
+        }
+
+        /* フラッシュメッセージのスタイル */
+        .flash-success {
+            background-color: rgba(223, 240, 216, 0.9);
+            border: 1px solid #d6e9c6;
+            color: #3c763d;
+            padding: 15px;
+            margin: 20px;
+            border-radius: 10px;
+            font-size: 1.2rem;
+            text-align: center;
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            right: 20px;
+            z-index: 1000;
+        }
+
+        .streamer {
+            width: 8px; /* ストリーマーを太く */
+        }
+
+        @keyframes streamerFall {
+            0% {
+                height: 0;
+                opacity: 1;
+                transform: translateY(-50px) rotate(0deg);
+            }
+            50% {
+                height: 150px; /* ストリーマーを長く */
+                opacity: 1;
+            }
+            100% {
+                height: 150px;
+                opacity: 0;
+                transform: translateY(100vh) rotate(720deg);
+            }
+        }
+
+        @keyframes popIn {
+            0% { transform: scale(0.5); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        @keyframes snowfall {
+            0% {
+                transform: translateY(-10vh) translateX(0);
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(100vh) translateX(20px);
+                opacity: 0;
+            }
+        }
+
+        .tree-container {
+            width: 100%;
+            max-width: 400px;
+            height: auto;
+            margin-bottom: 1rem;
+        }
+
+        h2 {
+            color: white;
+            text-align: center;
+            margin-bottom: 2rem;
+            font-size: 2rem;
+        }
+
+        /* クリック催促のスタイル */
+        .click-prompt {
+            color: white;
+            text-align: center;
+            font-size: 1.5rem;
+            margin-top: -1rem;  /* より上に移動 */
+            margin-bottom: 3rem;  /* 下のスペースを詰める */
+            padding: 1rem;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 15px;
+            animation: pulse 2s infinite;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+            transition: opacity 0.3s;
+        }
+
+        .prompt-text {
+            margin-bottom: 0.5rem;
+        }
+
+        .click-icon {
+            font-size: 2rem;
+            animation: pointUp 1s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% {
+                transform: translateX(-50%) translateY(0);
+            }
+            50% {
+                transform: translateX(-50%) translateY(-10px);
+            }
+        }
+
+        @keyframes pointUp {
+            0%, 100% {
+                transform: translateY(0);
+            }
+            50% {
+                transform: translateY(-10px);
+            }
+        }
+
+        @keyframes bounce {
+            0%, 100% {
+                transform: translateY(0);
+            }
+            50% {
+                transform: translateY(10px);
+            }
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.05);
+            }
+        }
+        /* スマートフォン向けの調整 */
+        @media (max-width: 768px) {
+            .click-prompt {
+                bottom: 150px;
+            }
+            
+            .prompt-text {
+                font-size: 1rem;
+            }
+            
+            .click-icon {
+                font-size: 1.5rem;
+            }
+        }
+
+        .confetti {
+            position: fixed;
+            width: 10px;
+            height: 10px;
+            background-color: #f00;
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 1000;
+            top: 0; /* 画面最上部から開始 */
+            animation: confettiFall var(--duration) ease-in forwards;
+            animation-delay: 0s;
+            opacity: 1;
+        }
+
+        @keyframes confettiFall {
+            0% {
+                transform: translate(0, 0) rotate(0deg); /* 画面上部から開始 */
+                opacity: 1;
+            }
+            25% {
+                transform: translate(calc(var(--end-x) - var(--start-x)) * 0.25, 25vh) 
+                        rotate(calc(var(--rotation) * 0.25));
+            }
+            50% {
+                transform: translate(calc(var(--end-x) - var(--start-x)) * 0.5, 50vh)
+                        rotate(calc(var(--rotation) * 0.5));
+                opacity: 1;
+            }
+            75% {
+                transform: translate(calc(var(--end-x) - var(--start-x)) * 0.75, 75vh)
+                        rotate(calc(var(--rotation) * 0.75));
+                opacity: 0.7;
+            }
+            100% {
+                transform: translate(calc(var(--end-x) - var(--start-x)), 100vh)
+                        rotate(var(--rotation));
+                opacity: 0;
+            }
+        }
+
+        .small-text {
+        font-size: 0.8em;
+        color: #666;
+        display: inline-block;
+        }
+
+        /* CSS */
+        .follow-section {
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        .follow-title {
+            margin-bottom: 10px;
+            text-align: center;
+        }
+
+        .button-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 100%;
+        }
+
+        .instagram-button {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 300px;
+            height: 50px;
+            padding: 8px 15px;
+            background-color: #E4405F;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            margin-top: 5px;
+            font-weight: bold;
+            font-size: 22px;
+            line-height: 24px;
+        }
+
+        .instagram-button:hover {
+            background-color: #dc2743;  /* ホバー時の色を少し暗く */
+            transform: translateY(-2px);  /* ホバー時に少し上に移動 */
+            transition: all 0.3s ease;  /* スムーズな遷移 */
+        }
+
+        /* レスポンシブ対応 */
+        @media screen and (max-width: 768px) {
+            .follow-title {
+                font-size: 20px;  /* モバイル用のタイトルサイズ */
+            }
+            
+            .instagram-button {
+                font-size: 18px;  /* モバイル用のボタンテキストサイズ */
+                line-height: 22px;
+            }
         }
     </style>
 </head>
@@ -24,11 +687,249 @@
     {% with messages = get_flashed_messages(with_categories=true) %}
         {% if messages %}
             {% for category, message in messages %}
-                <div class="flash-{{ category }}">{{ message | replace('<br>', '\n') }}</div>
+                <div class="flash-{{ category }}">{{ message | safe }}</div>
             {% endfor %}
         {% endif %}
     {% endwith %}
 
-    <h2>おめでとうございます！ゴールしました!</h2>
+    <h1 class="page-title">🎄 スタンプラリー完走！ 🎄</h1>
+
+    <div class="tree-container">
+        <!-- 既存のツリーSVG -->
+        <svg viewBox="0 0 200 300" width="100%" height="100%">
+            <!-- Tree Trunk -->
+            <rect x="90" y="190" width="20" height="90" fill="#8B4513"/>
+            
+            <!-- Tree Layers -->
+            <path d="M100 50 L160 120 L40 120 Z" fill="#228B22"/>
+            <path d="M100 90 L170 170 L30 170 Z" fill="#228B22"/>
+            <path d="M100 130 L180 220 L20 220 Z" fill="#228B22"/>
+            
+            <!-- Tree Decorations -->
+            <circle cx="70" cy="100" r="5" fill="#FFD700"/>
+            <circle cx="130" cy="100" r="5" fill="#FF0000"/>
+            <circle cx="100" cy="130" r="5" fill="#87CEEB"/>
+            <circle cx="60" cy="150" r="5" fill="#FF0000"/>
+            <circle cx="140" cy="150" r="5" fill="#FFD700"/>
+            <circle cx="90" cy="180" r="5" fill="#87CEEB"/>
+            <circle cx="110" cy="180" r="5" fill="#FF0000"/>
+            <circle cx="80" cy="200" r="5" fill="#FFD700"/>
+            <circle cx="120" cy="200" r="5" fill="#87CEEB"/>
+            
+            <!-- Star -->
+            <path d="M100 40 L105 50 L115 52 L107 60 L109 70 L100 65 L91 70 L93 60 L85 52 L95 50 Z" fill="#FFD700"/>
+        </svg>
+    </div>
+
+
+
+    <div class="present-box" onclick="openPresent(this)">
+        <div class="present-lid">
+            <!-- リボンをふたの中に移動 -->
+            <div class="ribbon-container">
+                <div class="ribbon-knot"></div>
+                <div class="ribbon-left"></div>
+                <div class="ribbon-right"></div>
+                <div class="ribbon-tail-left"></div>
+                <div class="ribbon-tail-right"></div>
+            </div>
+        </div>
+        <div class="ribbon-vertical"></div>
+        <div class="ribbon-horizontal"></div>
+        <div class="ribbon-center"></div>
+    </div>
+
+    <div class="congratulations">
+        <div class="congratulations-content">
+            <h2 style="color: #2d3748;">🎉 おめでとうございます！ 🎉</h2>
+            <p style="font-size: 1.2rem; color: #4a5568;">
+                おめでとうございます！ゴールしました！<br><br>
+                ゴール地点の受付担当者に、<strong>この画面</strong>をお見せください。<br>
+                <strong>景品</strong>をお渡しします。<br>
+                <span class="small-text">※研究に参加している大阪成蹊大学生は除きます。</span><br><br>
+                最後までご参加いただき、ありがとうございました。<br><br>
+            </p>
+            <div class="follow-section">
+                <h1 class="follow-title">公式アカウントをフォローして応援！！</h1>
+                <div class="button-container">
+                    <a href="https://www.instagram.com/ikeda_odekake?igsh=eWs5bHBsaDJ6cW1h&utm_source=qr" 
+                       class="instagram-button">
+                        池田市おでかけInstagramをフォロー
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    // 雪を生成する関数
+    function createSnowflakes() {
+        const body = document.querySelector('body');
+        const snowflake = document.createElement('div');
+        snowflake.className = 'snowflake';
+        
+        const startPositionLeft = Math.random() * window.innerWidth;
+        const animationDuration = Math.random() * 3 + 2;
+        
+        snowflake.style.left = startPositionLeft + 'px';
+        snowflake.style.animation = `snowfall ${animationDuration}s linear forwards`;
+        
+        body.appendChild(snowflake);
+        
+        setTimeout(() => {
+            snowflake.remove();
+        }, animationDuration * 1000);
+    }
+
+    // ストリーマーを生成する関数
+    // ストリーマーを生成する関数を画面全体対応に更新
+
+
+    // プレゼントを開く関数
+    function openPresent(box) {
+        if (!box.classList.contains('opened')) {
+            box.classList.add('opened');
+            
+            // クリック催促を消去
+            const prompt = document.querySelector('.click-prompt');
+            if (prompt) {
+                prompt.remove();
+            }
+
+            // 紙吹雪は即時表示
+            createConfetti();
+            
+            // メッセージは遅延して表示（例：0.8秒後）
+            setTimeout(() => {
+                showCongratulations();
+            }, 800);  // 800ミリ秒の遅延
+            
+            playPopSound();
+        }
+    }
+
+    // コンフェッティを作成する関数
+    function createConfetti() {
+        const colors = ['#FF0000', '#00FF00', '#0000FF', '#FFFF00', '#FF00FF', '#00FFFF', '#FFD700', '#FFA500'];
+        const shapes = ['円', '四角', '三角'];
+        
+        for (let i = 0; i < 150; i++) { // 紙吹雪の数
+            const confetti = document.createElement('div');
+            confetti.className = 'confetti';
+            
+            // ランダムな初期位置（画面全体）
+            const startX = Math.random() * window.innerWidth;
+            confetti.style.left = `${startX}px`;
+            confetti.style.top = '-20px';
+            
+            // ランダムな色と形
+            const color = colors[Math.floor(Math.random() * colors.length)];
+            const shape = shapes[Math.floor(Math.random() * shapes.length)];
+            
+            confetti.style.backgroundColor = color;
+            if (shape === '三角') {
+                confetti.style.clipPath = 'polygon(50% 0%, 0% 100%, 100% 100%)';
+            } else if (shape === '四角') {
+                confetti.style.borderRadius = '0';
+            }
+            
+            // ランダムなサイズ（5-15px）
+            const size = 5 + Math.random() * 10;
+            confetti.style.width = `${size}px`;
+            confetti.style.height = `${size}px`;
+            
+            // 初期アニメーションの値を設定（遅延時間を0に）
+            confetti.style.setProperty('--start-x', `${startX}px`);
+            confetti.style.setProperty('--end-x', `${startX + (Math.random() - 0.5) * 600}px`);
+            confetti.style.setProperty('--rotation', `${Math.random() * 720 - 360}deg`);
+            confetti.style.setProperty('--duration', `${3 + Math.random() * 2}s`);  // 3-5秒のアニメーション時間
+            confetti.style.setProperty('--delay', '0s');  // 遅延を0に設定
+            
+            document.body.appendChild(confetti);
+            
+            // アニメーション終了後に要素を削除
+            confetti.addEventListener('animationend', () => {
+                confetti.remove();
+            });
+        }
+    }
+
+    // おめでとうメッセージを表示する関数
+    function showCongratulations() {
+        const congratulations = document.querySelector('.congratulations');
+        congratulations.classList.add('visible');
+        
+        // クリックイベントの重複を防ぐ
+        const handleClick = function(e) {
+            if (e.target === congratulations) {
+                congratulations.classList.remove('visible');
+                congratulations.removeEventListener('click', handleClick);
+            }
+        };
+        
+        congratulations.addEventListener('click', handleClick);
+    }
+
+    // 効果音を再生する関数（オプション）
+    function playPopSound() {
+        try {
+            const audio = new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBhBZos/sqHMlCAcZWJO/4bdlJ/0GIlCItr3DciUABipKf6q0yH4nAgg0RXefrsmKKwIMPkJ2mqDKki4DEkZDbpKZxpsvBhxVQW6NkbuUMAYoZFBxiYeylzEGMHtfcYB+qpg0BDuvdXB3daWiOwNCyY1tbGOdqUMDWNqja2VRkrFNAnboj2ZvQ4S1VwJ974tseDNytGEBhfKGeIQpX6xqAIL0o4CBIk2kcwB89LyKeC5EmnwAcPPTlH4xOoaGAGPx56CBQDNzjQBV7vusgi4tZ5MAQ+v+uoY8KkeaADPmArOHRyg5oAAmzhS3i18iK6QAHMAwxY9vHRuoABCsKNOUfRoL');
+            audio.play();
+        } catch (e) {
+            console.log('効果音の再生に失敗しました');
+        }
+    }
+
+    // クリック催促のアニメーションを制御する関数
+
+
+    // ページ読み込み時の初期化
+    // ページ読み込み時の初期化
+    document.addEventListener('DOMContentLoaded', () => {
+        // 雪を生成開始
+        setInterval(createSnowflakes, 200);
+        
+        // モバイルデバイスの処理
+        const presentBox = document.querySelector('.present-box');
+        if (presentBox) {
+            // タッチデバイス用のホバー効果の処理
+            presentBox.addEventListener('touchstart', function() {
+                this.style.transform = 'scale(1.1)';
+            });
+            presentBox.addEventListener('touchend', function() {
+                this.style.transform = '';
+            });
+        }
+
+        // クリック催促用の要素を作成
+        const promptContainer = document.createElement('div');
+        promptContainer.className = 'click-prompt';
+        promptContainer.innerHTML = `
+            <div class="prompt-text">タップしてプレゼントを開けよう！</div>
+            <div class="click-icon">👇👇👇</div>
+        `;
+        
+        // ツリーとプレゼントの間に挿入
+        const treeContainer = document.querySelector('.tree-container');
+        treeContainer.after(promptContainer);
+
+        // クリックされたら催促を消す
+        presentBox.addEventListener('click', () => {
+            promptContainer.remove();
+        });
+
+        // 定期的に点滅するアニメーション
+        let isVisible = true;
+        const blinkInterval = setInterval(() => {
+            if (!presentBox.classList.contains('opened')) {
+                promptContainer.style.opacity = isVisible ? '1' : '0.3';
+                isVisible = !isVisible;
+            } else {
+                clearInterval(blinkInterval);
+                promptContainer.remove();
+            }
+        }, 1000);
+    });
+    </script>
 </body>
 </html>

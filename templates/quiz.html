@@ -166,6 +166,14 @@
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
+        @media (max-width: 768px) {
+            .message, .flash-success, .flash-error, .flash-ended {
+                font-size: 0.9em; /* Smaller font size on smaller screens */
+            }
+            .welcome-message {
+                font-size: 0.9em; /* Smaller font size on smaller screens */
+            }
+        }
     </style>
 </head>
 <body>

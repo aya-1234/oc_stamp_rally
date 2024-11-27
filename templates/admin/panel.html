@@ -1,6 +1,9 @@
 <!-- templates/admin/panel.html の上部に追加 -->
 <div class="admin-header">
     <h1>管理画面</h1>
+    <a href="/{{ admin_hash }}/statistics" class="stats-button">
+        統計情報を見る
+    </a>
 </div>
 
 <style>
@@ -26,20 +29,14 @@
 .stats-button:hover {
     background-color: #218838;
 }
-
-.stamp-info {
-  margin-top: 20px;
-}
-
-.stamp-info > h2 {
-  margin-bottom: 10px;
-}
-
-.stamp-list,
-.user-stats,
-.checkpoint-stats {
-  margin-top: 20px;
-}
+@media (max-width: 768px) {
+            .message, .flash-success, .flash-error, .flash-ended {
+                font-size: 0.9em; /* Smaller font size on smaller screens */
+            }
+            .welcome-message {
+                font-size: 0.9em; /* Smaller font size on smaller screens */
+            }
+        }
 </style>
 
 <!-- templates/admin/panel.html -->
@@ -89,23 +86,13 @@
     <!-- リロードステータス表示を修正 -->
     <div id="reload-status">
         <div class="reload-content">
-            <!-- 左側：ページ移動ボタン -->
-            <div class="navigation-button">
-                {% if request.endpoint == 'admin_panel' %}
-                    <a href="/{{ admin_hash }}/statistics" class="stats-button">統計情報を見る</a>
-                {% else %}
-                    <a href="/{{ admin_hash }}" class="back-button">管理画面に戻る</a>
-                {% endif %}
-            </div>
-    
-            <!-- 中央：カウントダウン表示 -->
             <div class="countdown-display">
                 次回更新まで: <span id="countdown">30</span>秒
             </div>
-    
-            <!-- 右側：更新コントロール -->
-            <div class="update-controls">
+            <div class="button-container">
                 <button id="reload-toggle" class="control-button">自動更新を停止</button>
+            </div>
+            <div class="force-button-container">
                 <button onclick="forceReload()" class="force-button">今すぐ更新</button>
             </div>
         </div>
@@ -114,7 +101,7 @@
         <button class="button" data-target="stamps_btn">スタンプ管理</button>
         <button class="button" data-target="login_btn">ログイン管理</button>
         <button class="button" data-target="Unanswered_btn">クイズ未回答</button>
-        <button class="button" data-target="Discrepancy_btn">クイズ不一致エラー 発生履歴</button>
+        <button class="button" data-target="Discrepancy_btn">スタンプ獲得の不一致</button>
         <button class="button" data-target="Answer_Management_btn">クイズ回答管理</button>
         <button class="button" data-target="Survey_response_management_btn">アンケート回答管理</button>
         <button class="button" data-target="survey_btn">アンケート管理</button>
@@ -558,8 +545,9 @@ async function deleteStamp(stampId) {
 
 
     <!-- ログイン管理セクション -->
-    <div class="section"id="login_btn">
+    <div class="section">
         <div class="section-header">
+            <div class="section-content content-hidden active" id="login_btn"></div>
             <h2>ログイン管理</h2>
             <button onclick="window.location.href='/{{ admin_hash }}/export/users'" class="download-button">
                 CSVダウンロード
@@ -810,88 +798,6 @@ async function deleteStamp(stampId) {
         </div>
     </div>
 
-    <!-- panel.htmlに追加するセクション -->
-    <div class="section" id="error_history_section">
-        <div class="section-header">
-            <div class="section-title">
-                <div class="section-content content-hidden active" id="error_history_btn"></div>
-                <h2>クイズ不一致エラー 発生履歴</h2>
-            </div>
-            <div class="section-actions">
-                <a href="{{ url_for('export_csv', table_name='error_history') }}" class="download-button">
-                    CSVダウンロード
-                </a>
-            </div>
-        </div>
-    
-        <div class="search-form">
-            <form method="GET" action="{{ url_for('admin_panel') }}">
-                <input type="text" 
-                       name="error_stamp_search" 
-                       value="{{ error_stamp_search if error_stamp_search }}" 
-                       placeholder="ユーザー名やチェックポイントで検索..."
-                       class="search-input">
-                <button type="submit" class="search-button">検索</button>
-            </form>
-        </div>
-    
-        <div class="table-container">
-            <table>
-                <thead>
-                    <tr>
-                        <th>ユーザーID</th>
-                        <th>ユーザー</th>
-                        <th>チェックポイント</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% if error_stamps_pagination.items %}
-                        {% for record in error_stamps_pagination.items %}
-                            <tr>
-                                <td>{{ record['user_id'] }}</td>
-                                <td>{{ record['account'] }}</td>
-                                <td>{{ record['mismatched_checkpoints'] }}</td>
-                            </tr>
-                        {% endfor %}
-                    {% else %}
-                        <tr>
-                            <td colspan="3">不一致履歴はありません</td>
-                        </tr>
-                    {% endif %}
-                </tbody>
-            </table>
-        </div>
-    
-        <div class="pagination">
-            {% if error_stamps_pagination.has_prev %}
-            <a href="{{ url_for('admin_panel', 
-                               error_stamp_page=error_stamps_pagination.prev_num,
-                               error_stamp_search=error_stamp_search) }}" 
-               class="pagination-link">« 前へ</a>
-        {% endif %}
-    
-        {% for page_num in error_stamps_pagination.iter_pages() %}
-            {% if page_num %}
-                <a href="{{ url_for('admin_panel',
-                                   error_stamp_page=page_num,
-                                   error_stamp_search=error_stamp_search) }}"
-                   class="pagination-link {% if page_num == error_stamps_pagination.page %}active{% endif %}">
-                    {{ page_num }}
-                </a>
-            {% else %}
-                <span class="ellipsis">...</span>
-            {% endif %}
-        {% endfor %}
-    
-        {% if error_stamps_pagination.has_next %}
-            <a href="{{ url_for('admin_panel',
-                               error_stamp_page=error_stamps_pagination.next_num,
-                               error_stamp_search=error_stamp_search) }}"
-               class="pagination-link">次へ »</a>
-        {% endif %}
-        </div>
-    </section>
-    
     <!-- クイズレスポンス管理セクション -->
     <div class="section">
         <div class="section-header">
@@ -1118,7 +1024,6 @@ async function deleteStamp(stampId) {
                     <th>チェックポイント</th>
                     <th>順序</th>
                     <th>質問/見出し</th>
-                    <th>必須</th><!-- 新しい列 -->
                     <th>種類</th>
                     <th>選択肢</th>
                     <th>操作</th>
@@ -1130,11 +1035,6 @@ async function deleteStamp(stampId) {
                     <td>{{ checkpoint_name }}</td>
                     <td>{{ survey.survey_order }}</td>
                     <td>{{ survey.question }}</td>
-                    <td>
-                        <span class="required-badge {% if '（回答必須）' in survey.question %}required{% endif %}">
-                            {{ '必須' if '（回答必須）' in survey.question else '任意' }}
-                        </span>
-                    </td>
                     <td>
                         {% if survey.id in survey_choices and survey_choices[survey.id] %}
                             選択式
@@ -1160,7 +1060,7 @@ async function deleteStamp(stampId) {
                 {% endfor %}
                 {% if not surveys_pagination.items %}
                 <tr>
-                    <td colspan="7" class="no-data">データがありません</td>
+                    <td colspan="6" class="no-data">データがありません</td>
                 </tr>
                 {% endif %}
             </tbody>
@@ -1204,34 +1104,6 @@ async function deleteStamp(stampId) {
 </div>
 
 <style>
-
-.required-badge {
-    display: inline-block;
-    padding: 4px 8px;
-    border-radius: 4px;
-    font-size: 0.8em;
-    font-weight: bold;
-    text-align: center;
-    min-width: 48px;
-}
-
-.required-badge.required {
-    background-color: #dc3545;
-    color: white;
-}
-
-.required-badge:not(.required) {
-    background-color: #6c757d;
-    color: white;
-}
-
-/* テーブルの新しい列のスタイル調整 */
-.table-container table th:nth-child(4),
-.table-container table td:nth-child(4) {
-    text-align: center;
-    width: 80px;
-}
-
 /* 既存のスタイルに追加 */
 .section-header {
     display: flex;
@@ -1820,19 +1692,16 @@ document.addEventListener('DOMContentLoaded', function() {
         function updateReloadStatus() {
             const statusElement = document.getElementById('reload-status');
             const toggleButton = document.getElementById('reload-toggle');
-            const forceButton = document.querySelector('.force-button'); // 今すぐ更新ボタン
-
+            
             if (isInputting) {
                 statusElement.classList.add('paused');
                 toggleButton.textContent = '入力中';
                 toggleButton.disabled = true;
                 toggleButton.classList.remove('start-update');
-                forceButton.disabled = true; // 今すぐ更新ボタンを無効化
             } else {
                 statusElement.classList.remove('paused');
                 toggleButton.disabled = false;
-                forceButton.disabled = false; // 今すぐ更新ボタンを有効化
-
+                
                 if (autoReloadEnabled) {
                     toggleButton.textContent = '自動更新を停止';
                     toggleButton.classList.remove('start-update');
@@ -1951,55 +1820,31 @@ document.addEventListener('DOMContentLoaded', function() {
         #reload-status {
             position: fixed;
             top: 0;
-            left: 0;
-            right: 0;
+            left: 50%;
+            transform: translateX(-50%);
             z-index: 1000;
             padding: 15px 30px;
             background-color: rgba(248, 249, 250, 0.98);
-            border-bottom: 2px solid #ddd;
+            border: 2px solid #ddd;
+            border-radius: 0 0 8px 8px;
             box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            min-width: 500px; /* 最小幅を設定 */
         }
         
-        .navigation-button {
-            justify-self: start;
-        }
-
         .reload-content {
-            max-width: 1200px;
-            margin: 0 auto;
             display: grid;
-            grid-template-columns: 1fr auto 1fr;
+            grid-template-columns: auto auto auto;
             gap: 20px;
             align-items: center;
+            justify-content: center;
         }
         
         .countdown-display {
-            text-align: center;
             font-size: 1.1em;
             white-space: nowrap;
         }
-
-        .update-controls {
-            justify-self: end;
-            display: flex;
-            gap: 20px; /* ボタン間の間隔を広げる */
-            min-width: 300px; /* 最小幅を設定して右側に十分なスペースを確保 */
-            justify-content: flex-end; /* 右寄せに配置 */
-        }
         
-        .stats-button, .back-button {
-            padding: 8px 16px;
-            background-color: #4CAF50;
-            color: white;
-            text-decoration: none;
-            border-radius: 4px;
-            transition: background-color 0.3s;
-        }
-
-        .stats-button:hover, .back-button:hover {
-            background-color: #45a049;
-        }
-
         #countdown {
             font-weight: bold;
             color: #4CAF50;
@@ -2081,12 +1926,6 @@ document.addEventListener('DOMContentLoaded', function() {
         #reload-status.paused {
             background-color: rgba(255, 224, 224, 0.98);
         }
-
-        .force-button:disabled {
-            background-color: #cccccc;
-            cursor: not-allowed;
-            opacity: 0.7;
-        }
         
         #reload-status button:disabled {
             background-color: #cccccc;
@@ -2102,9 +1941,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 grid-template-columns: 1fr;
                 gap: 10px;
             }
-
-            .navigation-button, .countdown-display, .update-controls {
-                justify-self: center;
+            
+            #reload-status {
+                min-width: auto;
+                width: 95%;
             }
         }
     </style>

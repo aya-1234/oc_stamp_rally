@@ -10,7 +10,7 @@ from services.user_service import authenticate_user
 #from flask_wtf import CSRFProtect
 from functools import wraps
 import os
-from sqlalchemy import func, and_
+from sqlalchemy import func, and_,exists
 import csv
 from io import StringIO  
 from flask import send_file
@@ -30,6 +30,17 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.secret_key = 'your_secret_key_here'  # ここにユニークで秘密のキーを設定
 
 initialize_db(app)
+# グローバル変数でセッションクリアフラグを管理
+_session_cleared = False
+###ここでコメントアウトで無効化。
+@app.before_request
+def clear_session():
+    global _session_cleared
+    if not _session_cleared:
+        session.clear()
+        _session_cleared = True
+        print("アプリケーション起動時のセッションをクリアしました。")
+###
 # アプリケーションのテーブルにアクセスした後にセッションを閉じるための teardown_appcontext ハンドラを追加
 @app.teardown_appcontext
 def shutdown_session(exception=None):
@@ -100,9 +111,15 @@ def shutdown_session(exception=None):
 #複数Sqlite3と、DBのセッション終了をする。
 #アップデートと削除は書き込み。
 
+#======================
+#最新のスタンプのみのクイズ不一致エラーの機能になってしまっているのでスタンプの情報が一つしかないものは特定できず、最新のもの以外で特定可能な機能になった。
+#テーブルの変更なしだとこれが限界だ。
+#========================
 
-#本番用の文が無いとっころがあるからそこを何とかする。
-#回答必須の誘導
+
+
+#このはい、いいえを答えたらそのフラグをテーブルに時間と共に保存！
+#エラー対応テーブルもあるよ。
 
 
 
@@ -125,20 +142,73 @@ def hello():
     output=f'''
 <h1>Hello World</h1>
 <ul>
-<li><a href="/handle_checkpoint/{hash_keys[0]}">スタートポイントログイン</a></li>
-<li><a href="/handle_checkpoint/{hash_keys[1]}">チェックポイント地点１ログイン</a></li>
-<li><a href="/handle_checkpoint/{hash_keys[2]}">チェックポイント地点２ログイン</a></li>
-<li><a href="/handle_checkpoint/{hash_keys[3]}">チェックポイント地点３ログイン</a></li>
-<li><a href="/handle_checkpoint/{hash_keys[4]}">チェックポイント地点４ログイン</a></li>
-<li><a href="/handle_checkpoint/{hash_keys[5]}">チェックポイント地点５ログイン</a></li>
-<li><a href="/handle_checkpoint/{hash_keys[6]}">チェックポイント地点６ログイン</a></li>
+<li><a href="/handle_checkpoint/{hash_keys[0]}">スタートポイント「１」ログイン</a></li>
+<li><a href="/handle_checkpoint/{hash_keys[1]}">池田観光案内所「２」ログイン</a></li>
+<li><a href="/handle_checkpoint/{hash_keys[2]}">まがり書房「３」ログイン</a></li>
+<li><a href="/handle_checkpoint/{hash_keys[3]}">井戸の辻（ビリケンさん）「４」ログイン</a></li>
+<li><a href="/handle_checkpoint/{hash_keys[4]}">落語みゅーじあむ「５」ログイン</a></li>
+<li><a href="/handle_checkpoint/{hash_keys[5]}">池田城跡公園「６」ログイン</a></li>
+<li><a href="/handle_checkpoint/{hash_keys[6]}">Shokuの店「７」ログイン</a></li>
 
-<li><a href="/handle_checkpoint/{hash_keys[7]}">ゴールポイントログイン</a></li>
+<li><a href="/handle_checkpoint/{hash_keys[7]}">ゴールポイント「８」ログイン</a></li>
 <li><a href="/{hash_keys[8]}">管理画面</a></li>
 </ul>
 '''
     return output
 
+
+def save_mismatch_error(user_id, account, mismatched_checkpoints):
+    """エラー情報をセッションに保存する改善版"""
+    if 'mismatch_errors' not in session:
+        session['mismatch_errors'] = []
+
+    # セッション内の現在のエラー情報を取得
+    current_errors = session['mismatch_errors']
+    
+    # 既存のエラー情報を探す
+    existing_error = None
+    for error in current_errors:
+        if error['user_id'] == user_id:
+            existing_error = error
+            break
+    
+    if existing_error:
+        # 既存のチェックポイント情報を分割してリストにする
+        existing_checkpoints = set(cp.strip() for cp in existing_error['mismatched_checkpoints'].split(','))
+        # 新しいチェックポイントを追加
+        existing_checkpoints.add(mismatched_checkpoints.strip())
+        # 更新された情報を保存
+        existing_error['mismatched_checkpoints'] = ', '.join(sorted(existing_checkpoints))
+    else:
+        # 新しいエラー情報を追加
+        current_errors.append({
+            'user_id': user_id,
+            'account': account,
+            'mismatched_checkpoints': mismatched_checkpoints
+        })
+    
+    # セッションを明示的に更新
+    session.modified = True
+
+def remove_resolved_checkpoint(user_id, checkpoint_name):
+    """解決されたチェックポイントをエラーリストから削除"""
+    if 'mismatch_errors' not in session:
+        return
+    
+    current_errors = session['mismatch_errors']
+    for error in current_errors:
+        if error['user_id'] == user_id:
+            checkpoints = [cp.strip() for cp in error['mismatched_checkpoints'].split(',')]
+            if checkpoint_name in checkpoints:
+                checkpoints.remove(checkpoint_name)
+                if checkpoints:  # まだ他のエラーが残っている場合
+                    error['mismatched_checkpoints'] = ', '.join(checkpoints)
+                else:  # すべてのエラーが解決された場合
+                    current_errors.remove(error)
+            break
+    
+    session['mismatch_errors'] = current_errors
+    session.modified = True
 
 
 # 管理画面
@@ -375,25 +445,7 @@ def admin_panel():
         error_out=False
     )
 
-    # クイズレスポンスとスタンプの不一致を検出
-    # クイズレスポンスとスタンプの不一致を検出
-    mismatch_users = (
-        db.session.query(
-            Login.id.label('user_id'), 
-            Login.account, 
-            Checkpoint.name.label('mismatched_checkpoints')
-        )
-        .select_from(Login)
-        .join(Quiz_Response, Login.id == Quiz_Response.login_id)
-        .join(Quiz, Quiz_Response.quiz_id == Quiz.id)
-        .join(Checkpoint, Quiz.checkpoint_id == Checkpoint.id)
-        .outerjoin(Stamp, and_(Login.id == Stamp.login_id, Checkpoint.id == Stamp.checkpoint_id))
-        .filter(Stamp.id.is_(None), Quiz_Response.is_corrected == True)
-        .group_by(Login.id, Login.account, Checkpoint.id)
-        .all()
-    )
-
-    # スタンプを獲得したがクイズに回答していないユーザーを検出
+# スタンプを獲得したがクイズに回答していないユーザーを検出
     stamp_without_quiz_users = (
         db.session.query(
             Login.id.label('user_id'),
@@ -412,8 +464,48 @@ def admin_panel():
         .group_by(Login.id, Login.account, Checkpoint.id)
         .all()
     )
-    print(mismatch_users)
     print(stamp_without_quiz_users)
+
+    # クイズ不一致エラーが発生した際に、エラー情報を保存する
+    # クイズ不一致エラーが発生した際に、エラー情報を保存する
+    #def save_mismatch_error(user_id, account, mismatched_checkpoints):
+
+
+    # クイズレスポンスとスタンプの不一致を検出
+    mismatch_users = (
+        db.session.query(
+            Login.id.label('user_id'),
+            Login.account,
+            Checkpoint.name.label('mismatched_checkpoints')
+        )
+        .select_from(Login)
+        .join(Quiz_Response, Login.id == Quiz_Response.login_id)
+        .join(Quiz, Quiz_Response.quiz_id == Quiz.id)
+        .join(Checkpoint, Quiz.checkpoint_id == Checkpoint.id)
+        .outerjoin(Stamp, and_(Login.id == Stamp.login_id, Checkpoint.id == Stamp.checkpoint_id))
+        .filter(Stamp.id.is_(None), Quiz_Response.is_corrected == True)
+        .group_by(Login.id, Login.account, Checkpoint.id)
+        .all()
+    )
+
+    # 検出された不一致情報をセッション変数に保存
+    for user in mismatch_users:
+        save_mismatch_error(user.user_id, user.account, user.mismatched_checkpoints)
+
+    # エラー対応スタンプのデータを取得
+    error_stamp_page = request.args.get('error_stamp_page', 1, type=int)
+    error_stamp_search = request.args.get('error_stamp_search', '')
+
+    # セッション変数からエラー情報を取得
+    error_stamp_data = session.get('mismatch_errors', [])
+
+    # error_stamp_dataを渡して呼び出し
+    error_stamps_pagination = get_error_resolution_stamps(
+        page=error_stamp_page,
+        search_query=error_stamp_search,
+        mismatch_data=error_stamp_data  # error_stamp_dataを渡す
+    )
+
     return render_template(
         'admin/panel.html',
         users_pagination=users_pagination,
@@ -433,7 +525,9 @@ def admin_panel():
         quiz_response_search=quiz_response_search,
         survey_response_search=survey_response_search,
         mismatch_users=mismatch_users,
-        stamp_without_quiz_users=stamp_without_quiz_users
+        stamp_without_quiz_users=stamp_without_quiz_users,
+        error_stamps_pagination=error_stamps_pagination,
+        error_stamp_search=error_stamp_search
     )
 
 # クイズ追加のAPI
@@ -762,6 +856,66 @@ def delete_stamp(stamp_id):
     except Exception as e:
         db.session.rollback()
         return jsonify({'error': str(e)}), 500
+    
+# app.pyに追加する関数
+@app.route(f'/{hash_keys[8]}/error_resolution_stamps')
+def get_error_resolution_stamps(page=1, search_query='', mismatch_data=None): 
+    per_page = 10
+  
+    # 渡されたmismatch_dataを使用
+    error_stamps_base = mismatch_data if mismatch_data is not None else []
+
+    # 検索とページネーション用にリスト処理
+    filtered_records = error_stamps_base
+    if search_query:
+        filtered_records = [
+            record for record in error_stamps_base
+            if search_query.lower() in record['account'].lower() or 
+               search_query.lower() in record['mismatched_checkpoints'].lower()
+        ]
+
+    # 手動でページネーションを実装
+    total = len(filtered_records)
+    start = (page - 1) * per_page
+    end = start + per_page
+    items = filtered_records[start:end]
+
+    class CustomPagination:
+        def __init__(self, items, page, per_page, total):
+            self.items = items
+            self.page = page
+            self.per_page = per_page
+            self.total = total
+
+        @property
+        def pages(self):
+            return (self.total + self.per_page - 1) // self.per_page
+
+        @property
+        def has_prev(self):
+            return self.page > 1
+
+        @property
+        def has_next(self):
+            return self.page < self.pages
+
+        @property
+        def prev_num(self):
+            return self.page - 1
+
+        @property
+        def next_num(self):
+            return self.page + 1
+
+        def iter_pages(self):
+            return range(1, self.pages + 1)
+
+    return CustomPagination(
+        items=items,
+        page=page,
+        per_page=per_page,
+        total=total
+    )
 
 # CSVエクスポート用の関数を追加
 @app.route(f'/{hash_keys[8]}/export/<table_name>')
@@ -1011,6 +1165,27 @@ def export_csv(table_name):
                     user.mismatched_checkpoints
                 ])
             filename = "stamp_without_quiz_users.csv"
+
+        elif table_name == 'error_history':
+            # セッションからエラー履歴データを取得
+            error_data = session.get('mismatch_errors', [])
+            
+            # ヘッダーの書き込み
+            writer.writerow([
+                'ユーザーID',
+                'アカウント',
+                '不一致のチェックポイント'
+            ])
+            
+            # データの書き込み
+            for error in error_data:
+                writer.writerow([
+                    error['user_id'],
+                    error['account'],
+                    error['mismatched_checkpoints']
+                ])
+            
+            filename = "error_history.csv"
 
         else:
             return 'Invalid table name', 400
@@ -1327,7 +1502,7 @@ def checkpoint_login(checkpoint):
         session['user_id'] = user.id
         
         if not user.is_used:#多重エラー対応。前のルーティングで突破してたらほぼいらない。
-            flash('スタートポイントでのログインを完了してからチェックポイントにアクセスしてください。', 'error')
+            flash('はじめにスタート地点にログインしてから、スタンプラリーを始めてください。', 'error')
             return redirect(url_for('handle_checkpoint', checkpoint_id_hash=hash_keys[0]))
 
         if not user.is_agree:
@@ -1335,7 +1510,7 @@ def checkpoint_login(checkpoint):
             return redirect(url_for('handle_checkpoint', checkpoint_id_hash=hash_keys[0])) 
 
         if not user.is_loggedin:
-            flash('スタートポイントでのアンケートを完了してからチェックポイントにアクセスしてください。', 'error')
+            flash('はじめにスタート地点にログインしてから、スタンプラリーを始めてください。', 'error')
             return redirect(url_for('handle_checkpoint', checkpoint_id_hash=hash_keys[0]))
 
         if user.is_ended:
@@ -1349,7 +1524,7 @@ def checkpoint_login(checkpoint):
         ).first()
         
         if existing_stamp:
-            flash("もうスタンプを獲得しました。", 'error')
+            flash("このチェックポイントはすでにスタンプを獲得済みです。スタンプ獲得済みのチェックポイントにはログインできません。", 'error')
             return render_template('login.html', title="ログイン", checkpoint=checkpoint)
 
         # チェックポイントの説明ページとして表示
@@ -1387,7 +1562,7 @@ def goal_login(checkpoint):
             return redirect(url_for('ended'))  # 修正: render_template から redirect に変更
 
         if not user.is_used:
-            flash('スタートポイントでのログインを完了してからチェックポイントにアクセスしてください。', 'error')
+            flash('はじめにスタート地点にログインしてから、スタンプラリーを始めてください。', 'error')
             return redirect(url_for('handle_checkpoint', checkpoint_id_hash=hash_keys[0])) 
 
         #user = Login.query.get_or_404(user_id)
@@ -1397,7 +1572,7 @@ def goal_login(checkpoint):
             return redirect(url_for('handle_checkpoint', checkpoint_id_hash=hash_keys[0])) 
 
         if not user.is_loggedin:
-            flash('スタートポイントでのアンケートを完了してからチェックポイントにアクセスしてください。', 'error')
+            flash('はじめにスタート地点にログインしてから、スタンプラリーを始めてください。', 'error')
             return redirect(url_for('handle_checkpoint', checkpoint_id_hash=hash_keys[0])) 
 
         # ログイン状態確認
@@ -1519,7 +1694,41 @@ def handle_survey(checkpoint_id):
     else:
         flash('無効なチェックポイントIDです。', 'error')
         return redirect(url_for('view_stamps'))
-    
+
+def validate_survey_responses(user, questions, request_form):
+    """
+    アンケート回答のバリデーション
+    """
+    responses = []
+    unanswered_questions = []
+    form_data = {}
+
+    # アカウントの5桁目が'A'かどうかをチェック
+    is_type_a_user = len(user.account) >= 5 and user.account[4] == 'A'
+
+    for question in questions:
+        if question.survey_choices:
+            selected_choice_id = request_form.get(f'question_{question.id}')
+            if selected_choice_id:
+                form_data[f'question_{question.id}'] = selected_choice_id
+                responses.append(Survey_Response(
+                    login_id=user.id,
+                    survey_id=question.id,
+                    value=selected_choice_id
+                ))
+            
+            # 必須回答チェック
+            if is_type_a_user:
+                # Aユーザーは全質問必須
+                if not selected_choice_id:
+                    unanswered_questions.append(question.question)
+            else:
+                # 通常ユーザーは必須マークのある質問のみチェック
+                if '（回答必須）' in question.question and not selected_choice_id:
+                    unanswered_questions.append(question.question)
+
+    return responses, unanswered_questions, form_data
+
 # スタートポイントのアンケート画面
 def start_survey(checkpoint_id):
     user_id = session.get('user_id')
@@ -1534,81 +1743,73 @@ def start_survey(checkpoint_id):
         .options(db.joinedload(Survey.survey_choices))\
         .order_by(Survey.survey_order).all()
     
-    # 初期化時にform_dataを空の辞書として定義
-    form_data = {}
-    first_unanswered_id = None  # 初期化を追加
-    
     if request.method == 'POST':
         try:
             responses = []
-            unanswered_required_questions = []
+            form_data = {}
+            all_questions_answered = True
 
-            # フォームデータの収集
+            # アカウントの5桁目が'A'かどうかをチェック
+            is_type_a_user = len(user.account) >= 5 and user.account[4] == 'A'
+
+            # すべての質問をチェック
             for question in questions:
                 if question.survey_choices:
-                    key = f'question_{question.id}'
-                    value = request.form.get(key)
-                    if value:
-                        form_data[key] = value
-
-            # 以下、質問のチェック
-            for question in questions:
-                if question.survey_choices:
-                    key = f'question_{question.id}'
-                    selected_choice_id = form_data.get(key)
-                    
-                    is_required = '（回答必須）' in question.question
-                    
-                    if is_required and not selected_choice_id:
-                        unanswered_required_questions.append(question.question)
-                    elif selected_choice_id:
+                    selected_choice_id = request.form.get(f'question_{question.id}')
+                    if selected_choice_id:
+                        form_data[f'question_{question.id}'] = selected_choice_id
                         responses.append(Survey_Response(
                             login_id=user.id,
                             survey_id=question.id,
                             value=selected_choice_id
                         ))
+                    else:
+                        # Aユーザーは全質問必須、それ以外は通常の必須チェック
+                        is_required = is_type_a_user or ('（回答必須）' in question.question)
+                        if is_required:
+                            all_questions_answered = False
+                            break
 
-            # 未回答の必須質問がある場合
-            if unanswered_required_questions:
-                flash("回答必須にお答えください。", 'error')
-                
-                first_unanswered_id = next(
-                    (str(question.id) for question in questions 
-                    if question.question in unanswered_required_questions),
-                    None
-                )
-                
-                # 未回答がある場合は同じページを再表示
-                return render_template(
-                    'survey.html',
-                    title=message_info["title"],
-                    initial_message=message_info["message"],
-                    checkpoint=checkpoint,
-                    questions=questions,
-                    form_data=form_data,
-                    target_question_id=first_unanswered_id
-                )
+            # 必要な質問に全て回答済みの場合のみ処理を進める
+            if all_questions_answered:
+                db.session.add_all(responses)
+                user.is_loggedin = True
+                db.session.commit()
+                flash('スタートアンケートが完了しました！<br>ご協力ありがとうございます。', 'ended')
+                return redirect(url_for('main_menu', user=user.account))
 
-            # すべて回答済みの場合のみここに到達
-            db.session.add_all(responses)
-            user.is_loggedin = True
-            db.session.commit()
-            flash('スタートアンケートが完了しました！<br>ご協力ありがとうございます。', 'ended')
-            return redirect(url_for('main_menu', user=user.account))
+            # 未回答の質問がある場合は単にフォームを再表示
+            return render_template(
+                'survey.html',
+                title=message_info["title"],
+                initial_message=message_info["message"],
+                checkpoint=checkpoint,
+                questions=questions,
+                form_data=form_data,
+                user=user
+            )
 
         except SQLAlchemyError:
             db.session.rollback()
             flash('エラーが発生しました。<br>もう一度お試しください。', 'error')
+            return render_template(
+                'survey.html',
+                title=message_info["title"],
+                initial_message=message_info["message"],
+                checkpoint=checkpoint,
+                questions=questions,
+                form_data=form_data,
+                user=user
+            )
 
-    # GET requestの場合のレンダリング
+    # GETリクエストの場合
     return render_template(
         'survey.html',
         title=message_info["title"],
         initial_message=message_info["message"],
         checkpoint=checkpoint,
         questions=questions,
-        form_data=form_data,
-        target_question_id=first_unanswered_id
+        user=user
     )
 
 # チェックポイントのアンケート画面
@@ -1654,7 +1855,8 @@ def checkpoint_survey(checkpoint_id):
                     title=message_info["title"],
                     initial_message=message_info["message"],
                     checkpoint=checkpoint,
-                    questions=questions
+                    questions=questions,
+                    user=user
                 )
 #スタンプ取得
             # 全ての質問に回答済みの場合
@@ -1664,7 +1866,7 @@ def checkpoint_survey(checkpoint_id):
                 login_id=user.id
             ))
             db.session.commit()
-            flash(f'{checkpoint.name}の記録が完了しました！<br>ご協力ありがとうございます。', 'success')
+            flash(f'{checkpoint.name}のスタンプを獲得しました！<br><br>次のチェックポイントに向かいましょう！', 'success')
             return redirect(url_for('view_stamps', checkpoint_id=checkpoint_id,stamp_added=True))
 
         except SQLAlchemyError:
@@ -1677,7 +1879,8 @@ def checkpoint_survey(checkpoint_id):
         initial_message=message_info["message"],
         checkpoint=checkpoint,
         questions=questions,
-        checkpoint_id=checkpoint_id 
+        checkpoint_id=checkpoint_id,
+        user=user
     )
 
 # ゴールのアンケート画面
@@ -1698,64 +1901,70 @@ def goal_survey(user_id, checkpoint_id):
     if request.method == "POST":
         try:
             responses = []
-            unanswered_required_questions = []
+            
+            form_data = {}  # フォームデータ保持用の追加
+            all_questions_answered = True
+            is_type_a_user = len(user.account) >= 5 and user.account[4] == 'A'
 
+            # すべての質問をチェック
             # すべての質問をチェック
             for question in questions:
                 if question.survey_choices:
                     selected_choice_id = request.form.get(f'question_{question.id}')
-                    
-                    # 必須項目（質問文に「（回答必須）」が含まれる）の場合のみチェック
-                    is_required = '（回答必須）' in question.question
-                    
-                    if is_required and not selected_choice_id:
-                        unanswered_required_questions.append(question.question)
+                    if selected_choice_id:
+                        form_data[f'question_{question.id}'] = selected_choice_id
+                        responses.append(Survey_Response(
+                            login_id=user.id,
+                            survey_id=question.id,
+                            value=selected_choice_id
+                        ))
                     else:
-                        # 非必須項目で未回答の場合はスキップ
-                        if selected_choice_id:
-                            responses.append(Survey_Response(
-                                login_id=user_id,
-                                survey_id=question.id,
-                                value=selected_choice_id
-                            ))
+                        # Aユーザーは全質問必須、それ以外は通常の必須チェック
+                        is_required = is_type_a_user or ('（回答必須）' in question.question)
+                        if is_required:
+                            all_questions_answered = False
+                            break
 
             # 未回答の必須質問がある場合
-            if unanswered_required_questions:
-                error_message = "以下の必須質問に回答してください：<br>" + "<br>".join([
-                    f"・{q}" for q in unanswered_required_questions
-                ])
-                flash(error_message, 'error')
-                return render_template(
-                    'survey.html',
-                    title=message_info["title"],
-                    initial_message=message_info["message"],
-                    checkpoint=checkpoint,
-                    questions=questions
+            if all_questions_answered:
+                db.session.add_all(responses)
+                user.is_loggedin = True
+                db.session.commit()
+                #flash('スタートアンケートが完了しました！<br>ご協力ありがとうございます。', 'ended')
+                #return redirect(url_for('main_menu', user=user.account))
+                # 必須質問に全て回答済みの場合
+                new_stamp = Stamp(
+                    checkpoint_id=checkpoint_id,
+                    login_id=user_id
                 )
+                db.session.add(new_stamp)
+                db.session.add_all(responses)
+                user.is_ended = True
+                db.session.commit()
 
-            # 必須質問に全て回答済みの場合
-            new_stamp = Stamp(
-                checkpoint_id=checkpoint_id,
-                login_id=user_id
-            )
-            db.session.add(new_stamp)
-            db.session.add_all(responses)
-            user.is_ended = True
-            db.session.commit()
-
-            flash('ゴールおめでとうございます！<br>スタンプラリーは終了です。<br>最後までご参加いただき、ありがとうございました。', 'success')
-            return redirect(url_for("goal"))
+                #flash('ゴールおめでとうございます！<br>スタンプラリーは終了です。<br>最後までご参加いただき、ありがとうございました。', 'success')
+                return redirect(url_for("goal"))
 
         except SQLAlchemyError:
             db.session.rollback()
             flash('エラーが発生しました。<br>もう一度お試しください。', 'error')
+            return render_template(
+                'survey.html',
+                title=message_info["title"],
+                initial_message=message_info["message"],
+                checkpoint=checkpoint,
+                questions=questions,
+                form_data=form_data,
+                user=user  # エラー時もフォームデータを保持
+            )
 
     return render_template(
         'survey.html',
         title=message_info["title"],
         initial_message=message_info["message"],
         checkpoint=checkpoint,
-        questions=questions
+        questions=questions,
+        user=user
     )
 
 # メインメニュー画面
@@ -1814,8 +2023,8 @@ def view_stamps():
         return redirect(url_for('handle_checkpoint', checkpoint_id_hash=hash_keys[0]))
     
         # スタンプ取得時のメッセージを改行付きで表示
-    if request.args.get('stamp_added'):
-        flash('新しいスタンプを獲得しました！<br>次のチェックポイントに向かいましょう。', 'success')
+    #if request.args.get('stamp_added'):
+    #    flash('新しいスタンプを獲得しました！<br>次のチェックポイントに向かいましょう。', 'success')
 
     user = Login.query.get_or_404(user_id)
 
@@ -1850,7 +2059,7 @@ def view_stamps():
 
     return render_template(
         'view_stamps.html',
-        title="ゲット済みのスタンプ",
+        title="獲得済みスタンプ",
         checkpoints=checkpoint_data,
         user=user
     )
@@ -1872,11 +2081,11 @@ def checkpoint(checkpoint_id):
    user = Login.query.get_or_404(user_id)
 
    if not user.is_used:#多重エラー対応。前のルーティングで突破してたらほぼいらない。
-       flash('スタートポイントでのログインを完了してからチェックポイントにアクセスしてください。', 'error')
+       flash('はじめにスタート地点にログインしてから、スタンプラリーを始めてください。', 'error')
        return redirect(url_for('handle_checkpoint', checkpoint_id_hash=hash_keys[0])) 
 
    if not user.is_loggedin:
-       flash('スタートポイントでのアンケートを完了してからチェックポイントにアクセスしてください。', 'error')
+       flash('はじめにスタート地点にログインしてから、スタンプラリーを始めてください。', 'error')
        return redirect(url_for('handle_checkpoint', checkpoint_id_hash=hash_keys[0]))
 
    checkpoint = Checkpoint.query.get_or_404(checkpoint_id)
@@ -1905,11 +2114,11 @@ def quiz(checkpoint_id):
 
     # ユーザーの状態チェック
     if not user.is_used:#多重エラー対応。前のルーティングで突破してたらほぼいらない。
-        flash('スタートポイントでのログインを完了してからチェックポイントにアクセスしてください。', 'error')
+        flash('はじめにスタート地点にログインしてから、スタンプラリーを始めてください。', 'error')
         return redirect(url_for('handle_checkpoint', checkpoint_id_hash=hash_keys[0]))
 
     if not user.is_loggedin:
-        flash('スタートポイントでのアンケートを完了してからチェックポイントにアクセスしてください。', 'error')
+        flash('はじめにスタート地点にログインしてから、スタンプラリーを始めてください。', 'error')
         return redirect(url_for('handle_checkpoint', checkpoint_id_hash=hash_keys[0]))
 
     if user.is_ended:
@@ -2024,7 +2233,7 @@ def quiz(checkpoint_id):
                 else:
                     # 全クイズ完了
                     session['quiz_completed'] = True
-                    flash("全てのクイズが完了しました！", 'success')
+                    flash("おめでとうございます！すべて正解しました", 'success')
                     return redirect(url_for('handle_survey', checkpoint_id=checkpoint_id))
             else:
                 flash("不正解です。もう一度挑戦してください。", 'error')

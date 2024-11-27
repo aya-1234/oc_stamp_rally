@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">  <!--Crucial for responsiveness-->
+    <title>{{ title }}</title>
+    <style>
+        .container {
+            max-width: 95%; /* Use percentage for better responsiveness */
+            margin: 0 auto;
+            padding: 10px; /* Reduced padding for smaller screens */
+        }
+
+        .message, .flash-success, .flash-error, .flash-ended {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+            line-height: 1.5;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1); /* Reduced shadow */
+        }
+
+        .message-icon {
+            margin-right: 5px; /*Reduced icon margin*/
+        }
+
+        .menu-list {
+            list-style: none;
+            padding: 0;
+            margin: 10px 0;
+        }
+
+        .menu-list li {
+            margin: 5px 0;
+        }
+
+        .menu-list a {
+            text-decoration: none;
+            color: #007bff;
+            padding: 5px 0;
+            display: block; /* Makes links fill the entire list item width */
+        }
+
+        .menu-list a:hover {
+            color: #0056b3;
+            text-decoration: underline;
+        }
+
+        .welcome-message {
+            font-size: 1em; /* Reduced font size */
+            margin: 10px 0;
+            padding: 5px;
+            background-color: #f8f9fa;
+            border-radius: 4px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1); /* Reduced shadow */
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 1.5em; /*Slightly smaller h1 for mobile*/
+        }
+        .menu-list li {
+            margin: 10px 0;
+            border: 1px solid #ccc; /* Add a light gray border */
+            padding: 10px; /* Add some padding inside the border */
+            border-radius: 5px; /*Optional: Round the corners */
+        }
+
+        /* Media Queries for responsiveness */
+        @media (max-width: 768px) {
+            .message, .flash-success, .flash-error, .flash-ended {
+                font-size: 0.9em; /* Smaller font size on smaller screens */
+            }
+            .welcome-message {
+                font-size: 0.9em; /* Smaller font size on smaller screens */
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="message flash-{{ category }}">
+                        <i class="message-icon"></i>  <!-- Font Awesome Icons removed.  See below. -->
+                        {{ message | safe }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <h1>{{ title }}</h1>
+
+        {% if user %}
+            <div class="welcome-message">
+                ようこそ、{{ user.account }}さん
+            </div>
+        {% endif %}
+
+        <ul class="menu-list">
+            <li><a href="{{ url_for('participation_guide') }}">スタンプラリーの地図</a></li>
+            <li><a href="{{ url_for('app_usage') }}">スタンプラリーアプリの使い方</a></li>
+            <li><a href="{{ url_for('view_stamps') }}">ゲット済みのスタンプを確認する</a></li>
+        </ul>
+    </div>
+</body>
+</html>

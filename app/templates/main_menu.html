@@ -2,15 +2,16 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ title }}</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
         :root {
-            --primary-color: #4CAF50;
-            --secondary-color: #2196F3;
-            --accent-color: #FF9800;
-            --background-color: #f5f7fa;
-            --text-color: #333;
+            --primary-color: #4CAF50; /* 緑 */
+            --secondary-color: #2196F3; /* 青 */
+            --accent-color: #FF9800; /* オレンジ */
+            --background-color: #f5f7fa; /* 薄いグレー */
+            --text-color: #333; /* ダークグレー */
             --card-shadow: 0 4px 6px rgba(0,0,0,0.1);
             --hover-transition: all 0.3s ease;
         }
@@ -22,17 +23,24 @@
             line-height: 1.6;
             margin: 0;
             padding: 0;
+            display: flex; /* 全体的にflexboxを使う */
+            justify-content: center; /* 中央配置 */
+            min-height: 100vh; /* 画面全体に広げる */
         }
 
         .container {
-            max-width: 1000px;
+            max-width: 800px; /* 幅を調整 */
             margin: 40px auto;
             padding: 20px;
+            background-color: white; /* 背景を白に */
+            border-radius: 15px; /* 角丸 */
+            box-shadow: var(--card-shadow); /* 影をつける */
         }
+
 
         .header {
             text-align: center;
-            margin-bottom: 40px;
+            margin-bottom: 30px; /* マージン調整 */
             padding: 20px;
             background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
             border-radius: 15px;
@@ -41,87 +49,85 @@
         }
 
         h1 {
-            font-size: 2.5em;
+            font-size: 2em; /* 見出しサイズ調整 */
             margin: 0;
-            padding: 20px 0;
+            padding: 10px 0; /* パディング調整 */
             text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
         }
 
         .welcome-message {
-            font-size: 1.3em;
-            margin: 20px 0;
             padding: 20px;
-            background: white;
+            margin-bottom: 40px;
             border-radius: 12px;
             box-shadow: var(--card-shadow);
-            border-left: 5px solid var(--accent-color);
             display: flex;
             align-items: center;
-        }
-
-        .welcome-message i {
-            font-size: 1.5em;
-            margin-right: 15px;
-            color: var(--accent-color);
-        }
-
-        .menu-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 25px;
-            margin-top: 30px;
+            background-color: white;
+            border-left: 5px solid var(--accent-color);
         }
 
         .menu-item {
-            background: white;
+            padding: 20px;
+            margin-bottom: 20px;
             border-radius: 12px;
-            padding: 25px;
             box-shadow: var(--card-shadow);
-            transition: var(--hover-transition);
-            cursor: pointer;
-            text-decoration: none;
-            color: var(--text-color);
             display: flex;
             align-items: center;
-            border: 1px solid rgba(0,0,0,0.1);
+            background-color: white;
+            text-decoration: none;
+            color: var(--text-color);
+            cursor: pointer;
+            border-left: 5px solid var(--primary-color); /* 緑色の縁取りを追加 */
+        }
+
+        .welcome-message {
+            border-left: 5px solid var(--accent-color);
+            font-size: 1em; /* テキストサイズ調整 */
+        }
+        .welcome-message i {
+            font-size: 1.2em;
+            margin-right: 10px;
+            color: var(--accent-color);
         }
 
         .menu-item:hover {
-            transform: translateY(-5px);
+            transform: translateY(-2px);
             box-shadow: 0 6px 12px rgba(0,0,0,0.15);
         }
 
         .menu-item i {
-            font-size: 2em;
-            margin-right: 20px;
+            font-size: 1.5em;
+            margin-right: 15px;
             color: var(--primary-color);
-            transition: var(--hover-transition);
         }
 
-        .menu-item:hover i {
-            transform: scale(1.1);
+        .menu-item-content {
+            flex-grow: 1; /* メニュー項目の説明を枠内に広げる */
         }
-
         .menu-item-content h3 {
-            margin: 0 0 10px 0;
-            color: var(--text-color);
+            margin-top: 0;
+            font-size: 1.1em;
+            font-weight: bold;
+        }
+        .menu-item-content p {
+            margin: 5px 0 0 0;
+            font-size: 0.9em;
+            color: #666;
         }
 
-        .menu-item-content p {
-            margin: 0;
-            color: #666;
-            font-size: 0.9em;
-        }
 
         .message {
-            padding: 20px;
             margin: 20px 0;
+            padding: 15px;
             border-radius: 12px;
-            text-align: left;
-            line-height: 1.5;
             box-shadow: var(--card-shadow);
             display: flex;
             align-items: center;
+        }
+
+        .message i {
+            font-size: 1.2em;
+            margin-right: 10px;
         }
 
         .flash-success {
@@ -142,130 +148,89 @@
             color: #004085;
         }
 
-        .message i {
-            font-size: 1.5em;
-            margin-right: 15px;
-        }
-
-                /* Media Queries for responsiveness */
+        /* レスポンシブデザインのためのメディアクエリ */
         @media (max-width: 768px) {
-        .container {
-            padding: 10px;
-            margin: 20px auto;
+            .container {
+                max-width: 90%; /* 画面幅の90%まで */
+                margin: 20px auto;
+                padding: 10px;
+            }
+            .menu-item {
+                flex-direction: column; /* 小さい画面では縦に配置 */
+                align-items: flex-start; /* 縦配置時のアイテム配置 */
+            }
+            .menu-item i {
+                margin-bottom: 10px;
+            }
+            .menu-item-content {
+                flex-grow: 0;
+            }
+            h1 {
+                font-size: 1.8em;
+            }
+            .welcome-message, .menu-item {
+                font-size: 0.9em;
+                padding: 15px;
+            }
+            .message {
+                font-size: 0.9em;
+                padding: 10px;
+            }
         }
-
-        .menu-grid {
-            grid-template-columns: 1fr; /* 1列に変更 */
-            gap: 15px; /* gap幅を少し縮小 */
-        }
-
-        .menu-item {
-            padding: 15px; /* パディングを少し縮小 */
-        }
-
-        .menu-item i {
-            font-size: 1.5em; /* アイコンサイズを少し小さく */
-        }
-
-        .menu-item-content h3 {
-            font-size: 1.1em; /* 見出しを少し小さく */
-        }
-
-        .menu-item-content p {
-            font-size: 0.85em; /* 説明文を少し小さく */
-        }
-
-        .header {
-            margin-bottom: 20px;
-            padding: 15px;
-        }
-
-        h1 {
-            font-size: 1.8em;
-            padding: 10px 0;
-        }
-
-        .message, .flash-success, .flash-error, .flash-ended {
-            font-size: 0.9em;
-            padding: 15px;
-        }
-
-        .welcome-message {
-            font-size: 0.9em;
-            padding: 15px;
-        }
-    }
-
-    /* さらに小さい画面（例：iPhone SE など）向けの調整 */
-    @media (max-width: 380px) {
-        .menu-item {
-            padding: 12px;
-        }
-
-        h1 {
-            font-size: 1.5em;
-        }
-
-        .menu-item-content h3 {
-            font-size: 1em;
-        }
-
-        .menu-item-content p {
-            font-size: 0.8em;
-        }
-    }
-        
     </style>
 </head>
 <body>
     <div class="container">
         {% with messages = get_flashed_messages(with_categories=true) %}
             {% if messages %}
-                {% for category, message in messages %}
-                    <div class="message flash-{{ category }}">
-                        <i class="fas fa-{{ 'check-circle' if category == 'success' else ('exclamation-circle' if category == 'error' else 'info-circle') }}"></i>
-                        {{ message | safe }}
-                    </div>
-                {% endfor %}
+                <div class="message-container">
+                    {% for category, message in messages %}
+                        <div class="message flash-{{ category }}">
+                            <i class="fas fa-{{ 'check-circle' if category == 'success' else ('exclamation-circle' if category == 'error' else 'info-circle') }}"></i>
+                            {{ message | safe }}
+                        </div>
+                    {% endfor %}
+                </div>
             {% endif %}
         {% endwith %}
 
         <div class="header">
             <h1>{{ title }}</h1>
         </div>
-        
+
         {% if user %}
             <div class="welcome-message">
                 <i class="fas fa-user-circle"></i>
-                ようこそ、{{ user.account }}さん
+                {{ user.account }}さん<br><br>
+                このメニューは、スタート時に<br>
+                お渡ししたIDカードのQRコードから、<br>
+                いつでもアクセスできます。
             </div>
         {% endif %}
-        
-        <div class="menu-grid">
-            <a href="{{ url_for('participation_guide') }}" class="menu-item">
-                <i class="fas fa-map-marked-alt"></i>
-                <div class="menu-item-content">
-                    <h3>コースの説明・地図</h3>
-                    <p>コースの説明と地図をご確認いただけます</p>
-                </div>
-            </a>
-            
-            <a href="{{ url_for('app_usage') }}" class="menu-item">
-                <i class="fas fa-mobile-alt"></i>
-                <div class="menu-item-content">
-                    <h3>スタンプラリーアプリの使い方</h3>
-                    <p>アプリの基本的な操作方法を解説しています</p>
-                </div>
-            </a>
-            
-            <a href="{{ url_for('view_stamps') }}" class="menu-item">
-                <i class="fas fa-stamp"></i>
-                <div class="menu-item-content">
-                    <h3>獲得スタンプ確認</h3>
-                    <p>現在までに獲得したスタンプを確認できます</p>
-                </div>
-            </a>
-        </div>
+
+        <a href="{{ url_for('participation_guide') }}" class="menu-item">
+            <i class="fas fa-map-marked-alt"></i>
+            <div class="menu-item-content">
+                <h3>スタンプラリーの参加方法</h3>
+                <p>スタンプラリーの参加方法とコースの地図を確認できます</p>
+            </div>
+        </a>
+
+        <a href="{{ url_for('app_usage') }}" class="menu-item">
+            <i class="fas fa-mobile-alt"></i>
+            <div class="menu-item-content">
+                <h3>スタンプラリーアプリの使い方</h3>
+                <p>アプリの基本的な操作方法を確認できます</p>
+            </div>
+        </a>
+
+        <a href="{{ url_for('view_stamps') }}" class="menu-item">
+            <i class="fas fa-stamp"></i>
+            <div class="menu-item-content">
+                <h3>獲得スタンプ確認</h3>
+                <p>獲得済みのスタンプを確認できます</p>
+            </div>
+        </a>
     </div>
 </body>
 </html>
