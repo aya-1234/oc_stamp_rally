@@ -117,9 +117,9 @@
         <button class="button" data-target="Discrepancy_btn">クイズ不一致エラー 発生履歴</button>
         <button class="button" data-target="Answer_Management_btn">クイズ回答管理</button>
         <button class="button" data-target="Survey_response_management_btn">アンケート回答管理</button>
-        <button class="button" data-target="survey_btn">アンケート管理</button>
-        <button class="button" data-target="quiz_btn">クイズ管理</button>
-        <button class="button" data-target="checkpoint_btn">チェックポイント管理</button>
+        {#<button class="button" data-target="survey_btn">アンケート管理</button>#}
+        {#<button class="button" data-target="quiz_btn">クイズ管理</button>#}
+        {#<button class="button" data-target="checkpoint_btn">チェックポイント管理</button>#}
     </div>
     <script>
         const buttons = document.querySelectorAll('.button');
@@ -1106,7 +1106,7 @@ async function deleteStamp(stampId) {
         </div>
     </div>
 
-    <!-- アンケート管理セクション -->
+    <!-- アンケート管理セクション 
     <div class="section">
         <div class="section-header">
             <div class="section-content content-hidden active" id="survey_btn"></div>
@@ -1116,7 +1116,7 @@ async function deleteStamp(stampId) {
                     CSVダウンロード
                 </button>
                 <form method="GET" action="/{{ admin_hash }}" class="search-form">
-                    <!-- 他の検索パラメータを維持 -->
+                     他の検索パラメータを維持 
                     {% if search_query %}
                     <input type="hidden" name="search" value="{{ search_query }}">
                     {% endif %}
@@ -1134,7 +1134,7 @@ async function deleteStamp(stampId) {
             </div>
         </div>
     
-    <!-- アンケート追加フォーム -->
+     アンケート追加フォーム 
     <div class="survey-form">
         <h3>新規アンケート追加</h3>
         <form id="addSurveyForm" onsubmit="return addSurvey(event)">
@@ -1180,7 +1180,7 @@ async function deleteStamp(stampId) {
         </form>
     </div>
 
-    <!-- アンケート一覧 -->
+    <!-- アンケート一覧 
     <div class="table-container">
         <table>
             <thead>
@@ -1188,7 +1188,7 @@ async function deleteStamp(stampId) {
                     <th>チェックポイント</th>
                     <th>順序</th>
                     <th>質問/見出し</th>
-                    <th>必須</th><!-- 新しい列 -->
+                    <th>必須</th><!-- 新しい列 
                     <th>種類</th>
                     <th>選択肢</th>
                     <th>操作</th>
@@ -1237,7 +1237,7 @@ async function deleteStamp(stampId) {
         </table>
     </div>
 
-    <!-- ページネーション -->
+     ページネーション 
     <div class="pagination">
         {% if surveys_pagination.has_prev %}
             <a href="{{ url_for('admin_panel', 
@@ -1272,7 +1272,7 @@ async function deleteStamp(stampId) {
         {% endif %}
     </div>
 </div>
-
+-->
 <style>
 
 .required-badge {
@@ -1383,7 +1383,7 @@ async function deleteStamp(stampId) {
     cursor: pointer;
 }
 </style>
-
+<!--
 <script>
 // 選択肢の表示/非表示を切り替え
 function toggleChoices() {
@@ -1475,7 +1475,8 @@ document.addEventListener('DOMContentLoaded', function() {
     toggleChoices();
 });
 </script>
-
+-->
+<!--
 <div class="section">
     <div class="section-header">
         <div class="section-content content-hidden active" id="quiz_btn"></div>
@@ -1485,7 +1486,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 CSVダウンロード
             </button>
             <form method="GET" action="/{{ admin_hash }}" class="search-form">
-                <!-- 他の検索パラメータを維持 -->
+                <!-- 他の検索パラメータを維持 
                 {% if search_query %}
                 <input type="hidden" name="search" value="{{ search_query }}">
                 {% endif %}
@@ -1503,7 +1504,7 @@ document.addEventListener('DOMContentLoaded', function() {
         </div>
     </div>
 
-    <!-- クイズ追加フォーム -->
+     クイズ追加フォーム 
     <div class="quiz-form">
         <h3>新規クイズ追加</h3>
         <form id="addQuizForm" onsubmit="return addQuiz(event)">
@@ -1555,7 +1556,7 @@ document.addEventListener('DOMContentLoaded', function() {
         </form>
     </div>
 
-    <!-- クイズ一覧 -->
+    <!-- クイズ一覧 
     <div class="table-container">
         <table>
             <thead>
@@ -1605,7 +1606,7 @@ document.addEventListener('DOMContentLoaded', function() {
         </table>
     </div>
 
-    <!-- ページネーション -->
+    <!-- ページネーション 
     <div class="pagination">
         {% if quizzes_pagination.has_prev %}
             <a href="{{ url_for('admin_panel', 
@@ -1755,7 +1756,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 </script>
 
-    <!-- 追加のスタイル -->
+ 追加のスタイル -->
     <style>
         .section-header {
             display: flex;
@@ -1827,7 +1828,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     </script>
 
-    <!-- チェックポイント管理セクション -->
+    <!-- チェックポイント管理セクション 
     <div class="section">
         <div class="section-header">
             <div class="section-content content-hidden active" id="checkpoint_btn"></div>
@@ -1861,6 +1862,7 @@ document.addEventListener('DOMContentLoaded', function() {
             {% endfor %}
         </table>
     </div>
+    -->
     <script>
         let autoReloadEnabled = true;
         const RELOAD_INTERVAL = 30;
