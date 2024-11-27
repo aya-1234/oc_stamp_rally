@@ -1,5 +1,9 @@
 #!/bin/bash
 
+# 環境変数の設定
+export PATH="/opt/bitnami/git/bin:/opt/bitnami/node/bin:/opt/bitnami/apache/bin:$PATH"
+export HOME="/home/bitnami"
+
 # Log file settings
 LOG_FILE="/home/bitnami/deploy.log"
 
@@ -9,10 +13,21 @@ log_message() {
 }
 
 # Move to application directory
-cd /home/bitnami/Stamp-rally-Digital
+cd /home/bitnami/Stamp-rally-Digital 2>> "$LOG_FILE" || {
+    log_message "Failed to change directory"
+    exit 1
+}
+
+# Add debugging information
+log_message "Current user: $(whoami)"
+log_message "Working directory: $(pwd)"
+log_message "Git remote: $(git remote -v)"
 
 # Check remote changes
-git fetch origin initial
+git fetch origin main 2>> "$LOG_FILE" || {
+    log_message "Failed to fetch from remote"
+    exit 1
+}
 
 UPSTREAM=${1:-'@{u}'}
 LOCAL=$(git rev-parse @)
@@ -25,7 +40,7 @@ elif [ $LOCAL = $BASE ]; then
     log_message "Updates detected. Starting deployment..."
     
     # Pull changes with error handling
-    if git pull origin main; then
+    if git pull origin initial; then
         log_message "git pull successful"
         
         # Restart application with timeout
