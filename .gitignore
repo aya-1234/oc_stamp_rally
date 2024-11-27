@@ -56,3 +56,4 @@ coverage.xml
 app/instance/data.db
 .DS_Store
 *:Zone.Identifier
+app.log
