@@ -36,9 +36,9 @@ fi
 export PYTHONPATH=$PYTHONPATH:/home/bitnami/Stamp-rally-Digital/app
 export FLASK_ENV=production
 
-# アプリケーションの起動
+# アプリケーションの起動（絶対パスを使用）
 log_message "Starting application..."
-nohup python run_prod.py > "$LOG_FILE" 2>&1 &
+/opt/bitnami/python/bin/python /home/bitnami/Stamp-rally-Digital/app/run_prod.py > "$LOG_FILE" 2>&1 &
 
 # プロセスの起動確認
 sleep 5

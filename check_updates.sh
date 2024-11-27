@@ -1,8 +1,9 @@
 #!/bin/bash
 
-# 環境変数の設定
-export PATH="/opt/bitnami/git/bin:/opt/bitnami/node/bin:/opt/bitnami/apache/bin:$PATH"
-export HOME="/home/bitnami"
+# 環境変数の設定を追加
+export PYTHONPATH=/home/bitnami/Stamp-rally-Digital/app
+export PATH="/opt/bitnami/python/bin:/opt/bitnami/git/bin:/opt/bitnami/node/bin:/opt/bitnami/apache/bin:$PATH"
+export FLASK_ENV=production
 
 # Log file settings
 LOG_FILE="/home/bitnami/deploy.log"
@@ -44,14 +45,14 @@ elif [ $LOCAL = $BASE ]; then
         log_message "git pull successful"
         
         # アプリケーション再起動前の状態をログ
-        log_message "Current running processes: $(ps aux | grep node)"
+        log_message "Current running processes: $(ps aux | grep python)"
 
-        # start_app.shの出力もログに記録
-        if timeout 300 bash start_app.sh >> "$LOG_FILE" 2>&1; then
+        # start_app.shの実行部分を修正
+        if timeout 300 bash -c 'cd /home/bitnami/Stamp-rally-Digital && bash start_app.sh' >> "$LOG_FILE" 2>&1; then
             log_message "Application restart successful"
             # 起動後の状態確認
-            log_message "Process status after restart: $(ps aux | grep node)"
-            log_message "Port status: $(netstat -tulpn 2>/dev/null | grep node)"
+            log_message "Process status after restart: $(ps aux | grep python)"
+            log_message "Port status: $(netstat -tulpn 2>/dev/null | grep :8888)"
         elif [ $? -eq 124 ]; then
             log_message "Application restart timed out after 5 minutes"
         else
