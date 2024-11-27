@@ -39,8 +39,8 @@ if [ $LOCAL = $REMOTE ]; then
 elif [ $LOCAL = $BASE ]; then
     log_message "Updates detected. Starting deployment..."
     
-    # Pull changes with error handling
-    if git pull origin initial; then
+    # Pull changes with merge strategy specified
+    if git -c pull.rebase=false pull origin initial; then
         log_message "git pull successful"
         
         # Restart application with timeout
