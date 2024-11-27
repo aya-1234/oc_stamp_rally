@@ -1330,6 +1330,109 @@
                 width: 95%;
             }
         }
+
+        @media screen and (max-width: 768px) {
+    /* 統計カードのレイアウト */
+        .total-stats {
+            grid-template-columns: 1fr;
+            gap: 15px;
+        }
+
+        /* グラフコンテナの調整 */
+        .chart-container {
+            height: 300px;
+            margin: 15px 0;
+        }
+
+        /* 進行状況マップの調整 */
+        .map-container {
+            padding-left: 60px;
+            margin: 10px 0;
+        }
+
+        .y-axis {
+            width: 60px;
+        }
+
+        .y-label {
+            font-size: 10px;
+            padding: 2px;
+        }
+
+        .x-label {
+            transform: rotate(-45deg) translateX(-50%);
+            font-size: 10px;
+            width: 60px;
+            text-align: right;
+        }
+
+        /* フィルターセクションの調整 */
+        .filter-section {
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .filter-section select,
+        .filter-section input {
+            width: 100%;
+            margin: 5px 0;
+        }
+
+        /* テーブルのスクロール対応 */
+        .table-container {
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        table {
+            min-width: 600px;
+        }
+
+        /* ヘッダー要素の調整 */
+        h1 {
+            font-size: 20px;
+            margin: 15px 0;
+        }
+
+        h2 {
+            font-size: 18px;
+            margin: 12px 0;
+        }
+
+        /* 更新ステータスバーの調整 */
+        #reload-status {
+            position: fixed;
+            bottom: 0;
+            top: auto;
+            width: 100%;
+            transform: none;
+            left: 0;
+            border-radius: 0;
+            padding: 10px;
+        }
+
+        .reload-content {
+            grid-template-columns: 1fr;
+            gap: 10px;
+        }
+
+        .update-controls {
+            flex-direction: column;
+            gap: 5px;
+        }
+    }
+
+    /* タッチデバイス用の調整 */
+    @media (hover: none) {
+        .data-point {
+            width: 16px;
+            height: 16px;
+        }
+
+        .choice:hover {
+            background-color: transparent;
+        }
+    }
     </style>
 
 </body>

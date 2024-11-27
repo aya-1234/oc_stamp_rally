@@ -256,6 +256,76 @@
 }
 
 /* 既存のスタイルは維持 */
+@media screen and (max-width: 768px) {
+    /* 全体のレイアウト調整 */
+    .container {
+        padding: 10px;
+    }
+
+    /* テーブルのレスポンシブ化 */
+    .table-container {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        margin: 0 -10px;
+        padding: 0 10px;
+    }
+
+    /* ヘッダーの調整 */
+    .admin-header {
+        flex-direction: column;
+        gap: 10px;
+        padding: 15px;
+    }
+
+    /* ボタングループの調整 */
+    .buttons {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 10px;
+        padding: 10px;
+    }
+
+    .button {
+        width: 100%;
+        padding: 12px;
+        font-size: 14px;
+        white-space: nowrap;
+    }
+
+    /* フォーム要素の調整 */
+    .form-group {
+        margin-bottom: 15px;
+    }
+
+    input[type="text"],
+    input[type="number"],
+    select,
+    textarea {
+        width: 100%;
+        padding: 10px;
+        font-size: 16px; /* iOSでズームを防ぐ */
+    }
+
+    /* モーダル調整 */
+    .modal-content {
+        width: 90%;
+        max-width: none;
+        margin: 20px;
+    }
+
+    /* ページネーションの調整 */
+    .pagination {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 5px;
+        justify-content: center;
+    }
+
+    .pagination a {
+        padding: 8px 12px;
+        min-width: 40px;
+    }
+}
 </style>
 
 <script>
