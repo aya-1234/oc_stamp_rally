@@ -13,3 +13,9 @@ pip install -r requirements.txt
 ```
 tail -f /home/bitnami/deploy.log
 ```
+
+## crontabの確認
+
+```
+crontab -l
+```
