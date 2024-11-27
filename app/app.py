@@ -1696,15 +1696,16 @@ def handle_survey(checkpoint_id):
         return redirect(url_for('view_stamps'))
 
 def validate_survey_responses(user, questions, request_form):
-    """アンケート回答のバリデーション"""
     responses = []
+    unanswered_questions = []
     form_data = {}
-    all_questions_answered = True
+
+    # アカウントの5桁目が'A'かどうかをチェック
     is_type_a_user = len(user.account) >= 5 and user.account[4] == 'A'
 
     for question in questions:
         if question.survey_choices:
-            selected_choice_id = request_form.get(f'question_{question.id}')
+            selected_choice_id = request_form.get(f'question_{question.id}')  # request_formを使用
             if selected_choice_id:
                 form_data[f'question_{question.id}'] = selected_choice_id
                 responses.append(Survey_Response(
@@ -1712,13 +1713,19 @@ def validate_survey_responses(user, questions, request_form):
                     survey_id=question.id,
                     value=selected_choice_id
                 ))
+            
+            # 必須回答チェックの修正
+            is_aop_question = '（AOP）' in question.question
+            if is_type_a_user:
+                # Aユーザーの場合、（AOP）マーカーがある質問は任意、それ以外は必須
+                if not selected_choice_id and not is_aop_question:
+                    unanswered_questions.append(question.question)
             else:
-                is_required = is_type_a_user or ('（回答必須）' in question.question)
-                if is_required:
-                    all_questions_answered = False
-                    break
+                # 通常ユーザーは従来通り（回答必須）の質問のみ必須
+                if '（回答必須）' in question.question and not selected_choice_id:
+                    unanswered_questions.append(question.question)
 
-    return responses, form_data, all_questions_answered
+    return responses, unanswered_questions, form_data
 
 # スタートポイントのアンケート画面
 def start_survey(checkpoint_id):
@@ -1744,6 +1751,7 @@ def start_survey(checkpoint_id):
             is_type_a_user = len(user.account) >= 5 and user.account[4] == 'A'
 
             # すべての質問をチェック
+            # すべての質問をチェック部分の修正
             for question in questions:
                 if question.survey_choices:
                     selected_choice_id = request.form.get(f'question_{question.id}')
@@ -1755,12 +1763,17 @@ def start_survey(checkpoint_id):
                             value=selected_choice_id
                         ))
                     else:
-                        # Aユーザーは全質問必須、それ以外は通常の必須チェック
-                        is_required = is_type_a_user or ('（回答必須）' in question.question)
-                        if is_required:
-                            all_questions_answered = False
-                            break
-
+                        is_aop_question = '（AOP）' in question.question
+                        if is_type_a_user:
+                            # Aユーザーの場合、（AOP）マーカーがある質問は任意、それ以外は必須
+                            if not is_aop_question:
+                                all_questions_answered = False
+                                break
+                        else:
+                            # 通常ユーザーは必須マークがある質問のみ必須
+                            if '（回答必須）' in question.question:
+                                all_questions_answered = False
+                                break
             # 必要な質問に全て回答済みの場合のみ処理を進める
             if all_questions_answered:
                 db.session.add_all(responses)
