@@ -51,3 +51,6 @@ htmlcov/
 nosetests.xml
 coverage.xml
 *.cover
+
+# Database
+app/instance/data.db
