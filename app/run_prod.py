@@ -11,6 +11,7 @@ logging.basicConfig(
 )
 
 if __name__ == '__main__':
+
     try:
         logging.info("Starting Flask application...")
         app.run(debug=False, host="0.0.0.0", port=8888, threaded=True)
