@@ -17,25 +17,29 @@ git fetch origin initial
 UPSTREAM=${1:-'@{u}'}
 LOCAL=$(git rev-parse @)
 REMOTE=$(git rev-parse "$UPSTREAM")
+BASE=$(git merge-base @ "$UPSTREAM")
 
-if [ $LOCAL != $REMOTE ]; then
+if [ $LOCAL = $REMOTE ]; then
+    log_message "No updates detected"
+elif [ $LOCAL = $BASE ]; then
     log_message "Updates detected. Starting deployment..."
     
-    # Pull changes
-    git pull origin initial
-    if [ $? -eq 0 ]; then
+    # Pull changes with error handling
+    if git pull origin main; then
         log_message "git pull successful"
         
-        # Restart application
-        bash start_app.sh
+        # Restart application with timeout
+        timeout 300 bash start_app.sh
         if [ $? -eq 0 ]; then
             log_message "Application restart successful"
+        elif [ $? -eq 124 ]; then
+            log_message "Application restart timed out after 5 minutes"
         else
-            log_message "Application restart failed"
+            log_message "Application restart failed with error code $?"
         fi
     else
-        log_message "git pull failed"
+        log_message "git pull failed with error code $?"
     fi
 else
-    log_message "No updates detected"
+    log_message "Diverged from remote. Manual intervention required"
 fi 
