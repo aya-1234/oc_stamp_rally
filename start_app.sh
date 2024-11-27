@@ -1,17 +1,20 @@
 #!/bin/bash
 
-# スクリプトを実行するディレクトリに移動
+# Change to application directory
 cd /home/bitnami/Stamp-rally-Digital/app
 
-# 既存のプロセスを確認
+# Check existing process
 PID=$(pgrep -f "python run_prod.py")
 
 if [ ! -z "$PID" ]; then
-    echo "既存のアプリケーションを停止します (PID: $PID)"
+    echo "Stopping existing application (PID: $PID)"
     kill $PID
-    sleep 2  # プロセスが完全に終了するまで少し待機
+    sleep 2  # Wait for process to terminate
 fi
 
-# Pythonスクリプトをnohupで実行し、ログを出力
+# Set PYTHONPATH to include current directory
+export PYTHONPATH=$PYTHONPATH:/home/bitnami/Stamp-rally-Digital/app
+
+# Run Python script with nohup and log output
 nohup python run_prod.py > app.log 2>&1 &
-echo "アプリケーションを再起動しました。ログは app.log に保存されています。"
+echo "Application restarted. Logs saved to app.log"
