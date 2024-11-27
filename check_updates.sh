@@ -44,7 +44,7 @@ elif [ $LOCAL = $BASE ]; then
         log_message "git pull successful"
         
         # Restart application with timeout
-        timeout 300 bash start_app.sh
+        timeout 300 bash /home/bitnami/Stamp-rally-Digital/start_app.sh
         if [ $? -eq 0 ]; then
             log_message "Application restart successful"
         elif [ $? -eq 124 ]; then
