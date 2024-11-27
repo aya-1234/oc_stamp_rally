@@ -24,6 +24,8 @@ if __name__ == '__main__':
             logging.info("Existing data.db file was removed")
         except Exception as e:
             logging.error(f"Error removing data.db: {str(e)}")
+    else:
+        logging.info("No existing data.db file found")
 
 
 
