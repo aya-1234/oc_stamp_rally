@@ -24,7 +24,7 @@ log_message "Working directory: $(pwd)"
 log_message "Git remote: $(git remote -v)"
 
 # Check remote changes
-git fetch origin main 2>> "$LOG_FILE" || {
+git fetch origin initial 2>> "$LOG_FILE" || {
     log_message "Failed to fetch from remote"
     exit 1
 }
