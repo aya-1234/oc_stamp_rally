@@ -58,3 +58,4 @@ app/instance/data.db
 *:Zone.Identifier
 app.log
 .DS_Store
+deploy.log
