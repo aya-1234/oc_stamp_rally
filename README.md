@@ -19,5 +19,3 @@ tail -f /home/bitnami/deploy.log
 ```
 crontab -l
 ```
-
-軽微な変更のテスト。
