@@ -12,6 +12,19 @@ logging.basicConfig(
 
 if __name__ == '__main__':
     
+    import os
+    
+    # data.dbファイルのパスを設定
+    db_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "instance", "data.db")
+    
+    # ファイルが存在する場合は削除
+    if os.path.exists(db_path):
+        try:
+            os.remove(db_path)
+            logging.info("Existing data.db file was removed")
+        except Exception as e:
+            logging.error(f"Error removing data.db: {str(e)}")
+
 
 
     try:
