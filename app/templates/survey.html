@@ -77,10 +77,18 @@
             <form method="post" id="surveyForm" onsubmit="return validateForm()">
                 {% for question in questions %}
                     <div class="question-container" id="question-{{ question.id }}">
-                        <p class="question-text {% if '（回答必須）' in question.question %}required{% endif %}">
+                        <p class="question-text {% if question.survey_choices and ((is_type_a_user and not '（AOP）' in question.question) or (not is_type_a_user and '（回答必須）' in question.question)) %}required{% endif %}">
                             {{ question.question }}
-                            {% if '（回答必須）' in question.question %}
-                                <span class="required-badge">必須</span>
+                            {% if question.survey_choices %}
+                                {% if is_type_a_user %}
+                                    {% if not '（AOP）' in question.question %}
+                                        <span class="required-badge">必須</span>
+                                    {% endif %}
+                                {% else %}
+                                    {% if '（回答必須）' in question.question %}
+                                        <span class="required-badge">必須</span>
+                                    {% endif %}
+                                {% endif %}
                             {% endif %}
                         </p>
                         {% if question.survey_choices %}
@@ -329,28 +337,38 @@
             const questionText = question.querySelector('.question-text');
             const radios = question.querySelectorAll('input[type="radio"]');
             
+            // 選択肢がある質問のみをチェック
             if (radios.length > 0) {
                 const answered = Array.from(radios).some(radio => radio.checked);
                 if (!answered) {
+                    const isAOPQuestion = questionText.textContent.includes('（AOP）');
                     if (isTypeAUser) {
-                        allAnswered = false;
-                        unansweredRequired.push(question.id);
-                    } else if (questionText.textContent.includes('（回答必須）')) {
-                        allAnswered = false;
-                        unansweredRequired.push(question.id);
+                        // Aユーザーの場合、（AOP）マーカーがない質問は必須
+                        if (!isAOPQuestion) {
+                            allAnswered = false;
+                            unansweredRequired.push(question.id);
+                        }
+                    } else {
+                        // 通常ユーザーは（回答必須）の質問のみ必須
+                        if (questionText.textContent.includes('（回答必須）')) {
+                            allAnswered = false;
+                            unansweredRequired.push(question.id);
+                        }
                     }
                 }
             }
         });
 
         if (!allAnswered) {
-            // 送信ボタンが押された時にのみフィルターボタンを表示
-            if (!isNormalCheckpoint && !isTypeAUser && !filterButtonCreated) {
+            // フィルターボタンを表示する条件を修正
+            // 通常ユーザーの場合のみフィルターボタンを表示
+            if (!isTypeAUser && !filterButtonCreated) {
                 createFilterButton();
                 filterButtonCreated = true;
                 document.getElementById('confirmModal').style.display = 'block';
             }
             
+            // 未回答の質問をハイライトして最初の未回答質問までスクロール
             highlightUnansweredQuestions(unansweredRequired);
             return false;
         }
@@ -363,14 +381,27 @@
 
     function highlightUnansweredQuestions(unansweredRequired) {
         if (unansweredRequired.length > 0) {
+            // 既存のハイライトをクリア
+            document.querySelectorAll('.question-container').forEach(q => {
+                q.classList.remove('highlight');
+            });
+            
+            // 新しくハイライトを追加
             unansweredRequired.forEach(id => {
                 const question = document.getElementById(id);
-                question.classList.add('highlight');
+                if (question) {
+                    question.classList.add('highlight');
+                }
             });
-            document.getElementById(unansweredRequired[0]).scrollIntoView({
-                behavior: 'smooth',
-                block: 'center'
-            });
+
+            // 最初の未回答質問までスクロール
+            const firstUnanswered = document.getElementById(unansweredRequired[0]);
+            if (firstUnanswered) {
+                firstUnanswered.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'center'
+                });
+            }
         }
     }
 
@@ -457,26 +488,27 @@
         let isFiltered = false;
         const filterButton = document.getElementById('filterButton');
         const confirmModal = document.getElementById('confirmModal');
-
-        filterButton.addEventListener('click', () => {
-            if (isFiltered) {
-                const questions = document.querySelectorAll('.question-container');
-                questions.forEach(question => {
-                    question.classList.remove('hidden');
-                });
-                filterButton.textContent = '必須項目のみ表示';
-                isFiltered = false;
-            } else {
-                confirmModal.style.display = 'block';
-            }
-        });
+        const userAccount = '{{ user.account }}';
+        const isTypeAUser = userAccount.length >= 5 && userAccount[4] === 'A';
 
         document.getElementById('confirmYes').addEventListener('click', () => {
             const questions = document.querySelectorAll('.question-container');
             questions.forEach(question => {
                 const questionText = question.querySelector('.question-text');
-                if (!questionText.textContent.includes('（回答必須）')) {
-                    question.classList.add('hidden');
+                const hasChoices = question.querySelector('.choice-container') !== null;
+                
+                if (hasChoices) {  // 選択肢がある質問のみを対象にする
+                    if (isTypeAUser) {
+                        // Aユーザーの場合、（AOP）がある質問を非表示
+                        if (questionText.textContent.includes('（AOP）')) {
+                            question.classList.add('hidden');
+                        }
+                    } else {
+                        // 通常ユーザーの場合、（回答必須）がない質問を非表示
+                        if (!questionText.textContent.includes('（回答必須）')) {
+                            question.classList.add('hidden');
+                        }
+                    }
                 }
             });
             filterButton.textContent = '全ての質問を表示';
