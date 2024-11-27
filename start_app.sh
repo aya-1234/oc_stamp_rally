@@ -18,35 +18,42 @@ cd /home/bitnami/Stamp-rally-Digital/app || {
     exit 1
 }
 
-# 既存のプロセスをチェックして終了
-PID=$(pgrep -f "python run_prod.py")
-if [ ! -z "$PID" ]; then
-    log_message "Stopping existing application (PID: $PID)"
-    kill $PID
-    sleep 5  # プロセスの終了を待つ時間を増やす
-    
-    # プロセスが終了したか確認
-    if kill -0 $PID 2>/dev/null; then
-        log_message "Force killing application"
-        kill -9 $PID
-    fi
-fi
+# 環境情報のログ出力
+log_message "Current directory: $(pwd)"
+log_message "Python version: $(/opt/bitnami/python/bin/python --version 2>&1)"
+log_message "PYTHONPATH: $PYTHONPATH"
+
+# 既存のプロセスをすべて終了
+pkill -f "python run_prod.py"
+sleep 5
 
 # 環境変数の設定
-export PYTHONPATH=$PYTHONPATH:/home/bitnami/Stamp-rally-Digital/app
+export PYTHONPATH=/home/bitnami/Stamp-rally-Digital/app
 export FLASK_ENV=production
+export PATH="/opt/bitnami/python/bin:$PATH"
 
-# アプリケーションの起動（絶対パスを使用）
+# アプリケーションの起動（エラー出力を詳細に記録）
 log_message "Starting application..."
-/opt/bitnami/python/bin/python /home/bitnami/Stamp-rally-Digital/app/run_prod.py > "$LOG_FILE" 2>&1 &
+/opt/bitnami/python/bin/python /home/bitnami/Stamp-rally-Digital/app/run_prod.py >> "$LOG_FILE" 2>&1 &
+APP_PID=$!
 
-# プロセスの起動確認
+# プロセスの起動確認（より詳細なチェック）
 sleep 5
-NEW_PID=$(pgrep -f "python run_prod.py")
-if [ ! -z "$NEW_PID" ]; then
-    log_message "Application started successfully (PID: $NEW_PID)"
-    exit 0
+if ps -p $APP_PID > /dev/null; then
+    if netstat -tuln | grep ":8888 " > /dev/null; then
+        log_message "Application started successfully (PID: $APP_PID)"
+        log_message "Port 8888 is now listening"
+        exit 0
+    else
+        log_message "Process is running but port 8888 is not listening"
+        log_message "Last 10 lines of application log:"
+        tail -n 10 "$LOG_FILE" >> "$LOG_FILE"
+        kill $APP_PID
+        exit 1
+    fi
 else
-    log_message "Failed to start application"
+    log_message "Process failed to start. Last 10 lines of application log:"
+    tail -n 10 "$LOG_FILE" >> "$LOG_FILE"
+    log_message "Process status: $(ps aux | grep python)"
     exit 1
 fi

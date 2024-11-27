@@ -1,4 +1,13 @@
 from app import app
-    #データベースの設定やテストデータの挿入に何か知らのコードを追加するなど、変更を加えたらdata.dbのファイルを削除して再度実行。
+import sys
+import traceback
+
 if __name__ == '__main__':
-    app.run(debug=True, host="0.0.0.0", port=8888, threaded=True)  
+    try:
+        print("Starting Flask application...")
+        app.run(debug=False, host="0.0.0.0", port=8888, threaded=True)
+    except Exception as e:
+        print(f"Error starting application: {str(e)}")
+        print("Traceback:")
+        traceback.print_exc()
+        sys.exit(1)
