@@ -14,7 +14,7 @@ if __name__ == '__main__':
 
     try:
         logging.info("Starting Flask application...")
-        app.run(debug=False, host="0.0.0.0", port=8888, threaded=True)
+        app.run(debug=False, host="0.0.0.0", port=80, threaded=True)
     except Exception as e:
         logging.error(f"Error starting application: {str(e)}")
         logging.error("Traceback:")
