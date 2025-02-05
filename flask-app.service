@@ -1,0 +1,14 @@
+[Unit]
+Description=Flask Application Service
+After=network.target
+
+[Service]
+User=ubuntu
+WorkingDirectory=/home/ubuntu/Stamp-rally-Digital/app
+Environment="PATH=/home/ubuntu/Stamp-rally-Digital/app/venv/bin"
+ExecStart=/home/ubuntu/Stamp-rally-Digital/app/venv/bin/python run_prod.py
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target
