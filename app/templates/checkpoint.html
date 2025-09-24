@@ -142,12 +142,16 @@
 
     <p>{{ checkpoint.description | replace('<br>', '\n') }}</p>
 
-    {% if total_quizzes > 0 %}
+    <!-- {% if total_quizzes > 0 %}
         <div class="quiz-info">
             <p>このチェックポイントには {{ total_quizzes }}問のクイズがあります。</p>
-        </div>
+        </div> -->
 
-        <form method="GET" action="{{ url_for('quiz', checkpoint_id=checkpoint.id) }}">
+<!-- url_for('handle_survey', checkpoint_id=checkpoint.id) アンケートバージョン-->
+<!--action="{{ url_for('quiz', checkpoint_id=checkpoint.id) }}" クイズバージョン-->
+<!-- １５６行めの「クイズに挑戦する」の文を「アンケートに回答する」に変更するなど-->
+
+        <form method="GET" action="{{ url_for('handle_survey', checkpoint_id=checkpoint.id) }}">
             <button type="submit" class="submit-button" id="quizButton">
                 クイズに挑戦する
             </button>
