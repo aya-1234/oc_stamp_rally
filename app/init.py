@@ -102,7 +102,7 @@ class Survey_Response(db.Model):
     survey = db.relationship('Survey', backref='responses', lazy=True)
 
 
-# テストデータを追加する関数
+# 本番データを追加する関数
 def initialize_db(app):
     db.init_app(app)
     with app.app_context():
