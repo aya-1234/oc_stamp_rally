@@ -133,7 +133,11 @@ checkpoint_hash_dic = {'ajrwkhlkafsddfd': 1,
                        'gkfcnshvmfjhpdj': 7, 
                        'afsjfnvidngmcjx': 8, 
                        'hhkncfouvmiwoxz': 9,
- 
+                       'hsadhfuoewhfowo': 10,
+                       'njrghoiernvhewo': 11,
+                       'vbgfksghdjfjdkg': 12,
+                       'bhgfkdehdikvgfh': 13, #管理画面
+                       'vgkfeawigeaoggk': 14 #ゴール地点
                        }
 hash_keys = list(checkpoint_hash_dic.keys())
 
@@ -149,9 +153,14 @@ def hello():
 <li><a href="/handle_checkpoint/{hash_keys[4]}">落語みゅーじあむ「５」ログイン</a></li>
 <li><a href="/handle_checkpoint/{hash_keys[5]}">池田城跡公園「６」ログイン</a></li>
 <li><a href="/handle_checkpoint/{hash_keys[6]}">Shokuの店「７」ログイン</a></li>
+<li><a href="/handle_checkpoint/{hash_keys[7]}">Shokuの店「8」ログイン</a></li>
+<li><a href="/handle_checkpoint/{hash_keys[8]}">Shokuの店「9」ログイン</a></li>
+<li><a href="/handle_checkpoint/{hash_keys[9]}">Shokuの店「10」ログイン</a></li>
+<li><a href="/handle_checkpoint/{hash_keys[10]}">Shokuの店「11」ログイン</a></li>
+<li><a href="/handle_checkpoint/{hash_keys[11]}">Shokuの店「12」ログイン</a></li>
 
-<li><a href="/handle_checkpoint/{hash_keys[7]}">ゴールポイント「８」ログイン</a></li>
-<li><a href="/{hash_keys[8]}">管理画面</a></li>
+<li><a href="/handle_checkpoint/{hash_keys[13]}">ゴールポイント「８」ログイン</a></li>
+<li><a href="/{hash_keys[12]}">管理画面</a></li>
 </ul>
 '''
     return output
@@ -213,7 +222,7 @@ def remove_resolved_checkpoint(user_id, checkpoint_name):
 
 # 管理画面
 # 管理画面のメインページ
-@app.route(f'/{hash_keys[8]}')
+@app.route(f'/{hash_keys[12]}')
 def admin_panel():
     #ログイン管理
     # ページネーションのパラメータを取得
@@ -513,7 +522,7 @@ def admin_panel():
         surveys_pagination=surveys_pagination,  # surveysをsurveys_paginationに変更
         survey_choices=survey_choices,
         quizzes=quizzes,
-        admin_hash=hash_keys[8],
+        admin_hash=hash_keys[12],
         search_query=search_query,
         stamps=formatted_stamps,
         stamps_pagination=stamps_pagination,
@@ -531,7 +540,7 @@ def admin_panel():
     )
 
 # クイズ追加のAPI
-@app.route(f'/{hash_keys[8]}/add_quiz', methods=['POST'])
+@app.route(f'/{hash_keys[12]}/add_quiz', methods=['POST'])
 def add_quiz():
     try:
         checkpoint_id = request.form.get('checkpoint_id')
@@ -580,7 +589,7 @@ def add_quiz():
         return jsonify({'error': str(e)}), 500
 
 # クイズ削除のAPI
-@app.route(f'/{hash_keys[8]}/delete_quiz/<int:quiz_id>', methods=['POST'])
+@app.route(f'/{hash_keys[12]}/delete_quiz/<int:quiz_id>', methods=['POST'])
 def delete_quiz(quiz_id):
     try:
         # まず対象のクイズが存在するか確認
@@ -624,7 +633,7 @@ def delete_quiz(quiz_id):
         }), 500
 
 # ログインフラグの更新API
-@app.route(f'/{hash_keys[8]}/update_login', methods=['POST'])
+@app.route(f'/{hash_keys[12]}/update_login', methods=['POST'])
 def update_login_flag():
     login_id = request.form.get('login_id')
     flag_name = request.form.get('flag')
@@ -647,7 +656,7 @@ def update_login_flag():
     })
 
 # チェックポイントタイプの更新API
-@app.route(f'/{hash_keys[8]}/update_checkpoint', methods=['POST'])
+@app.route(f'/{hash_keys[12]}/update_checkpoint', methods=['POST'])
 def update_checkpoint_type():
     checkpoint_id = request.form.get('checkpoint_id')
     new_type = request.form.get('type')
@@ -669,7 +678,7 @@ def update_checkpoint_type():
     })
 
 # アンケート追加のAPIを修正
-@app.route(f'/{hash_keys[8]}/add_survey', methods=['POST'])
+@app.route(f'/{hash_keys[12]}/add_survey', methods=['POST'])
 def add_survey():
     try:
         checkpoint_id = request.form.get('checkpoint_id')
@@ -718,7 +727,7 @@ def add_survey():
         return jsonify({'error': str(e)}), 500
 
 # アンケート削除のAPI
-@app.route(f'/{hash_keys[8]}/delete_survey/<int:survey_id>', methods=['POST'])
+@app.route(f'/{hash_keys[12]}/delete_survey/<int:survey_id>', methods=['POST'])
 def delete_survey(survey_id):
     try:
         # まず関連する回答を削除
@@ -745,7 +754,7 @@ def delete_survey(survey_id):
 # スタンプ管理のための追加ルート
 
 # ユーザー検索API
-@app.route(f'/{hash_keys[8]}/search_users', methods=['GET'])
+@app.route(f'/{hash_keys[12]}/search_users', methods=['GET'])
 def search_users():
     search_query = request.args.get('query', '')
     if not search_query:
@@ -770,7 +779,7 @@ def search_users():
     
 
 # スタンプ記録の取得API
-@app.route(f'/{hash_keys[8]}/get_stamps', methods=['GET'])
+@app.route(f'/{hash_keys[12]}/get_stamps', methods=['GET'])
 def get_stamps():
     user_id = request.args.get('user_id')
     if not user_id:
@@ -803,7 +812,7 @@ def get_stamps():
         return jsonify({'error': str(e)}), 500
 
 # スタンプ追加API
-@app.route(f'/{hash_keys[8]}/add_stamp', methods=['POST'])
+@app.route(f'/{hash_keys[12]}/add_stamp', methods=['POST'])
 def add_stamp():
     try:
         login_id = request.form.get('login_id')
@@ -841,7 +850,7 @@ def add_stamp():
         return jsonify({'error': str(e)}), 500
 
 # スタンプ削除API
-@app.route(f'/{hash_keys[8]}/delete_stamp/<int:stamp_id>', methods=['POST'])
+@app.route(f'/{hash_keys[12]}/delete_stamp/<int:stamp_id>', methods=['POST'])
 def delete_stamp(stamp_id):
     try:
         stamp = Stamp.query.get_or_404(stamp_id)
@@ -858,7 +867,7 @@ def delete_stamp(stamp_id):
         return jsonify({'error': str(e)}), 500
     
 # app.pyに追加する関数
-@app.route(f'/{hash_keys[8]}/error_resolution_stamps')
+@app.route(f'/{hash_keys[12]}/error_resolution_stamps')
 def get_error_resolution_stamps(page=1, search_query='', mismatch_data=None): 
     per_page = 10
   
@@ -918,7 +927,7 @@ def get_error_resolution_stamps(page=1, search_query='', mismatch_data=None):
     )
 
 # CSVエクスポート用の関数を追加
-@app.route(f'/{hash_keys[8]}/export/<table_name>')
+@app.route(f'/{hash_keys[12]}/export/<table_name>')
 def export_csv(table_name):
     try:
         si = StringIO()
@@ -1206,7 +1215,7 @@ def export_csv(table_name):
 
 
 
-@app.route(f'/{hash_keys[8]}/statistics', methods=['GET'])
+@app.route(f'/{hash_keys[12]}/statistics', methods=['GET'])
 def stamp_statistics():
     page = request.args.get('page', 1, type=int)
     per_page = 10
@@ -1292,7 +1301,7 @@ def stamp_statistics():
         search_query=search_query,
         stats_filter=stats_filter,
         sort_order=sort_order,
-        admin_hash=hash_keys[8],
+        admin_hash=hash_keys[12],
         total_stats=total_stats,
         current_page=page,
         debug=app.debug
@@ -1396,13 +1405,13 @@ def get_user_statistics(page=1, per_page=10, search_query='', stats_filter='has_
         goal_exists = db.session.query(Stamp).filter(
             db.and_(
                 Stamp.login_id == Login.id,
-                Stamp.checkpoint_id == 8
+                Stamp.checkpoint_id == 13
             )
         ).exists()
         
         user_stats = user_stats.having(
             db.and_(
-                db.func.count(db.distinct(Stamp.checkpoint_id)) == 8,
+                db.func.count(db.distinct(Stamp.checkpoint_id)) == 13,
                 db.session.query(goal_exists).scalar_subquery()
             )
         )
@@ -1410,7 +1419,7 @@ def get_user_statistics(page=1, per_page=10, search_query='', stats_filter='has_
         user_stats = user_stats.having(
             db.and_(
                 db.func.count(Stamp.id) >= 1,
-                db.func.count(Stamp.id) <= 7
+                db.func.count(Stamp.id) <= 11
             )
         )
     elif stats_filter == 'stamps_1_to_2':
@@ -1446,9 +1455,9 @@ def handle_checkpoint(checkpoint_id_hash):
     
     if checkpoint_id == 1:
         return login(checkpoint)  # チェックポイントオブジェクトを渡す
-    elif 2 <= checkpoint_id <= 7:
+    elif 2 <= checkpoint_id <= 12:
         return checkpoint_login(checkpoint)
-    elif checkpoint_id == 8:
+    elif checkpoint_id == 14:
         return goal_login(checkpoint)
     
     #return redirect(url_for('main_menu'))アンケートが設定されていない場合だが、今回の件ではそんな状況は起きないはずだ。
@@ -1652,7 +1661,7 @@ CHECKPOINT_MESSAGES = {
         "message": "次のアンケートにお答えください。"
     },
 
-    8: {
+    13: {
         "title": "池田おでかけスタンプラリー  アンケート調査（ゴール地点）",
         "message": "本日は「池田おでかけスタンプラリー」にご参加いただき、ありがとうございました。<br>"
 "お楽しみいただけましたでしょうか。<br>"
@@ -1687,9 +1696,10 @@ def handle_survey(checkpoint_id):
 
     if checkpoint_id == 1:
         return start_survey(checkpoint_id)
-    elif 2 <= checkpoint_id <= 7:
+    elif 2 <= checkpoint_id <= 12:
         return checkpoint_survey(checkpoint_id)
-    elif checkpoint_id == 8:
+#　ゴールのIDで、有効化したかったらDBのゴール地点のIDを見て適当な数字を入れる。
+    elif checkpoint_id == 14:
         return goal_survey(user_id, checkpoint_id)
     else:
         flash('無効なチェックポイントIDです。', 'error')
@@ -1902,7 +1912,7 @@ def goal_survey(user_id, checkpoint_id):
         user_id = session.get('user_id')
         if not user_id:
             flash('セッションが切れました。<br>ゴールポイントで再度ログインしてください。', 'error')
-            return redirect(url_for('handle_checkpoint', checkpoint_id_hash=hash_keys[8]))
+            return redirect(url_for('handle_checkpoint', checkpoint_id_hash=hash_keys[12]))
 
     user = Login.query.get_or_404(user_id)
     checkpoint, message_info = get_checkpoint_info(checkpoint_id)
@@ -2322,13 +2332,13 @@ def show_stamps(user_id):
     checkpoints = Checkpoint.query.order_by(Checkpoint.checkpoint_order).all()
     user_stamps = set(stamp.checkpoint_id for stamp in Stamp.query.filter_by(login_id=user_id).all())
 
-    # 必要なチェックポイントのIDセットを修正 (2から7まで)
-    required_checkpoint_ids = set(range(2, 8))  # 2から7までに修正
+    # 必要なチェックポイントのIDセットを修正 (2から12まで)
+    required_checkpoint_ids = set(range(2, 12))  # 2から12までに修正
     
     collected_stamps = len(required_checkpoint_ids.intersection(user_stamps))
     total_required = len(required_checkpoint_ids)  # 6個になります
 
-    goal_checkpoint = Checkpoint.query.filter_by(id=8).first()
+    goal_checkpoint = Checkpoint.query.filter_by(id=13).first()
     
     # ゴールアンケートのアクティブ化条件を厳密化
     active_survey = (collected_stamps >= total_required and 
