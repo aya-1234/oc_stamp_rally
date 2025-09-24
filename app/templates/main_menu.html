@@ -148,6 +148,13 @@
             color: #004085;
         }
 
+        .checkpoint-image {
+            max-width: 100%;
+            margin-bottom: 30px; /* メインメニューとの間隔を30pxに設定 */
+            height: auto;
+            display: block;
+        }
+
         /* レスポンシブデザインのためのメディアクエリ */
         @media (max-width: 768px) {
             .container {
@@ -193,6 +200,11 @@
                 </div>
             {% endif %}
         {% endwith %}
+
+            <!-- 写真の表示 -->
+        <div class="image-container">
+            <img src="{{ url_for('static', filename='images/main_menu.jpg') }}" alt="スタート地点" class="checkpoint-image">
+        </div>
 
         <div class="header">
             <h1>{{ title }}</h1>

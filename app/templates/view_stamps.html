@@ -34,7 +34,8 @@
 
 <div class="stamps-container">
     {% for checkpoint in checkpoints %}
-        <div class="checkpoint-card {% if checkpoint.is_obtained %}obtained{% endif %}">
+        <div class="checkpoint-card {% if checkpoint.is_obtained %}obtained{% endif %}" 
+            data-cp-id="{{ checkpoint.id }}">
             <h3>{{ checkpoint.name }}</h3>
             {% if checkpoint.type == 'start' %}
                 <!-- <span class="badge start">スタート</span> -->
@@ -67,9 +68,28 @@
         background: #f8f8f8;
     }
 
+    /* デフォルト（CP1、ゴールなど） - 最初に定義 */
     .checkpoint-card.obtained {
-        background: #e8f5e9;
-        border-color: #81c784;
+        background: #f6bdf0;
+        border-color: #f866e7;
+    }
+
+    /* CP 2-5 - 緑色 - 後から定義して優先させる */
+    .checkpoint-card.obtained.cp-green {
+        background: #e8f5e9 !important;
+        border-color: #81c784 !important;
+    }
+
+    /* CP 6-9 - オレンジ色 */
+    .checkpoint-card.obtained.cp-orange {
+        background: #fff3e0 !important;
+        border-color: #ffb74d !important;
+    }
+
+    /* CP 10-12 - マゼンタ色 */
+    .checkpoint-card.obtained.cp-magenta {
+        background: #cadff8 !important;
+        border-color: #015cf8 !important;
     }
 
     .status {
@@ -204,6 +224,32 @@
         margin: 30px 0;
         width: 100%;
     }
-
 </style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const checkpointCards = document.querySelectorAll('.checkpoint-card.obtained');
+    
+    checkpointCards.forEach(card => {
+        // data-cp-id属性からIDを取得
+        const cpId = parseInt(card.getAttribute('data-cp-id'));
+        console.log('Checkpoint ID:', cpId); // デバッグ用
+        
+        if (cpId) {
+            // IDに基づいて色クラスを追加
+            if (cpId >= 2 && cpId <= 5) {
+                card.classList.add('cp-green');
+                console.log('Added cp-green to ID:', cpId); // デバッグ用
+            } else if (cpId >= 6 && cpId <= 9) {
+                card.classList.add('cp-orange');
+                console.log('Added cp-orange to ID:', cpId); // デバッグ用
+            } else if (cpId >= 10 && cpId <= 12) {
+                card.classList.add('cp-magenta');
+                console.log('Added cp-magenta to ID:', cpId); // デバッグ用
+            }
+        }
+    });
+});
+</script>
+
 {% endblock %}
