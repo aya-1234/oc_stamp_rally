@@ -19,3 +19,4 @@ tail -f /home/bitnami/deploy.log
 ```
 crontab -l
 ```
+# oc_stamp_rally
