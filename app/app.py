@@ -122,8 +122,14 @@ def shutdown_session(exception=None):
 #エラー対応テーブルもあるよ。
 
 
+# 変更点uchida
+    # hash化
+    # /admin　link
+    # admin関連のroute hash
+    # 
 
 
+# 変更点uchida
 checkpoint_hash_dic = {'ajrwkhlkafsddfd': 1,
                        'syflwdehkejhrsd': 2, 
                        'hgosmcbgdirmagf': 3, 
@@ -137,10 +143,30 @@ checkpoint_hash_dic = {'ajrwkhlkafsddfd': 1,
                        'njrghoiernvhewo': 11,
                        'vbgfksghdjfjdkg': 12,
                        'bhgfkdehdikvgfh': 13, #管理画面
-                       'vgkfeawigeaoggk': 14 #ゴール地点
+                       'vgkfeawigeaoggk': 14,#ゴール地点
+                       'sflasajdfoiahks': 15, 
+                       'dsasdfasdgxccva': 16, 
+                       'ahgjdjegndsrths': 17, 
+                       'kiurdshfgfhjesr': 18,
+                       'ryukdmghdnsfdae': 19,
+                       'naeyrhnghmgjtye': 20,
+                       'ryuitukydsawqsg': 21,
+                       'dsafgahtndaasdf': 22, 
+                       'dsghsrhn5racfdg': 23, 
+                       'ahrsaewehrsbaab': 24, 
+                       'adfghakljmgegfx': 25,
+                       'rategaehrj6hnra': 26,
+                       'sadghrjemnsneag': 27,
+                       'sagehjdnsegaarg': 28,
                        }
 hash_keys = list(checkpoint_hash_dic.keys())
+print("len(hash_keys):", len(hash_keys))
+print("=== DEBUG ===")
+print("len(hash_keys):", len(hash_keys))
+print("hash_keys:", hash_keys)
 
+
+# 変更点uchida
 @app.route('/admin')
 def hello():
     output=f'''
@@ -158,9 +184,25 @@ def hello():
 <li><a href="/handle_checkpoint/{hash_keys[9]}">Shokuの店「10」ログイン</a></li>
 <li><a href="/handle_checkpoint/{hash_keys[10]}">Shokuの店「11」ログイン</a></li>
 <li><a href="/handle_checkpoint/{hash_keys[11]}">Shokuの店「12」ログイン</a></li>
+<li><a href="/handle_checkpoint/{hash_keys[12]}">Shokuの店「12」ログイン</a></li>
+<li><a href="/handle_checkpoint/{hash_keys[13]}">Shokuの店「12」ログイン</a></li>
+<li><a href="/handle_checkpoint/{hash_keys[14]}">Shokuの店「12」ログイン</a></li>
+<li><a href="/handle_checkpoint/{hash_keys[15]}">Shokuの店「12」ログイン</a></li>
+<li><a href="/handle_checkpoint/{hash_keys[16]}">Shokuの店「12」ログイン</a></li>
+<li><a href="/handle_checkpoint/{hash_keys[17]}">Shokuの店「12」ログイン</a></li>
+<li><a href="/handle_checkpoint/{hash_keys[18]}">Shokuの店「12」ログイン</a></li>
+<li><a href="/handle_checkpoint/{hash_keys[19]}">Shokuの店「12」ログイン</a></li>
+<li><a href="/handle_checkpoint/{hash_keys[20]}">Shokuの店「12」ログイン</a></li>
+<li><a href="/handle_checkpoint/{hash_keys[21]}">Shokuの店「12」ログイン</a></li>
+<li><a href="/handle_checkpoint/{hash_keys[22]}">Shokuの店「12」ログイン</a></li>
+<li><a href="/handle_checkpoint/{hash_keys[23]}">Shokuの店「12」ログイン</a></li>
+<li><a href="/handle_checkpoint/{hash_keys[24]}">Shokuの店「12」ログイン</a></li>
+<li><a href="/handle_checkpoint/{hash_keys[25]}">Shokuの店「12」ログイン</a></li>
+<li><a href="/handle_checkpoint/{hash_keys[26]}">Shokuの店「12」ログイン</a></li>
+<li><a href="/handle_checkpoint/{hash_keys[27]}">Shokuの店「12」ログイン</a></li>
 
-<li><a href="/handle_checkpoint/{hash_keys[13]}">ゴールポイント「８」ログイン</a></li>
-<li><a href="/{hash_keys[12]}">管理画面</a></li>
+<li><a href="/handle_checkpoint/{hash_keys[14]}">ゴールポイント「８」ログイン</a></li>
+<li><a href="/{hash_keys[13]}">管理画面</a></li>
 </ul>
 '''
     return output
@@ -222,7 +264,7 @@ def remove_resolved_checkpoint(user_id, checkpoint_name):
 
 # 管理画面
 # 管理画面のメインページ
-@app.route(f'/{hash_keys[12]}')
+@app.route(f'/{hash_keys[13]}')
 def admin_panel():
     #ログイン管理
     # ページネーションのパラメータを取得
@@ -522,7 +564,7 @@ def admin_panel():
         surveys_pagination=surveys_pagination,  # surveysをsurveys_paginationに変更
         survey_choices=survey_choices,
         quizzes=quizzes,
-        admin_hash=hash_keys[12],
+        admin_hash=hash_keys[13],
         search_query=search_query,
         stamps=formatted_stamps,
         stamps_pagination=stamps_pagination,
@@ -540,7 +582,7 @@ def admin_panel():
     )
 
 # クイズ追加のAPI
-@app.route(f'/{hash_keys[12]}/add_quiz', methods=['POST'])
+@app.route(f'/{hash_keys[13]}/add_quiz', methods=['POST'])
 def add_quiz():
     try:
         checkpoint_id = request.form.get('checkpoint_id')
@@ -589,7 +631,7 @@ def add_quiz():
         return jsonify({'error': str(e)}), 500
 
 # クイズ削除のAPI
-@app.route(f'/{hash_keys[12]}/delete_quiz/<int:quiz_id>', methods=['POST'])
+@app.route(f'/{hash_keys[13]}/delete_quiz/<int:quiz_id>', methods=['POST'])
 def delete_quiz(quiz_id):
     try:
         # まず対象のクイズが存在するか確認
@@ -633,7 +675,7 @@ def delete_quiz(quiz_id):
         }), 500
 
 # ログインフラグの更新API
-@app.route(f'/{hash_keys[12]}/update_login', methods=['POST'])
+@app.route(f'/{hash_keys[13]}/update_login', methods=['POST'])
 def update_login_flag():
     login_id = request.form.get('login_id')
     flag_name = request.form.get('flag')
@@ -656,7 +698,7 @@ def update_login_flag():
     })
 
 # チェックポイントタイプの更新API
-@app.route(f'/{hash_keys[12]}/update_checkpoint', methods=['POST'])
+@app.route(f'/{hash_keys[13]}/update_checkpoint', methods=['POST'])
 def update_checkpoint_type():
     checkpoint_id = request.form.get('checkpoint_id')
     new_type = request.form.get('type')
@@ -678,7 +720,7 @@ def update_checkpoint_type():
     })
 
 # アンケート追加のAPIを修正
-@app.route(f'/{hash_keys[12]}/add_survey', methods=['POST'])
+@app.route(f'/{hash_keys[13]}/add_survey', methods=['POST'])
 def add_survey():
     try:
         checkpoint_id = request.form.get('checkpoint_id')
@@ -727,7 +769,7 @@ def add_survey():
         return jsonify({'error': str(e)}), 500
 
 # アンケート削除のAPI
-@app.route(f'/{hash_keys[12]}/delete_survey/<int:survey_id>', methods=['POST'])
+@app.route(f'/{hash_keys[13]}/delete_survey/<int:survey_id>', methods=['POST'])
 def delete_survey(survey_id):
     try:
         # まず関連する回答を削除
@@ -754,7 +796,7 @@ def delete_survey(survey_id):
 # スタンプ管理のための追加ルート
 
 # ユーザー検索API
-@app.route(f'/{hash_keys[12]}/search_users', methods=['GET'])
+@app.route(f'/{hash_keys[13]}/search_users', methods=['GET'])
 def search_users():
     search_query = request.args.get('query', '')
     if not search_query:
@@ -779,7 +821,7 @@ def search_users():
     
 
 # スタンプ記録の取得API
-@app.route(f'/{hash_keys[12]}/get_stamps', methods=['GET'])
+@app.route(f'/{hash_keys[13]}/get_stamps', methods=['GET'])
 def get_stamps():
     user_id = request.args.get('user_id')
     if not user_id:
@@ -812,7 +854,7 @@ def get_stamps():
         return jsonify({'error': str(e)}), 500
 
 # スタンプ追加API
-@app.route(f'/{hash_keys[12]}/add_stamp', methods=['POST'])
+@app.route(f'/{hash_keys[13]}/add_stamp', methods=['POST'])
 def add_stamp():
     try:
         login_id = request.form.get('login_id')
@@ -850,7 +892,7 @@ def add_stamp():
         return jsonify({'error': str(e)}), 500
 
 # スタンプ削除API
-@app.route(f'/{hash_keys[12]}/delete_stamp/<int:stamp_id>', methods=['POST'])
+@app.route(f'/{hash_keys[13]}/delete_stamp/<int:stamp_id>', methods=['POST'])
 def delete_stamp(stamp_id):
     try:
         stamp = Stamp.query.get_or_404(stamp_id)
@@ -867,7 +909,7 @@ def delete_stamp(stamp_id):
         return jsonify({'error': str(e)}), 500
     
 # app.pyに追加する関数
-@app.route(f'/{hash_keys[12]}/error_resolution_stamps')
+@app.route(f'/{hash_keys[13]}/error_resolution_stamps')
 def get_error_resolution_stamps(page=1, search_query='', mismatch_data=None): 
     per_page = 10
   
@@ -927,7 +969,7 @@ def get_error_resolution_stamps(page=1, search_query='', mismatch_data=None):
     )
 
 # CSVエクスポート用の関数を追加
-@app.route(f'/{hash_keys[12]}/export/<table_name>')
+@app.route(f'/{hash_keys[13]}/export/<table_name>')
 def export_csv(table_name):
     try:
         si = StringIO()
@@ -1215,7 +1257,7 @@ def export_csv(table_name):
 
 
 
-@app.route(f'/{hash_keys[12]}/statistics', methods=['GET'])
+@app.route(f'/{hash_keys[13]}/statistics', methods=['GET'])
 def stamp_statistics():
     page = request.args.get('page', 1, type=int)
     per_page = 10
@@ -1301,7 +1343,7 @@ def stamp_statistics():
         search_query=search_query,
         stats_filter=stats_filter,
         sort_order=sort_order,
-        admin_hash=hash_keys[12],
+        admin_hash=hash_keys[13],
         total_stats=total_stats,
         current_page=page,
         debug=app.debug
@@ -1446,7 +1488,7 @@ def get_user_statistics(page=1, per_page=10, search_query='', stats_filter='has_
 
 ###################################################################################################################################################
 ####3つの共通処理
-
+# 変更点uchida
 @app.route('/handle_checkpoint/<string:checkpoint_id_hash>', methods=['GET', 'POST'])
 def handle_checkpoint(checkpoint_id_hash):
     checkpoint_id = checkpoint_hash_dic[checkpoint_id_hash]
@@ -1455,7 +1497,7 @@ def handle_checkpoint(checkpoint_id_hash):
     
     if checkpoint_id == 1:
         return login(checkpoint)  # チェックポイントオブジェクトを渡す
-    elif 2 <= checkpoint_id <= 12:
+    elif 2 <= checkpoint_id <= 28:  #変更点　cp数に応じて変更
         return checkpoint_login(checkpoint)
     elif checkpoint_id == 14:
         return goal_login(checkpoint)
@@ -1609,6 +1651,7 @@ def ended():
 
     return render_template("ended.html", hash_keys=hash_keys, user=user)
 
+# 変更点uchida
 # チェックポイントの種類に応じたデフォルトメッセージを定義
 DEFAULT_MESSAGES = {
     'start': {
@@ -1624,17 +1667,16 @@ DEFAULT_MESSAGES = {
         "message": "ゴールのアンケートにご協力ください。"
     }
 }
-
+# 変更点uchida
 CHECKPOINT_MESSAGES = {
     1: {
-        "title": "池田おでかけスタンプラリー  アンケート調査（スタート地点）",
-        "message": "本日は「池田おでかけスタンプラリー」にご参加いただき、ありがとうございます。<br>"
-"「池田おでかけスタンプラリー」は大阪成蹊大学と池田市が共同で実施している「ウォークラリーを活用した地域プロモーション施策の有効性に関する研究」の一環として行うものです。<br><br>"
-"このアンケート調査は、地域振興施策を検討するための情報を収集することを目的に、本日、ご参加の皆さまを対象にして実施しております。<br>"
+        "title": "大阪成蹊大学オープンキャンパススタンプラリー",
+        "message": "本日は「大阪成蹊大学オープンキャンパススタンプラリー」にご参加いただき、ありがとうございます。<br>"
+"「大阪成蹊大学オープンキャンパススタンプラリー」は大阪成蹊大学せいけいデジタルサークルが制作し、<br><br>"
+"このアンケート調査は、おおさk成蹊大学オープンキャンパスをよりよく検討するための情報を収集することを目的に、本日、ご参加の皆さまを対象にして実施しております。<br>"
 "ご回答は匿名でいただき、すべて統計的に処理いたしますので、ご回答いただいた皆様にご迷惑をおかけすることは絶対にございません。なお、ご回答の有無、ご回答内容によって不利益を被ることはございません。<br><br>"
 "なお、スタンプラリー終了後にもアンケート調査がございます。ご協力のほど、よろしくお願いいたします。<br><br>"
-"大阪成蹊大学<br>"
-"池田市"
+"大阪成蹊大学"
     },
     2: {
         "title": "o",
@@ -1660,6 +1702,91 @@ CHECKPOINT_MESSAGES = {
         "title": "チェックポイント時アンケート調査",
         "message": "次のアンケートにお答えください。"
     },
+    8: {
+        "title": "チェックポイント時アンケート調査",
+        "message": "次のアンケートにお答えください。"
+    },
+    9: {
+        "title": "チェックポイント時アンケート調査",
+        "message": "次のアンケートにお答えください。"
+    },
+    10: {
+        "title": "チェックポイント時アンケート調査",
+        "message": "次のアンケートにお答えください。"
+    },
+    11: {
+        "title": "チェックポイント時アンケート調査",
+        "message": "次のアンケートにお答えください。"
+    },
+    12: {
+        "title": "チェックポイント時アンケート調査",
+        "message": "次のアンケートにお答えください。"
+    },
+    13: {
+        "title": "チェックポイント時アンケート調査",
+        "message": "次のアンケートにお答えください。"
+    },
+    14: {
+        "title": "チェックポイント時アンケート調査",
+        "message": "次のアンケートにお答えください。"
+    },
+    15: {
+        "title": "チェックポイント時アンケート調査",
+        "message": "次のアンケートにお答えください。"
+    },
+    16: {
+        "title": "チェックポイント時アンケート調査",
+        "message": "次のアンケートにお答えください。"
+    },
+    17: {
+        "title": "チェックポイント時アンケート調査",
+        "message": "次のアンケートにお答えください。"
+    },
+    18: {
+        "title": "チェックポイント時アンケート調査",
+        "message": "次のアンケートにお答えください。"
+    },
+    19: {
+        "title": "チェックポイント時アンケート調査",
+        "message": "次のアンケートにお答えください。"
+    },
+    20: {
+        "title": "チェックポイント時アンケート調査",
+        "message": "次のアンケートにお答えください。"
+    },
+    21: {
+        "title": "チェックポイント時アンケート調査",
+        "message": "次のアンケートにお答えください。"
+    },
+    22: {
+        "title": "チェックポイント時アンケート調査",
+        "message": "次のアンケートにお答えください。"
+    },
+    23: {
+        "title": "チェックポイント時アンケート調査",
+        "message": "次のアンケートにお答えください。"
+    },
+    24: {
+        "title": "チェックポイント時アンケート調査",
+        "message": "次のアンケートにお答えください。"
+    },
+    25: {
+        "title": "チェックポイント時アンケート調査",
+        "message": "次のアンケートにお答えください。"
+    },
+    26: {
+        "title": "チェックポイント時アンケート調査",
+        "message": "次のアンケートにお答えください。"
+    },
+    27: {
+        "title": "チェックポイント時アンケート調査",
+        "message": "次のアンケートにお答えください。"
+    },
+    28: {
+        "title": "チェックポイント時アンケート調査",
+        "message": "次のアンケートにお答えください。"
+    },
+
 
     13: {
         "title": "池田おでかけスタンプラリー  アンケート調査（ゴール地点）",
@@ -1685,7 +1812,7 @@ def get_checkpoint_info(checkpoint_id):
     )
     
     return checkpoint, message_info
-
+# 変更点uchida
 # ３つのアンケート画面の表示と回答送信
 @app.route('/handle_survey/<int:checkpoint_id>', methods=['GET', 'POST'])
 def handle_survey(checkpoint_id):
@@ -1696,7 +1823,7 @@ def handle_survey(checkpoint_id):
 
     if checkpoint_id == 1:
         return start_survey(checkpoint_id)
-    elif 2 <= checkpoint_id <= 12:
+    elif 2 <= checkpoint_id <= 28:
         return checkpoint_survey(checkpoint_id)
 #　ゴールのIDで、有効化したかったらDBのゴール地点のIDを見て適当な数字を入れる。
     elif checkpoint_id == 14:
@@ -1912,7 +2039,7 @@ def goal_survey(user_id, checkpoint_id):
         user_id = session.get('user_id')
         if not user_id:
             flash('セッションが切れました。<br>ゴールポイントで再度ログインしてください。', 'error')
-            return redirect(url_for('handle_checkpoint', checkpoint_id_hash=hash_keys[12]))
+            return redirect(url_for('handle_checkpoint', checkpoint_id_hash=hash_keys[13]))
 
     user = Login.query.get_or_404(user_id)
     checkpoint, message_info = get_checkpoint_info(checkpoint_id)

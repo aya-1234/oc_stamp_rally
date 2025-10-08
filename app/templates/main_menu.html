@@ -1,248 +1,259 @@
 <!DOCTYPE html>
 <html lang="ja">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>{{ title }}</title>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+      rel="stylesheet"
+    />
     <style>
-        :root {
-            --primary-color: #4CAF50; /* 緑 */
-            --secondary-color: #2196F3; /* 青 */
-            --accent-color: #FF9800; /* オレンジ */
-            --background-color: #f5f7fa; /* 薄いグレー */
-            --text-color: #333; /* ダークグレー */
-            --card-shadow: 0 4px 6px rgba(0,0,0,0.1);
-            --hover-transition: all 0.3s ease;
-        }
+      :root {
+        --primary-color: #4caf50; /* 緑 */
+        --secondary-color: #2196f3; /* 青 */
+        --accent-color: #ff9800; /* オレンジ */
+        --background-color: #f5f7fa; /* 薄いグレー */
+        --text-color: #333; /* ダークグレー */
+        --card-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        --hover-transition: all 0.3s ease;
+      }
 
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: var(--background-color);
-            color: var(--text-color);
-            line-height: 1.6;
-            margin: 0;
-            padding: 0;
-            display: flex; /* 全体的にflexboxを使う */
-            justify-content: center; /* 中央配置 */
-            min-height: 100vh; /* 画面全体に広げる */
-        }
+      body {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        background-color: var(--background-color);
+        color: var(--text-color);
+        line-height: 1.6;
+        margin: 0;
+        padding: 0;
+        display: flex; /* 全体的にflexboxを使う */
+        justify-content: center; /* 中央配置 */
+        min-height: 100vh; /* 画面全体に広げる */
+      }
 
+      .container {
+        max-width: 800px; /* 幅を調整 */
+        margin: 40px auto;
+        padding: 20px;
+        background-color: white; /* 背景を白に */
+        border-radius: 15px; /* 角丸 */
+        box-shadow: var(--card-shadow); /* 影をつける */
+      }
+
+      .header {
+        text-align: center;
+        margin-bottom: 30px; /* マージン調整 */
+        padding: 20px;
+        background: linear-gradient(
+          135deg,
+          var(--primary-color),
+          var(--secondary-color)
+        );
+        border-radius: 15px;
+        color: white;
+        box-shadow: var(--card-shadow);
+      }
+
+      h1 {
+        font-size: 2em; /* 見出しサイズ調整 */
+        margin: 0;
+        padding: 10px 0; /* パディング調整 */
+        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+      }
+
+      .welcome-message {
+        padding: 20px;
+        margin-bottom: 40px;
+        border-radius: 12px;
+        box-shadow: var(--card-shadow);
+        display: flex;
+        align-items: center;
+        background-color: white;
+        border-left: 5px solid var(--accent-color);
+      }
+
+      .menu-item {
+        padding: 20px;
+        margin-bottom: 20px;
+        border-radius: 12px;
+        box-shadow: var(--card-shadow);
+        display: flex;
+        align-items: center;
+        background-color: white;
+        text-decoration: none;
+        color: var(--text-color);
+        cursor: pointer;
+        border-left: 5px solid var(--primary-color); /* 緑色の縁取りを追加 */
+      }
+
+      .welcome-message {
+        border-left: 5px solid var(--accent-color);
+        font-size: 1em; /* テキストサイズ調整 */
+      }
+      .welcome-message i {
+        font-size: 1.2em;
+        margin-right: 10px;
+        color: var(--accent-color);
+      }
+
+      .menu-item:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+      }
+
+      .menu-item i {
+        font-size: 1.5em;
+        margin-right: 15px;
+        color: var(--primary-color);
+      }
+
+      .menu-item-content {
+        flex-grow: 1; /* メニュー項目の説明を枠内に広げる */
+      }
+      .menu-item-content h3 {
+        margin-top: 0;
+        font-size: 1.1em;
+        font-weight: bold;
+      }
+      .menu-item-content p {
+        margin: 5px 0 0 0;
+        font-size: 0.9em;
+        color: #666;
+      }
+
+      .message {
+        margin: 20px 0;
+        padding: 15px;
+        border-radius: 12px;
+        box-shadow: var(--card-shadow);
+        display: flex;
+        align-items: center;
+      }
+
+      .message i {
+        font-size: 1.2em;
+        margin-right: 10px;
+      }
+
+      .flash-success {
+        background-color: #d4edda;
+        border: 1px solid #c3e6cb;
+        color: #155724;
+      }
+
+      .flash-error {
+        background-color: #f8d7da;
+        border: 1px solid #f5c6cb;
+        color: #721c24;
+      }
+
+      .flash-ended {
+        background-color: #e1ecf4;
+        border: 1px solid #b3d3ec;
+        color: #004085;
+      }
+
+      .checkpoint-image {
+        max-width: 100%;
+        margin-bottom: 30px; /* メインメニューとの間隔を30pxに設定 */
+        height: auto;
+        display: block;
+      }
+
+      /* レスポンシブデザインのためのメディアクエリ */
+      @media (max-width: 768px) {
         .container {
-            max-width: 800px; /* 幅を調整 */
-            margin: 40px auto;
-            padding: 20px;
-            background-color: white; /* 背景を白に */
-            border-radius: 15px; /* 角丸 */
-            box-shadow: var(--card-shadow); /* 影をつける */
+          max-width: 90%; /* 画面幅の90%まで */
+          margin: 20px auto;
+          padding: 10px;
         }
-
-
-        .header {
-            text-align: center;
-            margin-bottom: 30px; /* マージン調整 */
-            padding: 20px;
-            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-            border-radius: 15px;
-            color: white;
-            box-shadow: var(--card-shadow);
-        }
-
-        h1 {
-            font-size: 2em; /* 見出しサイズ調整 */
-            margin: 0;
-            padding: 10px 0; /* パディング調整 */
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
-        }
-
-        .welcome-message {
-            padding: 20px;
-            margin-bottom: 40px;
-            border-radius: 12px;
-            box-shadow: var(--card-shadow);
-            display: flex;
-            align-items: center;
-            background-color: white;
-            border-left: 5px solid var(--accent-color);
-        }
-
         .menu-item {
-            padding: 20px;
-            margin-bottom: 20px;
-            border-radius: 12px;
-            box-shadow: var(--card-shadow);
-            display: flex;
-            align-items: center;
-            background-color: white;
-            text-decoration: none;
-            color: var(--text-color);
-            cursor: pointer;
-            border-left: 5px solid var(--primary-color); /* 緑色の縁取りを追加 */
+          flex-direction: column; /* 小さい画面では縦に配置 */
+          align-items: flex-start; /* 縦配置時のアイテム配置 */
         }
-
-        .welcome-message {
-            border-left: 5px solid var(--accent-color);
-            font-size: 1em; /* テキストサイズ調整 */
-        }
-        .welcome-message i {
-            font-size: 1.2em;
-            margin-right: 10px;
-            color: var(--accent-color);
-        }
-
-        .menu-item:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 12px rgba(0,0,0,0.15);
-        }
-
         .menu-item i {
-            font-size: 1.5em;
-            margin-right: 15px;
-            color: var(--primary-color);
+          margin-bottom: 10px;
         }
-
         .menu-item-content {
-            flex-grow: 1; /* メニュー項目の説明を枠内に広げる */
+          flex-grow: 0;
         }
-        .menu-item-content h3 {
-            margin-top: 0;
-            font-size: 1.1em;
-            font-weight: bold;
+        h1 {
+          font-size: 1.8em;
         }
-        .menu-item-content p {
-            margin: 5px 0 0 0;
-            font-size: 0.9em;
-            color: #666;
+        .welcome-message,
+        .menu-item {
+          font-size: 0.9em;
+          padding: 15px;
         }
-
-
         .message {
-            margin: 20px 0;
-            padding: 15px;
-            border-radius: 12px;
-            box-shadow: var(--card-shadow);
-            display: flex;
-            align-items: center;
+          font-size: 0.9em;
+          padding: 10px;
         }
-
-        .message i {
-            font-size: 1.2em;
-            margin-right: 10px;
-        }
-
-        .flash-success {
-            background-color: #d4edda;
-            border: 1px solid #c3e6cb;
-            color: #155724;
-        }
-
-        .flash-error {
-            background-color: #f8d7da;
-            border: 1px solid #f5c6cb;
-            color: #721c24;
-        }
-
-        .flash-ended {
-            background-color: #e1ecf4;
-            border: 1px solid #b3d3ec;
-            color: #004085;
-        }
-
-        .checkpoint-image {
-            max-width: 100%;
-            margin-bottom: 30px; /* メインメニューとの間隔を30pxに設定 */
-            height: auto;
-            display: block;
-        }
-
-        /* レスポンシブデザインのためのメディアクエリ */
-        @media (max-width: 768px) {
-            .container {
-                max-width: 90%; /* 画面幅の90%まで */
-                margin: 20px auto;
-                padding: 10px;
-            }
-            .menu-item {
-                flex-direction: column; /* 小さい画面では縦に配置 */
-                align-items: flex-start; /* 縦配置時のアイテム配置 */
-            }
-            .menu-item i {
-                margin-bottom: 10px;
-            }
-            .menu-item-content {
-                flex-grow: 0;
-            }
-            h1 {
-                font-size: 1.8em;
-            }
-            .welcome-message, .menu-item {
-                font-size: 0.9em;
-                padding: 15px;
-            }
-            .message {
-                font-size: 0.9em;
-                padding: 10px;
-            }
-        }
+      }
     </style>
-</head>
-<body>
+  </head>
+  <body>
     <div class="container">
-        {% with messages = get_flashed_messages(with_categories=true) %}
-            {% if messages %}
-                <div class="message-container">
-                    {% for category, message in messages %}
-                        <div class="message flash-{{ category }}">
-                            <i class="fas fa-{{ 'check-circle' if category == 'success' else ('exclamation-circle' if category == 'error' else 'info-circle') }}"></i>
-                            {{ message | safe }}
-                        </div>
-                    {% endfor %}
-                </div>
-            {% endif %}
-        {% endwith %}
-
-            <!-- 写真の表示 -->
-        <div class="image-container">
-            <img src="{{ url_for('static', filename='images/main_menu.jpg') }}" alt="スタート地点" class="checkpoint-image">
+      {% with messages = get_flashed_messages(with_categories=true) %} {% if
+      messages %}
+      <div class="message-container">
+        {% for category, message in messages %}
+        <div class="message flash-{{ category }}">
+          <i
+            class="fas fa-{{ 'check-circle' if category == 'success' else ('exclamation-circle' if category == 'error' else 'info-circle') }}"
+          ></i>
+          {{ message | safe }}
         </div>
+        {% endfor %}
+      </div>
+      {% endif %} {% endwith %}
 
-        <div class="header">
-            <h1>{{ title }}</h1>
+      <!-- 写真の表示 -->
+      <div class="image-container">
+        <img
+          src="{{ url_for('static', filename='images/main_menu.jpg') }}"
+          alt="スタート地点"
+          class="checkpoint-image"
+        />
+      </div>
+
+      <div class="header">
+        <h1>{{ title }}</h1>
+      </div>
+
+      {% if user %}
+      <div class="welcome-message">
+        <i class="fas fa-user-circle"></i>
+        {{ user.account }}さん<br /><br />
+        このメニューは、スタート時に<br />
+        お渡ししたIDカードのQRコードから、<br />
+        いつでもアクセスできます。
+      </div>
+      {% endif %}
+
+      <a href="{{ url_for('participation_guide') }}" class="menu-item">
+        <i class="fas fa-map-marked-alt"></i>
+        <div class="menu-item-content">
+          <h3>スタンプラリーの参加方法</h3>
+          <p>スタンプラリーの参加方法とコースの地図を確認できます</p>
         </div>
+      </a>
 
-        {% if user %}
-            <div class="welcome-message">
-                <i class="fas fa-user-circle"></i>
-                {{ user.account }}さん<br><br>
-                このメニューは、スタート時に<br>
-                お渡ししたIDカードのQRコードから、<br>
-                いつでもアクセスできます。
-            </div>
-        {% endif %}
+      <a href="{{ url_for('app_usage') }}" class="menu-item">
+        <i class="fas fa-mobile-alt"></i>
+        <div class="menu-item-content">
+          <h3>スタンプラリーアプリの使い方</h3>
+          <p>アプリの基本的な操作方法を確認できます</p>
+        </div>
+      </a>
 
-        <a href="{{ url_for('participation_guide') }}" class="menu-item">
-            <i class="fas fa-map-marked-alt"></i>
-            <div class="menu-item-content">
-                <h3>スタンプラリーの参加方法</h3>
-                <p>スタンプラリーの参加方法とコースの地図を確認できます</p>
-            </div>
-        </a>
-
-        <a href="{{ url_for('app_usage') }}" class="menu-item">
-            <i class="fas fa-mobile-alt"></i>
-            <div class="menu-item-content">
-                <h3>スタンプラリーアプリの使い方</h3>
-                <p>アプリの基本的な操作方法を確認できます</p>
-            </div>
-        </a>
-
-        <a href="{{ url_for('view_stamps') }}" class="menu-item">
-            <i class="fas fa-stamp"></i>
-            <div class="menu-item-content">
-                <h3>獲得スタンプ確認</h3>
-                <p>獲得済みのスタンプを確認できます</p>
-            </div>
-        </a>
+      <a href="{{ url_for('view_stamps') }}" class="menu-item">
+        <i class="fas fa-stamp"></i>
+        <div class="menu-item-content">
+          <h3>獲得スタンプ確認</h3>
+          <p>獲得済みのスタンプを確認できます</p>
+        </div>
+      </a>
     </div>
-</body>
+  </body>
 </html>
