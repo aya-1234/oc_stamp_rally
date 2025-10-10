@@ -1,156 +1,139 @@
 <!DOCTYPE html>
 <html lang="ja">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="checkpoint-type" content="{{ checkpoint.checkpoint_type }}">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="checkpoint-type" content="{{ checkpoint.checkpoint_type }}" />
     <style>
-        .container {
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 20px;
-        }
+      .container {
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 20px;
+      }
 
-        .message {
-            padding: 15px;
-            margin: 20px 0;
-            border-radius: 4px;
-            text-align: left;
-            line-height: 1.5;
-        }
+      .message {
+        padding: 15px;
+        margin: 20px 0;
+        border-radius: 4px;
+        text-align: left;
+        line-height: 1.5;
+      }
 
-        .initial-message {
-            background-color: #e3f2fd;
-            border: 1px solid #bbdefb;
-            color: #000000;
-        }
+      .initial-message {
+        background-color: #e3f2fd;
+        border: 1px solid #bbdefb;
+        color: #000000;
+      }
 
-        .flash-success {
-            background-color: #dff0d8;
-            border: 1px solid #d6e9c6;
-            color: #3c763d;
-        }
+      .flash-success {
+        background-color: #dff0d8;
+        border: 1px solid #d6e9c6;
+        color: #3c763d;
+      }
 
-        .flash-error {
-            background-color: #f2dede;
-            border: 1px solid #ebccd1;
-            color: #a94442;
-        }
+      .flash-error {
+        background-color: #f2dede;
+        border: 1px solid #ebccd1;
+        color: #a94442;
+      }
 
-        .checkpoint-info {
-
-            padding: 10px;
-            background-color: #f8f9fa;
-
-        }
-
+      .checkpoint-info {
+        padding: 10px;
+        background-color: #f8f9fa;
+      }
     </style>
-</head>
-<body>
+  </head>
+  <body>
     <div class="container">
+      {% with all_messages = get_flashed_messages(with_categories=true) %}
+      <!-- チェックポイント2-7の場合はクイズ完了メッセージのみ表示 -->
+      {% if checkpoint_id is defined and checkpoint_id >= 2 and checkpoint_id <=
+      7 %} {% for category, message in all_messages %} {% if category ==
+      'success' %}
+      <div class="message flash-success">{{ message | safe }}</div>
+      {% endif %} {% endfor %} {% else %}
+      <!-- その他のチェックポイントの場合はタイトルとメッセージを表示 -->
+      <div class="checkpoint-info">
+        <h1>{{ title }}</h1>
+      </div>
+      {% endif %} {% if initial_message %}
+      <div class="message initial-message">{{ initial_message | safe }}</div>
+      {% endif %} {% endwith %}
 
-            {% with all_messages = get_flashed_messages(with_categories=true) %}
-                <!-- チェックポイント2-7の場合はクイズ完了メッセージのみ表示 -->
-                {% if checkpoint_id is defined and checkpoint_id >= 2 and checkpoint_id <= 7 %}
-                    {% for category, message in all_messages %}
-                        {% if category == 'success' %}
-                            <div class="message flash-success">
-                                {{ message | safe }}
-                            </div>
-                        {% endif %}
-                    {% endfor %}
-                {% else %}
-                    <!-- その他のチェックポイントの場合はタイトルとメッセージを表示 -->
-                    <div class="checkpoint-info">
-                        <h1>{{ title }}</h1>
-                    </div>
-                {% endif %}
-                
-                {% if initial_message %}
-                    <div class="message initial-message">
-                        {{ initial_message | safe }}
-                    </div>
-                {% endif %}
-            {% endwith %}
-        
-            <!-- アンケート質問セクション（アンケート管理）-->
-            <form method="post" id="surveyForm" onsubmit="return validateForm()">
-                {% for question in questions %}
-                    <div class="question-container" id="question-{{ question.id }}">
-                        <p class="question-text {% if question.survey_choices and ((is_type_a_user and not '（AOP）' in question.question) or (not is_type_a_user and '（回答必須）' in question.question)) %}required{% endif %}">
-                            {{ question.question }}
-                            {% if question.survey_choices %}
-                                {% if is_type_a_user %}
-                                    {% if not '（AOP）' in question.question %}
-                                        <span class="required-badge">必須</span>
-                                    {% endif %}
-                                {% else %}
-                                    {% if '（回答必須）' in question.question %}
-                                        <span class="required-badge">必須</span>
-                                    {% endif %}
-                                {% endif %}
-                            {% endif %}
-                        </p>
-                        {% if question.survey_choices %}
-                        <div class="choice-container">
-                            {% set sorted_choices = question.survey_choices|sort(attribute='id') %}
-                            {% for choice in sorted_choices %}
-                                <div class="choice">
-                                    <input type="radio" 
-                                            id="choice_{{ choice.id }}"
-                                            name="question_{{ question.id }}" 
-                                            value="{{ choice.id }}"
-                                            {% if form_data and form_data['question_' ~ question.id] == choice.id|string %}checked{% endif %}>
-                                    <label for="choice_{{ choice.id }}">
-                                        {{ choice.survey_choice }}
-                                    </label>
-                                </div>
-                            {% endfor %}
-                        </div>
-                        {% endif %}
-                    </div>
-                {% endfor %}
-                <button type="submit" class="submit-button" id="submitButton">送信</button>
-            </form>
+      <!-- アンケート質問セクション（アンケート管理）-->
+      <form method="post" id="surveyForm" onsubmit="return validateForm()">
+        {% for question in questions %}
+        <div class="question-container" id="question-{{ question.id }}">
+          <p
+            class="question-text {% if question.survey_choices and ((is_type_a_user and not '（AOP）' in question.question) or (not is_type_a_user and '（回答必須）' in question.question)) %}required{% endif %}"
+          >
+            {{ question.question }} {% if question.survey_choices %} {% if
+            is_type_a_user %} {% if not '（AOP）' in question.question %}
+            <span class="required-badge">必須</span>
+            {% endif %} {% else %} {% if '（回答必須）' in question.question %}
+            <span class="required-badge">必須</span>
+            {% endif %} {% endif %} {% endif %}
+          </p>
+          {% if question.survey_choices %}
+          <div class="choice-container">
+            {% set sorted_choices = question.survey_choices|sort(attribute='id')
+            %} {% for choice in sorted_choices %}
+            <div class="choice">
+              <input type="radio" id="choice_{{ choice.id }}" name="question_{{
+              question.id }}" value="{{ choice.id }}" {% if form_data and
+              form_data['question_' ~ question.id] == choice.id|string
+              %}checked{% endif %}>
+              <label for="choice_{{ choice.id }}">
+                {{ choice.survey_choice }}
+              </label>
+            </div>
+            {% endfor %}
+          </div>
+          {% endif %}
         </div>
+        {% endfor %}
+        <button type="submit" class="submit-button" id="submitButton">
+          送信
+        </button>
+      </form>
+    </div>
 
     <style>
-
-    .filter-button-container {
+      .filter-button-container {
         position: fixed;
         bottom: 20px;
         right: 20px;
         z-index: 1000;
-    }
+      }
 
-    .filter-button {
+      .filter-button {
         padding: 10px 20px;
-        background-color: #4CAF50;
+        background-color: #4caf50;
         color: white;
         border: none;
         border-radius: 4px;
         cursor: pointer;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
         transition: all 0.3s ease;
-    }
+      }
 
-    .filter-button:hover {
+      .filter-button:hover {
         background-color: #45a049;
-        box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-    }
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+      }
 
-    .modal {
+      .modal {
         display: none;
         position: fixed;
         top: 0;
         left: 0;
         width: 100%;
         height: 100%;
-        background-color: rgba(0,0,0,0.5);
+        background-color: rgba(0, 0, 0, 0.5);
         z-index: 1001;
-    }
+      }
 
-    .modal-content {
+      .modal-content {
         position: fixed;
         top: 50%;
         left: 50%;
@@ -158,375 +141,393 @@
         background-color: white;
         padding: 20px;
         border-radius: 8px;
-        box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
         text-align: center;
-    }
+      }
 
-    .modal-buttons {
+      .modal-buttons {
         margin-top: 20px;
         display: flex;
         justify-content: center;
         gap: 10px;
-    }
+      }
 
-    .modal-buttons button {
+      .modal-buttons button {
         padding: 8px 20px;
         border: none;
         border-radius: 4px;
         cursor: pointer;
         transition: background-color 0.3s ease;
-    }
+      }
 
-    #confirmYes {
-        background-color: #4CAF50;
+      #confirmYes {
+        background-color: #4caf50;
         color: white;
-    }
+      }
 
-    #confirmNo {
+      #confirmNo {
         background-color: #f44336;
         color: white;
-    }
+      }
 
-    .question-container {
+      .question-container {
         transition: all 0.3s ease;
-    }
+      }
 
-    .question-container.hidden {
+      .question-container.hidden {
         display: none;
-    }
+      }
 
-        /* 新しい選択肢のスタイル */
-        .question-container {
-            margin: 20px 0;
-            padding: 20px;
-            background-color: white;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            scroll-margin-top: 20px; /* スクロール時のマージンを追加 */
+      /* 新しい選択肢のスタイル */
+      .question-container {
+        margin: 20px 0;
+        padding: 20px;
+        background-color: white;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        scroll-margin-top: 20px; /* スクロール時のマージンを追加 */
+      }
+
+      .question-container.highlight {
+        animation: highlightPulse 1s ease-in-out;
+        border: 2px solid #ff4444;
+      }
+
+      @keyframes highlightPulse {
+        0% {
+          background-color: white;
+        }
+        50% {
+          background-color: #fff3f3;
+        }
+        100% {
+          background-color: white;
+        }
+      }
+
+      .required-badge {
+        display: inline-block;
+        background-color: #ff4444;
+        color: white;
+        padding: 2px 8px;
+        border-radius: 4px;
+        font-size: 0.8em;
+        margin-left: 8px;
+        vertical-align: middle;
+      }
+
+      /* 既存のスタイルは維持 */
+      .question-text {
+        font-size: 1.2em;
+        font-weight: bold;
+        margin-bottom: 15px;
+        color: #333;
+      }
+
+      .choice-container {
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+      }
+
+      .choice {
+        position: relative;
+        padding: 15px;
+        border: 2px solid #e0e0e0;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+      }
+
+      .choice:hover {
+        background-color: #f5f5f5;
+        border-color: #4caf50;
+      }
+
+      .choice input[type='radio'] {
+        position: absolute;
+        opacity: 0;
+      }
+
+      .choice label {
+        display: block;
+        padding-left: 30px;
+        position: relative;
+        cursor: pointer;
+        font-size: 1.1em;
+      }
+
+      .choice label:before {
+        content: '';
+        position: absolute;
+        left: 0;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 20px;
+        height: 20px;
+        border: 2px solid #4caf50;
+        border-radius: 50%;
+      }
+
+      .choice input[type='radio']:checked + label:after {
+        content: '';
+        position: absolute;
+        left: 5px;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 12px;
+        height: 12px;
+        background: #4caf50;
+        border-radius: 50%;
+      }
+
+      .submit-button {
+        display: block;
+        width: 300px; /* 幅を増加 */
+        margin: 40px auto; /* 上下マージンも増加 */
+        padding: 20px 40px; /* パディングを増加 */
+        background-color: #4caf50;
+        color: white;
+        border: none;
+        border-radius: 8px; /* 角丸を少し大きく */
+        cursor: pointer;
+        font-size: 20px; /* フォントサイズを大きく */
+        transition: background-color 0.3s ease;
+      }
+
+      .submit-button:hover {
+        background-color: #45a049;
+      }
+
+      .submit-button:disabled {
+        background-color: #cccccc;
+        cursor: not-allowed;
+      }
+
+      body {
+        background-color: #f5f5f5;
+      }
+
+      /* モバイルデバイス向けの最適化 */
+      @media screen and (max-width: 768px) {
+        .filter-button-container {
+          bottom: 30px;
+          right: 50%;
+          transform: translateX(50%);
+          width: 90%;
+          max-width: 300px;
+          padding: 0;
         }
 
-        .question-container.highlight {
-            animation: highlightPulse 1s ease-in-out;
-            border: 2px solid #ff4444;
+        .filter-button {
+          width: 100%;
+          padding: 10px 15px;
+          font-size: 18px;
+          box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
         }
 
-        @keyframes highlightPulse {
-            0% { background-color: white; }
-            50% { background-color: #fff3f3; }
-            100% { background-color: white; }
+        /* モーダルのスタイル調整 */
+        .modal-content {
+          width: 90%;
+          max-width: 300px;
+          padding: 25px;
         }
 
-        .required-badge {
-            display: inline-block;
-            background-color: #ff4444;
-            color: white;
-            padding: 2px 8px;
-            border-radius: 4px;
-            font-size: 0.8em;
-            margin-left: 8px;
-            vertical-align: middle;
+        .modal-buttons {
+          flex-direction: column;
+          gap: 15px;
         }
 
-        /* 既存のスタイルは維持 */
-        .question-text {
-            font-size: 1.2em;
-            font-weight: bold;
-            margin-bottom: 15px;
-            color: #333;
+        .modal-buttons button {
+          width: 100%;
+          padding: 15px;
+          font-size: 16px;
         }
 
-        .choice-container {
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
+        /* タッチデバイス向けのホバー効果調整 */
+        .filter-button:hover {
+          transform: translateY(-2px);
         }
 
-        .choice {
-            position: relative;
-            padding: 15px;
-            border: 2px solid #e0e0e0;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: all 0.3s ease;
+        /* セーフエリア対応 */
+        @supports (padding: max(0px)) {
+          .filter-button-container {
+            bottom: max(30px, env(safe-area-inset-bottom) + 15px);
+            padding-bottom: env(safe-area-inset-bottom);
+          }
+        }
+      }
+
+      /* さらに小さい画面向けの調整 */
+      @media screen and (max-width: 380px) {
+        .filter-button-container {
+          width: 95%;
         }
 
-        .choice:hover {
-            background-color: #f5f5f5;
-            border-color: #4CAF50;
+        .filter-button {
+          font-size: 16px;
+          padding: 12px 16px;
         }
-
-        .choice input[type="radio"] {
-            position: absolute;
-            opacity: 0;
-        }
-
-        .choice label {
-            display: block;
-            padding-left: 30px;
-            position: relative;
-            cursor: pointer;
-            font-size: 1.1em;
-        }
-
-        .choice label:before {
-            content: '';
-            position: absolute;
-            left: 0;
-            top: 50%;
-            transform: translateY(-50%);
-            width: 20px;
-            height: 20px;
-            border: 2px solid #4CAF50;
-            border-radius: 50%;
-        }
-
-        .choice input[type="radio"]:checked + label:after {
-            content: '';
-            position: absolute;
-            left: 5px;
-            top: 50%;
-            transform: translateY(-50%);
-            width: 12px;
-            height: 12px;
-            background: #4CAF50;
-            border-radius: 50%;
-        }
-
-        .submit-button {
-            display: block;
-            width: 300px;  /* 幅を増加 */
-            margin: 40px auto; /* 上下マージンも増加 */
-            padding: 20px 40px; /* パディングを増加 */
-            background-color: #4CAF50;
-            color: white;
-            border: none;
-            border-radius: 8px; /* 角丸を少し大きく */
-            cursor: pointer;
-            font-size: 20px; /* フォントサイズを大きく */
-            transition: background-color 0.3s ease;
-        }
-
-        .submit-button:hover {
-            background-color: #45a049;
-        }
-
-        .submit-button:disabled {
-            background-color: #cccccc;
-            cursor: not-allowed;
-        }
-
-        body {
-            background-color: #f5f5f5;
-        }
-
-        /* モバイルデバイス向けの最適化 */
-        @media screen and (max-width: 768px) {
-            .filter-button-container {
-                bottom: 30px;
-                right: 50%;
-                transform: translateX(50%);
-                width: 90%;
-                max-width: 300px;
-                padding: 0;
-            }
-
-            .filter-button {
-                width: 100%;
-                padding: 10px 15px;
-                font-size: 18px;
-                box-shadow: 0 4px 8px rgba(0,0,0,0.3);
-            }
-
-            /* モーダルのスタイル調整 */
-            .modal-content {
-                width: 90%;
-                max-width: 300px;
-                padding: 25px;
-            }
-
-            .modal-buttons {
-                flex-direction: column;
-                gap: 15px;
-            }
-
-            .modal-buttons button {
-                width: 100%;
-                padding: 15px;
-                font-size: 16px;
-            }
-
-            /* タッチデバイス向けのホバー効果調整 */
-            .filter-button:hover {
-                transform: translateY(-2px);
-            }
-
-            /* セーフエリア対応 */
-            @supports (padding: max(0px)) {
-                .filter-button-container {
-                    bottom: max(30px, env(safe-area-inset-bottom) + 15px);
-                    padding-bottom: env(safe-area-inset-bottom);
-                }
-            }
-        }
-
-        /* さらに小さい画面向けの調整 */
-        @media screen and (max-width: 380px) {
-            .filter-button-container {
-                width: 95%;
-            }
-
-            .filter-button {
-                font-size: 16px;
-                padding: 12px 16px;
-            }
-        }
+      }
     </style>
 
     <script>
-    // フィルターボタンの状態を管理するグローバル変数
-    let filterButtonCreated = false;
-    function validateForm() {
+      // フィルターボタンの状態を管理するグローバル変数
+      let filterButtonCreated = false;
+      function validateForm() {
         const questions = document.querySelectorAll('.question-container');
         let allAnswered = true;
         const unansweredRequired = [];
 
         const userAccount = '{{ user.account }}';
         const isTypeAUser = userAccount.length >= 5 && userAccount[4] === 'A';
-        const checkpointType = document.querySelector('meta[name="checkpoint-type"]')?.content;
+        const checkpointType = document.querySelector(
+          'meta[name="checkpoint-type"]'
+        )?.content;
         const isNormalCheckpoint = checkpointType === 'normal';
 
         questions.forEach(question => {
-            const questionText = question.querySelector('.question-text');
-            const radios = question.querySelectorAll('input[type="radio"]');
-            
-            // 選択肢がある質問のみをチェック
-            if (radios.length > 0) {
-                const answered = Array.from(radios).some(radio => radio.checked);
-                if (!answered) {
-                    const isAOPQuestion = questionText.textContent.includes('（AOP）');
-                    if (isTypeAUser) {
-                        // Aユーザーの場合、（AOP）マーカーがない質問は必須
-                        if (!isAOPQuestion) {
-                            allAnswered = false;
-                            unansweredRequired.push(question.id);
-                        }
-                    } else {
-                        // 通常ユーザーは（回答必須）の質問のみ必須
-                        if (questionText.textContent.includes('（回答必須）')) {
-                            allAnswered = false;
-                            unansweredRequired.push(question.id);
-                        }
-                    }
+          const questionText = question.querySelector('.question-text');
+          const radios = question.querySelectorAll('input[type="radio"]');
+
+          // 選択肢がある質問のみをチェック
+          if (radios.length > 0) {
+            const answered = Array.from(radios).some(radio => radio.checked);
+            if (!answered) {
+              const isAOPQuestion =
+                questionText.textContent.includes('（AOP）');
+              if (isTypeAUser) {
+                // Aユーザーの場合、（AOP）マーカーがない質問は必須
+                if (!isAOPQuestion) {
+                  allAnswered = false;
+                  unansweredRequired.push(question.id);
                 }
+              } else {
+                // 通常ユーザーは（回答必須）の質問のみ必須
+                if (questionText.textContent.includes('（回答必須）')) {
+                  allAnswered = false;
+                  unansweredRequired.push(question.id);
+                }
+              }
             }
+          }
         });
 
         if (!allAnswered) {
-            // フィルターボタンを表示する条件を修正
-            // 通常ユーザーの場合のみフィルターボタンを表示
-            if (!isTypeAUser && !filterButtonCreated) {
-                createFilterButton();
-                filterButtonCreated = true;
-                document.getElementById('confirmModal').style.display = 'block';
-            }
-            
-            // 未回答の質問をハイライトして最初の未回答質問までスクロール
-            highlightUnansweredQuestions(unansweredRequired);
-            return false;
+          // フィルターボタンを表示する条件を修正
+          // 通常ユーザーの場合のみフィルターボタンを表示
+          if (!isTypeAUser && !filterButtonCreated) {
+            createFilterButton();
+            filterButtonCreated = true;
+            document.getElementById('confirmModal').style.display = 'block';
+          }
+
+          // 未回答の質問をハイライトして最初の未回答質問までスクロール
+          highlightUnansweredQuestions(unansweredRequired);
+          return false;
         }
 
         const submitButton = document.getElementById('submitButton');
         submitButton.disabled = true;
         submitButton.textContent = '送信中...';
         return true;
-    }
+      }
 
-    function highlightUnansweredQuestions(unansweredRequired) {
+      function highlightUnansweredQuestions(unansweredRequired) {
         if (unansweredRequired.length > 0) {
-            // 既存のハイライトをクリア
-            document.querySelectorAll('.question-container').forEach(q => {
-                q.classList.remove('highlight');
-            });
-            
-            // 新しくハイライトを追加
-            unansweredRequired.forEach(id => {
-                const question = document.getElementById(id);
-                if (question) {
-                    question.classList.add('highlight');
-                }
-            });
+          // 既存のハイライトをクリア
+          document.querySelectorAll('.question-container').forEach(q => {
+            q.classList.remove('highlight');
+          });
 
-            // 最初の未回答質問までスクロール
-            const firstUnanswered = document.getElementById(unansweredRequired[0]);
-            if (firstUnanswered) {
-                firstUnanswered.scrollIntoView({
-                    behavior: 'smooth',
-                    block: 'center'
-                });
+          // 新しくハイライトを追加
+          unansweredRequired.forEach(id => {
+            const question = document.getElementById(id);
+            if (question) {
+              question.classList.add('highlight');
             }
-        }
-    }
+          });
 
-    // DOMContentLoadedイベントリスナーから初期フィルターボタン生成を削除
-    document.addEventListener('DOMContentLoaded', function() {
+          // 最初の未回答質問までスクロール
+          const firstUnanswered = document.getElementById(
+            unansweredRequired[0]
+          );
+          if (firstUnanswered) {
+            firstUnanswered.scrollIntoView({
+              behavior: 'smooth',
+              block: 'center',
+            });
+          }
+        }
+      }
+
+      // DOMContentLoadedイベントリスナーから初期フィルターボタン生成を削除
+      document.addEventListener('DOMContentLoaded', function () {
         const userAccount = '{{ user.account }}';
         const isTypeAUser = userAccount.length >= 5 && userAccount[4] === 'A';
-        const checkpointType = document.querySelector('meta[name="checkpoint-type"]')?.content;
+        const checkpointType = document.querySelector(
+          'meta[name="checkpoint-type"]'
+        )?.content;
         const isNormalCheckpoint = checkpointType === 'normal';
         const flashMessages = document.querySelectorAll('.flash-message');
 
         // エラーメッセージ処理
         const errorMessage = document.querySelector('.flash-error');
         if (errorMessage) {
-            const questions = document.querySelectorAll('.question-text');
-            questions.forEach(questionElement => {
-                if ((isTypeAUser) || questionElement.textContent.includes('回答必須')) {
-                    const container = questionElement.closest('.question-container');
-                    const radios = container.querySelectorAll('input[type="radio"]');
-                    const answered = Array.from(radios).some(radio => radio.checked);
+          const questions = document.querySelectorAll('.question-text');
+          questions.forEach(questionElement => {
+            if (
+              isTypeAUser ||
+              questionElement.textContent.includes('回答必須')
+            ) {
+              const container = questionElement.closest('.question-container');
+              const radios = container.querySelectorAll('input[type="radio"]');
+              const answered = Array.from(radios).some(radio => radio.checked);
 
-                    if (!answered) {
-                        container.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                        container.classList.add('highlight');
-                        setTimeout(() => {
-                            container.classList.remove('highlight');
-                        }, 2000);
-                    }
-                }
-            });
+              if (!answered) {
+                container.scrollIntoView({behavior: 'smooth', block: 'center'});
+                container.classList.add('highlight');
+                setTimeout(() => {
+                  container.classList.remove('highlight');
+                }, 2000);
+              }
+            }
+          });
         }
 
         // フォームのsubmitイベントリスナー
-        document.getElementById('surveyForm').addEventListener('submit', async function(e) {
+        document
+          .getElementById('surveyForm')
+          .addEventListener('submit', async function (e) {
             e.preventDefault();
             const result = await validateForm();
             if (result === true) {
-                this.submit();
+              this.submit();
             }
-        });
-    });
+          });
+      });
 
-        // 選択肢のクリック領域の改善
-        document.querySelectorAll('.choice').forEach(choice => {
-            choice.addEventListener('click', function(e) {
-                if (e.target !== this) return;
-                const radio = this.querySelector('input[type="radio"]');
-                radio.checked = true;
-                this.closest('.question-container').classList.remove('highlight');
-            });
+      // 選択肢のクリック領域の改善
+      document.querySelectorAll('.choice').forEach(choice => {
+        choice.addEventListener('click', function (e) {
+          if (e.target !== this) return;
+          const radio = this.querySelector('input[type="radio"]');
+          radio.checked = true;
+          this.closest('.question-container').classList.remove('highlight');
         });
-    
+      });
 
-    // フィルター関連の機能（既存のコードを維持）
-    function createFilterButton() {
+      // フィルター関連の機能（既存のコードを維持）
+      function createFilterButton() {
         // 既存のフィルターボタンがある場合は作成しない
         if (document.querySelector('.filter-button-container')) {
-            return;
+          return;
         }
 
         const buttonContainer = document.createElement('div');
         buttonContainer.className = 'filter-button-container';
-        buttonContainer.innerHTML = '<button id="filterButton" class="filter-button">必須項目のみ表示</button>';
+        buttonContainer.innerHTML =
+          '<button id="filterButton" class="filter-button">必須項目のみ表示</button>';
 
         const modal = document.createElement('div');
         modal.id = 'confirmModal';
@@ -544,9 +545,9 @@
         document.body.appendChild(buttonContainer);
         document.body.appendChild(modal);
         setupFilterButtonEvents();
-    }
+      }
 
-    function setupFilterButtonEvents() {
+      function setupFilterButtonEvents() {
         let isFiltered = false;
         const filterButton = document.getElementById('filterButton');
         const confirmModal = document.getElementById('confirmModal');
@@ -554,54 +555,56 @@
         const isTypeAUser = userAccount.length >= 5 && userAccount[4] === 'A';
 
         filterButton.addEventListener('click', () => {
-            if (isFiltered) {
-                // 全ての質問を再表示
-                const questions = document.querySelectorAll('.question-container');
-                questions.forEach(question => {
-                    question.classList.remove('hidden');
-                });
-                filterButton.textContent = '必須項目のみ表示';
-                isFiltered = false;
-            } else {
-                confirmModal.style.display = 'block';
-            }
+          if (isFiltered) {
+            // 全ての質問を再表示
+            const questions = document.querySelectorAll('.question-container');
+            questions.forEach(question => {
+              question.classList.remove('hidden');
+            });
+            filterButton.textContent = '必須項目のみ表示';
+            isFiltered = false;
+          } else {
+            confirmModal.style.display = 'block';
+          }
         });
 
         document.getElementById('confirmYes').addEventListener('click', () => {
-            const questions = document.querySelectorAll('.question-container');
-            questions.forEach(question => {
-                const questionText = question.querySelector('.question-text');
-                const hasChoices = question.querySelector('.choice-container') !== null;
-                
-                if (hasChoices) {  // 選択肢がある質問のみを対象にする
-                    if (isTypeAUser) {
-                        // Aユーザーの場合、（AOP）がある質問を非表示
-                        if (questionText.textContent.includes('（AOP）')) {
-                            question.classList.add('hidden');
-                        }
-                    } else {
-                        // 通常ユーザーの場合、（回答必須）がない質問を非表示
-                        if (!questionText.textContent.includes('（回答必須）')) {
-                            question.classList.add('hidden');
-                        }
-                    }
+          const questions = document.querySelectorAll('.question-container');
+          questions.forEach(question => {
+            const questionText = question.querySelector('.question-text');
+            const hasChoices =
+              question.querySelector('.choice-container') !== null;
+
+            if (hasChoices) {
+              // 選択肢がある質問のみを対象にする
+              if (isTypeAUser) {
+                // Aユーザーの場合、（AOP）がある質問を非表示
+                if (questionText.textContent.includes('（AOP）')) {
+                  question.classList.add('hidden');
                 }
-            });
-            filterButton.textContent = '全ての質問を表示';
-            isFiltered = true;
-            confirmModal.style.display = 'none';
+              } else {
+                // 通常ユーザーの場合、（回答必須）がない質問を非表示
+                if (!questionText.textContent.includes('（回答必須）')) {
+                  question.classList.add('hidden');
+                }
+              }
+            }
+          });
+          filterButton.textContent = '全ての質問を表示';
+          isFiltered = true;
+          confirmModal.style.display = 'none';
         });
 
         document.getElementById('confirmNo').addEventListener('click', () => {
-            confirmModal.style.display = 'none';
+          confirmModal.style.display = 'none';
         });
 
-        window.addEventListener('click', (event) => {
-            if (event.target === confirmModal) {
-                confirmModal.style.display = 'none';
-            }
+        window.addEventListener('click', event => {
+          if (event.target === confirmModal) {
+            confirmModal.style.display = 'none';
+          }
         });
-    }
+      }
     </script>
-</body>
+  </body>
 </html>

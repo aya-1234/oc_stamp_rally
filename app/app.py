@@ -167,41 +167,27 @@ print("hash_keys:", hash_keys)
 
 
 # 変更点uchida
+# 短大-幼児教育学科ブースのアンケートが感情になる
+# 短大-調理コースブース以下アンケート未実施
+# メイン会場ブースアンケートがゴールアンケートとなっている
 @app.route('/admin')
 def hello():
     output=f'''
 <h1>Hello World</h1>
 <ul>
-<li><a href="/handle_checkpoint/{hash_keys[0]}">スタートポイント「１」ログイン</a></li>
-<li><a href="/handle_checkpoint/{hash_keys[1]}">池田観光案内所「２」ログイン</a></li>
-<li><a href="/handle_checkpoint/{hash_keys[2]}">まがり書房「３」ログイン</a></li>
-<li><a href="/handle_checkpoint/{hash_keys[3]}">井戸の辻（ビリケンさん）「４」ログイン</a></li>
-<li><a href="/handle_checkpoint/{hash_keys[4]}">落語みゅーじあむ「５」ログイン</a></li>
-<li><a href="/handle_checkpoint/{hash_keys[5]}">池田城跡公園「６」ログイン</a></li>
-<li><a href="/handle_checkpoint/{hash_keys[6]}">Shokuの店「７」ログイン</a></li>
-<li><a href="/handle_checkpoint/{hash_keys[7]}">Shokuの店「8」ログイン</a></li>
-<li><a href="/handle_checkpoint/{hash_keys[8]}">Shokuの店「9」ログイン</a></li>
-<li><a href="/handle_checkpoint/{hash_keys[9]}">Shokuの店「10」ログイン</a></li>
-<li><a href="/handle_checkpoint/{hash_keys[10]}">Shokuの店「11」ログイン</a></li>
-<li><a href="/handle_checkpoint/{hash_keys[11]}">Shokuの店「12」ログイン</a></li>
-<li><a href="/handle_checkpoint/{hash_keys[12]}">Shokuの店「12」ログイン</a></li>
-<li><a href="/handle_checkpoint/{hash_keys[13]}">Shokuの店「12」ログイン</a></li>
-<li><a href="/handle_checkpoint/{hash_keys[14]}">Shokuの店「12」ログイン</a></li>
-<li><a href="/handle_checkpoint/{hash_keys[15]}">Shokuの店「12」ログイン</a></li>
-<li><a href="/handle_checkpoint/{hash_keys[16]}">Shokuの店「12」ログイン</a></li>
-<li><a href="/handle_checkpoint/{hash_keys[17]}">Shokuの店「12」ログイン</a></li>
-<li><a href="/handle_checkpoint/{hash_keys[18]}">Shokuの店「12」ログイン</a></li>
-<li><a href="/handle_checkpoint/{hash_keys[19]}">Shokuの店「12」ログイン</a></li>
-<li><a href="/handle_checkpoint/{hash_keys[20]}">Shokuの店「12」ログイン</a></li>
-<li><a href="/handle_checkpoint/{hash_keys[21]}">Shokuの店「12」ログイン</a></li>
-<li><a href="/handle_checkpoint/{hash_keys[22]}">Shokuの店「12」ログイン</a></li>
-<li><a href="/handle_checkpoint/{hash_keys[23]}">Shokuの店「12」ログイン</a></li>
-<li><a href="/handle_checkpoint/{hash_keys[24]}">Shokuの店「12」ログイン</a></li>
-<li><a href="/handle_checkpoint/{hash_keys[25]}">Shokuの店「12」ログイン</a></li>
-<li><a href="/handle_checkpoint/{hash_keys[26]}">Shokuの店「12」ログイン</a></li>
-<li><a href="/handle_checkpoint/{hash_keys[27]}">Shokuの店「12」ログイン</a></li>
-
-<li><a href="/handle_checkpoint/{hash_keys[14]}">ゴールポイント「８」ログイン</a></li>
+<li><a href="/handle_checkpoint/{hash_keys[0]}">スタートログイン</a></li>
+<li><a href="/handle_checkpoint/{hash_keys[1]}">経営学部ブース</a></li>
+<li><a href="/handle_checkpoint/{hash_keys[2]}">国際観光学部ブース</a></li>
+<li><a href="/handle_checkpoint/{hash_keys[3]}">教育学部ブース</a></li>
+<li><a href="/handle_checkpoint/{hash_keys[4]}">芸術学部ブース</a></li>
+<li><a href="/handle_checkpoint/{hash_keys[5]}">データサイエンス学部ブース</a></li>
+<li><a href="/handle_checkpoint/{hash_keys[6]}">看護学部ブース</a></li>
+<li><a href="/handle_checkpoint/{hash_keys[7]}">短大-幼児教育学科ブース</a></li> 
+<li><a href="/handle_checkpoint/{hash_keys[8]}">短大-調理コースブース</a></li>
+<li><a href="/handle_checkpoint/{hash_keys[9]}">短大-製菓コースブース</a></li>
+<li><a href="/handle_checkpoint/{hash_keys[10]}">短大-栄養学科ブース</a></li>
+<li><a href="/handle_checkpoint/{hash_keys[11]}">短大-生活デザイン学科ブース</a></li>
+<li><a href="/handle_checkpoint/{hash_keys[12]}">メイン会場ブース</a></li>
 <li><a href="/{hash_keys[13]}">管理画面</a></li>
 </ul>
 '''
@@ -1789,14 +1775,8 @@ CHECKPOINT_MESSAGES = {
 
 
     13: {
-        "title": "池田おでかけスタンプラリー  アンケート調査（ゴール地点）",
-        "message": "本日は「池田おでかけスタンプラリー」にご参加いただき、ありがとうございました。<br>"
-"お楽しみいただけましたでしょうか。<br>"
-"お手数ですが、再度アンケート調査にご協力をお願いいたします。"
-"ご回答は匿名でいただき、すべて統計的に処理いたしますので、ご回答いただいた皆様にご迷惑をおかけすることは絶対にございません。<br>"
-"なお、ご回答の有無、ご回答内容によって不利益を被ることはございません。<br><br>"
-"大阪成蹊大学<br>"
-"池田市"
+        "title": "チェックポイント時アンケート調査",
+        "message": "次のアンケートにお答えください。"
     }
 }
 
@@ -1820,7 +1800,7 @@ def handle_survey(checkpoint_id):
     if not user_id:
         flash('セッションが切れました。該当のチェックポイントで再度ログインしてください。', 'error')
         return redirect(url_for('handle_checkpoint', checkpoint_id_hash=hash_keys[checkpoint_id-1]))
-
+# 変更点uchida
     if checkpoint_id == 1:
         return start_survey(checkpoint_id)
     elif 2 <= checkpoint_id <= 28:
@@ -2009,6 +1989,7 @@ def checkpoint_survey(checkpoint_id):
                     user=user
                 )
 #スタンプ取得
+            
             # 全ての質問に回答済みの場合
             db.session.add_all(responses)
             db.session.add(Stamp(

@@ -116,7 +116,7 @@ def initialize_db(app):
             db.session.commit()
             surveys_df = pd.read_csv(os.path.join(current_dir, "description_data.csv"))
             surveys_df.to_sql('CHECKPOINT', con=db.engine, if_exists="append", index=False)
-
+            
             db.session.commit()
             quizzez_df = pd.read_csv(os.path.join(current_dir, "actual_quiz.csv"))
             quizzez_df.to_sql('QUIZ', con=db.engine, if_exists="append", index=False)
