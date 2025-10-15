@@ -158,12 +158,53 @@ checkpoint_hash_dic = {'ajrwkhlkafsddfd': 1,
                        'rategaehrj6hnra': 26,
                        'sadghrjemnsneag': 27,
                        'sagehjdnsegaarg': 28,
+                       'adsfasljadsfjow': 29, 
+                       'safdahjsfjgcstg': 30, 
+                       'afgdhfsjkf4hxys': 31, 
+                       'utyliugddsrreaz': 32,
+                       'warteytsurydknc': 33,
+                       '45srxcgssxfhjmh': 34,
+                       'ystdk7cgndtkbnx': 35,
+                       'se4rdcjtkvhfniu': 36, 
+                       'lf8trdxgxnymtcx': 37, 
+                       'zgdhfxfjkfl7fyc': 38, 
+                       'vcmhbvtjhulygfd': 39,
+                       '4erxcgkbnvczdhj': 40,
+                       'ghmdfhsjsdxfaah': 41,
+                       'kufdtrhdfghkycf': 42,
+                       'seryrkvbnvcwzex': 43, 
+                       'rdturikfcgfxezz': 44, 
+                       'wzexklikjnmvcxx': 45, 
+                       'dfjgkfvgcxgrxdh': 46,
+                       'mnvvmdtrxdfhzha': 47,
+                       'waesrgvkhjbnvxd': 48,
+                       'hjkvhlbcnvxexdz': 49,
+                       'bnvtredseryhgah': 50, 
+                       'gfjdrxtfhvcudcr': 51, 
+                       'iuslhkdafnauilw': 52, 
+                       'pulisjagghfnwui': 53,
+                       'laiuhkjnfmassdf': 54,
+                       'liajkfhfadsfhkz': 55,
+                       'ladhhtafodipgzp': 56,
+                       'gulaeirhsjkgpaw': 57, 
+                       'ouilaluehzhlfia': 58, 
+                       'ouasilfhfazsfuz': 59, 
+                       'pawehfmjxzhiuyw': 60,
+                       'osfyauipwzhsdfy': 61,
+                       'woituxzjlwemaop': 62,
+                       'paurexuffgaelek': 63,
+                       'puesljxkzufieow': 64, 
+                       'ouidaaolwszjfue': 65, 
+                       'pfaiuwezsozixld': 66,
+                       'zseurlezsjdfoww': 67,
+                       'fdsatgaetgfjydt': 68,  
                        }
 hash_keys = list(checkpoint_hash_dic.keys())
 print("len(hash_keys):", len(hash_keys))
 print("=== DEBUG ===")
 print("len(hash_keys):", len(hash_keys))
 print("hash_keys:", hash_keys)
+print(len(hash_keys))
 
 
 # 変更点uchida
@@ -178,16 +219,70 @@ def hello():
 <li><a href="/handle_checkpoint/{hash_keys[0]}">スタートログイン</a></li>
 <li><a href="/handle_checkpoint/{hash_keys[1]}">経営学部ブース</a></li>
 <li><a href="/handle_checkpoint/{hash_keys[2]}">国際観光学部ブース</a></li>
-<li><a href="/handle_checkpoint/{hash_keys[3]}">教育学部ブース</a></li>
-<li><a href="/handle_checkpoint/{hash_keys[4]}">芸術学部ブース</a></li>
-<li><a href="/handle_checkpoint/{hash_keys[5]}">データサイエンス学部ブース</a></li>
-<li><a href="/handle_checkpoint/{hash_keys[6]}">看護学部ブース</a></li>
-<li><a href="/handle_checkpoint/{hash_keys[7]}">短大-幼児教育学科ブース</a></li> 
-<li><a href="/handle_checkpoint/{hash_keys[8]}">短大-調理コースブース</a></li>
-<li><a href="/handle_checkpoint/{hash_keys[9]}">短大-製菓コースブース</a></li>
-<li><a href="/handle_checkpoint/{hash_keys[10]}">短大-栄養学科ブース</a></li>
-<li><a href="/handle_checkpoint/{hash_keys[11]}">短大-生活デザイン学科ブース</a></li>
-<li><a href="/handle_checkpoint/{hash_keys[12]}">メイン会場ブース</a></li>
+<li><a href="/handle_checkpoint/{hash_keys[3]}">経済学部ブース</a></li>
+<li><a href="/handle_checkpoint/{hash_keys[4]}">教育学部ブース</a></li>
+<li><a href="/handle_checkpoint/{hash_keys[5]}">芸術学部ブース</a></li>
+<li><a href="/handle_checkpoint/{hash_keys[6]}">データサイエンス学部ブース</a></li>
+<li><a href="/handle_checkpoint/{hash_keys[7]}">芸術学部ブース</a></li> 
+<li><a href="/handle_checkpoint/{hash_keys[8]}">短大-幼児教育学科ブース</a></li>
+<li><a href="/handle_checkpoint/{hash_keys[9]}">短大-調理コースブース</a></li>
+<li><a href="/handle_checkpoint/{hash_keys[10]}">短大-製菓コースブース</a></li>
+<li><a href="/handle_checkpoint/{hash_keys[11]}">短大-栄養学科ブース</a></li>
+<li><a href="/handle_checkpoint/{hash_keys[12]}">短大-生活デザイン学科ブース</a></li>
+<li><a href="/handle_checkpoint/{hash_keys[13]}">10/18 大学を知ろう</a></li>
+<li><a href="/handle_checkpoint/{hash_keys[14]}">10/18 経営学部食ビジネスコース</a></li>
+<li><a href="/handle_checkpoint/{hash_keys[15]}">10/18 学生トーク1</a></li>
+<li><a href="/handle_checkpoint/{hash_keys[16]}">10/18 フットサル部</a></li>
+<li><a href="/handle_checkpoint/{hash_keys[17]}">10/18 学生トーク2</a></li>
+<li><a href="/handle_checkpoint/{hash_keys[18]}">10/18 eスポーツ</a></li>
+<li><a href="/handle_checkpoint/{hash_keys[19]}">10/18 学生トーク3</a></li>
+<li><a href="/handle_checkpoint/{hash_keys[20]}">10/18 ストリートダンスサークル</a></li> 
+<li><a href="/handle_checkpoint/{hash_keys[21]}">10/18 将来構想について</a></li>
+<li><a href="/handle_checkpoint/{hash_keys[22]}">10/18 チアダンス部</a></li>
+<li><a href="/handle_checkpoint/{hash_keys[23]}">10/18 学生トーク4</a></li>
+<li><a href="/handle_checkpoint/{hash_keys[24]}">10/18 芸術学部有志</a></li>
+<li><a href="/handle_checkpoint/{hash_keys[25]}">10/18 入試制度について</a></li>
+<li><a href="/handle_checkpoint/{hash_keys[26]}">10/18 データサイエンス学部学生起業</a></li>
+<li><a href="/handle_checkpoint/{hash_keys[27]}">10/18 大学を知ろう</a></li>
+<li><a href="/handle_checkpoint/{hash_keys[28]}">10/18 吹奏楽部</a></li>
+<li><a href="/handle_checkpoint/{hash_keys[29]}">10/18 学生トーク1</a></li>
+<li><a href="/handle_checkpoint/{hash_keys[30]}">10/18 せいけいデジタルサークル</a></li>
+<li><a href="/handle_checkpoint/{hash_keys[31]}">10/18 学生トーク2</a></li>
+<li><a href="/handle_checkpoint/{hash_keys[32]}">10/18 芸術学部有志</a></li>
+<li><a href="/handle_checkpoint/{hash_keys[33]}">10/18 学生トーク3</a></li> 
+<li><a href="/handle_checkpoint/{hash_keys[34]}">10/18 k-pop</a></li>
+<li><a href="/handle_checkpoint/{hash_keys[35]}">10/18 将来構想について</a></li>
+<li><a href="/handle_checkpoint/{hash_keys[36]}">10/18 コーラス部</a></li>
+<li><a href="/handle_checkpoint/{hash_keys[37]}">10/18 学生トーク4</a></li>
+<li><a href="/handle_checkpoint/{hash_keys[38]}">10/18 チアダンス部</a></li>
+<li><a href="/handle_checkpoint/{hash_keys[39]}">10/18 入試制度について</a></li>
+<li><a href="/handle_checkpoint/{hash_keys[40]}">10/19 大学を知ろう</a></li>
+<li><a href="/handle_checkpoint/{hash_keys[41]}">10/19 軽音楽部</a></li>
+<li><a href="/handle_checkpoint/{hash_keys[42]}">10/19 学生トーク1</a></li>
+<li><a href="/handle_checkpoint/{hash_keys[43]}">10/19 ギター</a></li>
+<li><a href="/handle_checkpoint/{hash_keys[44]}">10/19 学生トーク2</a></li>
+<li><a href="/handle_checkpoint/{hash_keys[45]}">10/19 サッカー部</a></li>
+<li><a href="/handle_checkpoint/{hash_keys[46]}">10/19 学生トーク3</a></li> 
+<li><a href="/handle_checkpoint/{hash_keys[47]}">10/19 アニメ製作サークル</a></li>
+<li><a href="/handle_checkpoint/{hash_keys[48]}">10/19 将来構想について</a></li>
+<li><a href="/handle_checkpoint/{hash_keys[49]}">10/19 ストリートダンス</a></li>
+<li><a href="/handle_checkpoint/{hash_keys[50]}">10/19 学生トーク4</a></li>
+<li><a href="/handle_checkpoint/{hash_keys[51]}">10/19 チアダンス部</a></li>
+<li><a href="/handle_checkpoint/{hash_keys[52]}">10/19 入試制度について</a></li>
+<li><a href="/handle_checkpoint/{hash_keys[53]}">10/19 データサイエンス学部学生起業</a></li>
+<li><a href="/handle_checkpoint/{hash_keys[54]}">10/19 大学を知ろう</a></li>
+<li><a href="/handle_checkpoint/{hash_keys[55]}">10/19 芸術学部有志</a></li>
+<li><a href="/handle_checkpoint/{hash_keys[56]}">10/19 学生トーク1</a></li>
+<li><a href="/handle_checkpoint/{hash_keys[57]}">10/19 アニメ制作サークル</a></li>
+<li><a href="/handle_checkpoint/{hash_keys[58]}">10/19 学生トーク2</a></li>
+<li><a href="/handle_checkpoint/{hash_keys[59]}">10/19 準硬式野球部</a></li> 
+<li><a href="/handle_checkpoint/{hash_keys[60]}">10/19 学生トーク3</a></li>
+<li><a href="/handle_checkpoint/{hash_keys[61]}">10/19 チアダンス部</a></li>
+<li><a href="/handle_checkpoint/{hash_keys[62]}">10/19 将来構想について</a></li>
+<li><a href="/handle_checkpoint/{hash_keys[63]}">10/19 せいけいデジタルサークル</a></li>
+<li><a href="/handle_checkpoint/{hash_keys[64]}">10/19 学生トーク4</a></li>
+<li><a href="/handle_checkpoint/{hash_keys[65]}">10/19 お琴サークル</a></li>
+<li><a href="/handle_checkpoint/{hash_keys[66]}">10/19 入試制度について</a></li>
 <li><a href="/{hash_keys[13]}">管理画面</a></li>
 </ul>
 '''
@@ -1483,10 +1578,11 @@ def handle_checkpoint(checkpoint_id_hash):
     
     if checkpoint_id == 1:
         return login(checkpoint)  # チェックポイントオブジェクトを渡す
-    elif 2 <= checkpoint_id <= 28:  #変更点　cp数に応じて変更
-        return checkpoint_login(checkpoint)
     elif checkpoint_id == 14:
         return goal_login(checkpoint)
+    elif 2 <= checkpoint_id <= 68:  #変更点　cp数に応じて変更
+        return checkpoint_login(checkpoint)
+
     
     #return redirect(url_for('main_menu'))アンケートが設定されていない場合だが、今回の件ではそんな状況は起きないはずだ。
 
@@ -1772,6 +1868,163 @@ CHECKPOINT_MESSAGES = {
         "title": "チェックポイント時アンケート調査",
         "message": "次のアンケートにお答えください。"
     },
+    29: {
+        "title": "o",
+        "message": "次のアンケートにお答えください。"
+    },
+    30: {
+        "title": "チェックポイント時アンケート調査",
+        "message": "次のアンケートにお答えください。"
+    },
+    31: {
+        "title": "チェックポイント時アンケート調査",
+        "message": "次のアンケートにお答えください。"
+    },
+    32: {
+        "title": "チェックポイント時アンケート調査",
+        "message": "次のアンケートにお答えください。"
+    },
+    33: {
+        "title": "チェックポイント時アンケート調査",
+        "message": "次のアンケートにお答えください。"
+    },
+    34: {
+        "title": "チェックポイント時アンケート調査",
+        "message": "次のアンケートにお答えください。"
+    },
+    35: {
+        "title": "チェックポイント時アンケート調査",
+        "message": "次のアンケートにお答えください。"
+    },
+    36: {
+        "title": "チェックポイント時アンケート調査",
+        "message": "次のアンケートにお答えください。"
+    },
+    37: {
+        "title": "チェックポイント時アンケート調査",
+        "message": "次のアンケートにお答えください。"
+    },
+    38: {
+        "title": "チェックポイント時アンケート調査",
+        "message": "次のアンケートにお答えください。"
+    },
+    39: {
+        "title": "チェックポイント時アンケート調査",
+        "message": "次のアンケートにお答えください。"
+    },
+    40: {
+        "title": "チェックポイント時アンケート調査",
+        "message": "次のアンケートにお答えください。"
+    },
+    41: {
+        "title": "チェックポイント時アンケート調査",
+        "message": "次のアンケートにお答えください。"
+    },
+    42: {
+        "title": "チェックポイント時アンケート調査",
+        "message": "次のアンケートにお答えください。"
+    },
+    43: {
+        "title": "チェックポイント時アンケート調査",
+        "message": "次のアンケートにお答えください。"
+    },
+    44: {
+        "title": "チェックポイント時アンケート調査",
+        "message": "次のアンケートにお答えください。"
+    },
+    45: {
+        "title": "チェックポイント時アンケート調査",
+        "message": "次のアンケートにお答えください。"
+    },
+    46: {
+        "title": "チェックポイント時アンケート調査",
+        "message": "次のアンケートにお答えください。"
+    },
+    47: {
+        "title": "チェックポイント時アンケート調査",
+        "message": "次のアンケートにお答えください。"
+    },
+    48: {
+        "title": "チェックポイント時アンケート調査",
+        "message": "次のアンケートにお答えください。"
+    },
+    49: {
+        "title": "チェックポイント時アンケート調査",
+        "message": "次のアンケートにお答えください。"
+    },
+    50: {
+        "title": "チェックポイント時アンケート調査",
+        "message": "次のアンケートにお答えください。"
+    },
+    51: {
+        "title": "チェックポイント時アンケート調査",
+        "message": "次のアンケートにお答えください。"
+    },
+    52: {
+        "title": "チェックポイント時アンケート調査",
+        "message": "次のアンケートにお答えください。"
+    },
+    53: {
+        "title": "チェックポイント時アンケート調査",
+        "message": "次のアンケートにお答えください。"
+    },
+    54: {
+        "title": "チェックポイント時アンケート調査",
+        "message": "次のアンケートにお答えください。"
+    },
+    55: {
+        "title": "チェックポイント時アンケート調査",
+        "message": "次のアンケートにお答えください。"
+    },
+    56: {
+        "title": "チェックポイント時アンケート調査",
+        "message": "次のアンケートにお答えください。"
+    },
+    57: {
+        "title": "チェックポイント時アンケート調査",
+        "message": "次のアンケートにお答えください。"
+    },
+    58: {
+        "title": "チェックポイント時アンケート調査",
+        "message": "次のアンケートにお答えください。"
+    },
+    59: {
+        "title": "チェックポイント時アンケート調査",
+        "message": "次のアンケートにお答えください。"
+    },
+    60: {
+        "title": "チェックポイント時アンケート調査",
+        "message": "次のアンケートにお答えください。"
+    },
+    61: {
+        "title": "チェックポイント時アンケート調査",
+        "message": "次のアンケートにお答えください。"
+    },
+    62: {
+        "title": "チェックポイント時アンケート調査",
+        "message": "次のアンケートにお答えください。"
+    },
+    63: {
+        "title": "チェックポイント時アンケート調査",
+        "message": "次のアンケートにお答えください。"
+    },
+    64: {
+        "title": "チェックポイント時アンケート調査",
+        "message": "次のアンケートにお答えください。"
+    },
+    65: {
+        "title": "チェックポイント時アンケート調査",
+        "message": "次のアンケートにお答えください。"
+    },
+    66: {
+        "title": "チェックポイント時アンケート調査",
+        "message": "次のアンケートにお答えください。"
+    },
+    67: {
+        "title": "チェックポイント時アンケート調査",
+        "message": "次のアンケートにお答えください。"
+    },
+    
 
 
     13: {
@@ -1803,11 +2056,11 @@ def handle_survey(checkpoint_id):
 # 変更点uchida
     if checkpoint_id == 1:
         return start_survey(checkpoint_id)
-    elif 2 <= checkpoint_id <= 28:
-        return checkpoint_survey(checkpoint_id)
 #　ゴールのIDで、有効化したかったらDBのゴール地点のIDを見て適当な数字を入れる。
     elif checkpoint_id == 14:
         return goal_survey(user_id, checkpoint_id)
+    elif 2 <= checkpoint_id <= 67:
+        return checkpoint_survey(checkpoint_id)
     else:
         flash('無効なチェックポイントIDです。', 'error')
         return redirect(url_for('view_stamps'))

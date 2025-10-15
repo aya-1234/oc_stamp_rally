@@ -15,7 +15,7 @@ class Checkpoint(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True, nullable=False)
     checkpoint_order = db.Column(db.Integer, nullable=False)
     name = db.Column(db.String(20), nullable=False)
-    description = db.Column(db.String(300), unique=True, nullable=False)
+    description = db.Column(db.String(300), nullable=False)
     checkpoint_type = db.Column(db.String(10), nullable=False)
     __table_args__ = (
         CheckConstraint("checkpoint_type IN ('normal', 'start', 'goal')", name='check_point_type'),
@@ -115,8 +115,10 @@ def initialize_db(app):
 
             db.session.commit()
             surveys_df = pd.read_csv(os.path.join(current_dir, "description_data.csv"))
+            surveys_df["description"] = surveys_df["description"].fillna("（説明なし）")
             surveys_df.to_sql('CHECKPOINT', con=db.engine, if_exists="append", index=False)
-            
+
+
             db.session.commit()
             quizzez_df = pd.read_csv(os.path.join(current_dir, "actual_quiz.csv"))
             quizzez_df.to_sql('QUIZ', con=db.engine, if_exists="append", index=False)
