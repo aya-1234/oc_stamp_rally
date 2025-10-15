@@ -96,7 +96,7 @@ class Survey_Response(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True, nullable=False)
     login_id = db.Column(db.Integer, db.ForeignKey('LOGIN.id'), nullable=False)
     survey_id = db.Column(db.Integer, db.ForeignKey('SURVEY.id'), nullable=False)
-    value = db.Column(db.String(30), nullable=False)
+    value = db.Column(db.Text, nullable=False) 
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(pytz.timezone('Asia/Tokyo')), nullable=False)
     # Surveyとのリレーションシップ
     survey = db.relationship('Survey', backref='responses', lazy=True)
