@@ -1,5 +1,4 @@
 from flask import Flask, request, render_template, flash, url_for, session, redirect, jsonify
-from werkzeug.routing import BuildError
 import sqlite3
 from datetime import datetime, timedelta
 import pytz
@@ -206,17 +205,6 @@ print("=== DEBUG ===")
 print("len(hash_keys):", len(hash_keys))
 print("hash_keys:", hash_keys)
 print(len(hash_keys))
-
-
-@app.route("/")
-def index():
-    keys = globals().get("hash_keys") or []
-    if isinstance(keys, (list, tuple)) and keys:
-        first_key = keys[0]
-        # ← ここを唯一・正しい引数名に
-        return redirect(url_for("handle_checkpoint", checkpoint_id_hash=first_key))
-    # キーがない場合に 500 にならないよう安全に返す
-    return ("Entry route is not ready. Try /handle_checkpoint/<checkpoint_id_hash>.", 404)
 
 
 # 変更点uchida
@@ -1590,11 +1578,10 @@ def handle_checkpoint(checkpoint_id_hash):
     
     if checkpoint_id == 1:
         return login(checkpoint)  # チェックポイントオブジェクトを渡す
-    elif checkpoint_id == 14:
-        return goal_login(checkpoint)
     elif 2 <= checkpoint_id <= 68:  #変更点　cp数に応じて変更
         return checkpoint_login(checkpoint)
-
+    elif checkpoint_id == 14:
+        return goal_login(checkpoint)
     
     #return redirect(url_for('main_menu'))アンケートが設定されていない場合だが、今回の件ではそんな状況は起きないはずだ。
 
@@ -2161,7 +2148,7 @@ def start_survey(checkpoint_id):
                 user.is_loggedin = True
                 db.session.commit()
 
-                flash('参加登録ができました！。', 'ended')
+                flash('参加登録ができました。。', 'ended')
                 return redirect(url_for('main_menu', user=user.account))
 
             # 未回答の質問がある場合は単にフォームを再表示
