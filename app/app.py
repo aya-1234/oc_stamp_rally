@@ -2166,7 +2166,7 @@ def start_survey(checkpoint_id):
                 user.is_loggedin = True
                 db.session.commit()
 
-                flash('スタートアンケートが完了しました！<br>ご協力ありがとうございます。', 'ended')
+                flash('参加登録ができました！。', 'ended')
                 return redirect(url_for('main_menu', user=user.account))
 
             # 未回答の質問がある場合は単にフォームを再表示
