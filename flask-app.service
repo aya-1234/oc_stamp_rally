@@ -4,9 +4,9 @@ After=network.target
 
 [Service]
 User=ubuntu
-WorkingDirectory=/home/ubuntu/Stamp-rally-Digital/app
-Environment="PATH=/home/ubuntu/Stamp-rally-Digital/app/venv/bin"
-ExecStart=/home/ubuntu/Stamp-rally-Digital/app/venv/bin/python run_prod.py
+WorkingDirectory=/home/ubuntu/oc_stamp_rally/app
+Environment="PATH=/home/ubuntu/oc_stamp_rally/.asla_lite2/bin"
+ExecStart=/home/ubuntu/oc_stamp_rally/.asla_lite2/bin/python run_prod.py
 Restart=always
 RestartSec=10
 
