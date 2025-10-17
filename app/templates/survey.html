@@ -62,59 +62,20 @@
 
       <!-- アンケート質問セクション（アンケート管理）-->
       <form method="post" id="surveyForm" onsubmit="return validateForm()">
-        {% for question in questions %}
-          <div class="question-container" id="{{ question.id }}">
-            <!-- 質問文を表示（CSS/JSが参照する .question-text を付与） -->
-            <div class="question-text">
-              {{ question.question | safe }}
-              {# 必須バッジを付けたい場合（質問文に「（回答必須）」が含まれる前提） #}
-              {% if '（回答必須）' in (question.question or '') %}
-                <span class="required-badge">必須</span>
-              {% endif %}
-            </div>
-
-            {% if question.survey_choices %}
-              <!-- 選択肢がある質問 -->
-              {% set sorted_choices = question.survey_choices|sort(attribute='id') %}
-              <div class="choice-container">
-                {% for choice in sorted_choices %}
-                  <div class="choice">
-                    <input
-                      type="radio"
-                      id="choice_{{ choice.id }}"
-                      name="question_{{ question.id }}"
-                      value="{{ choice.id }}"
-                      {% if form_data and form_data['question_' ~ question.id] == choice.id|string %}checked{% endif %}
-                    >
-                    <label for="choice_{{ choice.id }}">{{ choice.survey_choice }}</label>
-                  </div>
-                {% endfor %}
-              </div>
-            {% else %}
-              <!-- 選択肢がない質問（自由記述） -->
-              <div class="input-container">
-                {# メールアドレスっぽい質問名なら input[type=email]、それ以外は textarea #}
-                {% set field_name = 'question_' ~ question.id %}
-                {% if 'メール' in (question.question or '') %}
-                  <input
-                    type="email"
-                    id="{{ field_name }}"
-                    name="{{ field_name }}"
-                    placeholder="メールアドレス（任意）"
-                    inputmode="email"
-                  >
-                {% else %}
-                  <textarea
-                    id="{{ field_name }}"
-                    name="{{ field_name }}"
-                    rows="4"
-                    placeholder="自由記述（任意）"
-                  ></textarea>
-                {% endif %}
-              </div>
-            {% endif %}
+        {% for question in questions %} {% if question.survey_choices %}
+        <div class="choice-container">
+          {% set sorted_choices = question.survey_choices|sort(attribute='id')
+          %} {% for choice in sorted_choices %}
+          <div class="choice">
+            <input type="radio" id="choice_{{ choice.id }}" name="question_{{
+            question.id }}" value="{{ choice.id }}" {% if form_data and
+            form_data['question_' ~ question.id] == choice.id|string %}checked{%
+            endif %}>
+            <label for="choice_{{ choice.id }}">
+              {{ choice.survey_choice }}
+            </label>
           </div>
-        {% endfor %}
+          {% endfor %}
         </div>
         {% endif %} {% endfor %}
         <button type="submit" class="submit-button" id="submitButton">
