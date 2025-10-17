@@ -1621,10 +1621,13 @@ def login(checkpoint):  # checkpoint_idの代わりにcheckpointオブジェク�
 
 # チェックポイントのログイン画面のルート
 def checkpoint_login(checkpoint):
+    questions = Survey.query.filter_by(checkpoint_id=checkpoint.id)\
+        .options(db.joinedload(Survey.survey_choices))\
+        .order_by(Survey.survey_order).all()
     if request.method == 'POST':
         account = request.form['account']
         user = Login.query.filter_by(account=account).first()
-
+        
         # アカウント存在チェック
         if not user:
             flash("アカウントが間違っています", 'error')
@@ -1664,10 +1667,11 @@ def checkpoint_login(checkpoint):
         total_quizzes = len(quizzes)
 
         return render_template(
-            'checkpoint.html', 
+            'checkpoint.html',
             checkpoint=checkpoint,
             user=user,
-            total_quizzes=total_quizzes
+            total_quizzes=total_quizzes,
+            questions=questions
         )
 
     # GETメソッドの場合、チェックポイント情報とともにログイン画面を表示
