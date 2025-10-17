@@ -62,56 +62,22 @@
 
       <!-- アンケート質問セクション（アンケート管理）-->
       <form method="post" id="surveyForm" onsubmit="return validateForm()">
-        {% for question in questions %}
-        <div class="question-container" id="question-{{ question.id }}">
-          <p
-            class="question-text {% if question.survey_choices and ((is_type_a_user and not '（AOP）' in question.question) or (not is_type_a_user and '（回答必須）' in question.question)) %}required{% endif %}"
-          >
-            {{ question.question }} {% if question.survey_choices %} {% if
-            is_type_a_user %} {% if not '（AOP）' in question.question %}
-            <span class="required-badge">必須</span>
-            {% endif %} {% else %} {% if '（回答必須）' in question.question %}
-            <span class="required-badge">必須</span>
-            {% endif %} {% endif %} {% endif %}
-          </p>
-          {% if question.survey_choices %}
-          <div class="choice-container">
-            {% set sorted_choices = question.survey_choices|sort(attribute='id')
-            %} {% for choice in sorted_choices %}
-            <div class="choice">
-              <input type="radio" id="choice_{{ choice.id }}" name="question_{{
-              question.id }}" value="{{ choice.id }}" {% if form_data and
-              form_data['question_' ~ question.id] == choice.id|string
-              %}checked{% endif %}>
-              <label for="choice_{{ choice.id }}">
-                {{ choice.survey_choice }}
-              </label>
-            </div>
-            {% endfor %}
+        {% for question in questions %} {% if question.survey_choices %}
+        <div class="choice-container">
+          {% set sorted_choices = question.survey_choices|sort(attribute='id')
+          %} {% for choice in sorted_choices %}
+          <div class="choice">
+            <input type="radio" id="choice_{{ choice.id }}" name="question_{{
+            question.id }}" value="{{ choice.id }}" {% if form_data and
+            form_data['question_' ~ question.id] == choice.id|string %}checked{%
+            endif %}>
+            <label for="choice_{{ choice.id }}">
+              {{ choice.survey_choice }}
+            </label>
           </div>
-          {% endif %}
+          {% endfor %}
         </div>
-        {% endfor %}
-        <!-- 自由記入欄 -->
-        <div class="content-box" style="margin-bottom: 10px">
-          <label
-            for="free_comment"
-            style="display: block; margin-bottom: 5px; font-weight: bold"
-          >
-          </label>
-          <textarea
-            id="free_comment"
-            name="free_comment"
-            rows="4"
-            style="
-              width: 100%;
-              padding: 10px;
-              border-radius: 4px;
-              border: 1px solid #ccc;
-            "
-            placeholder="例: このチェックポイントは楽しかったです。"
-          ></textarea>
-        </div>
+        {% endif %} {% endfor %}
         <button type="submit" class="submit-button" id="submitButton">
           送信
         </button>
