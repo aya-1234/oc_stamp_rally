@@ -1,4 +1,5 @@
 from flask import Flask, request, render_template, flash, url_for, session, redirect, jsonify
+from werkzeug.routing import BuildError
 import sqlite3
 from datetime import datetime, timedelta
 import pytz
@@ -205,6 +206,17 @@ print("=== DEBUG ===")
 print("len(hash_keys):", len(hash_keys))
 print("hash_keys:", hash_keys)
 print(len(hash_keys))
+
+
+@app.route("/")
+def index():
+    first_key = hash_keys[0]  # 先頭のキーへ誘導
+    try:
+        # 例: /handle_checkpoint/<hash_key>
+        return redirect(url_for("handle_checkpoint", hash_key=first_key))
+    except BuildError:
+        # 例: /handle_checkpoint/<key>
+        return redirect(url_for("handle_checkpoint", key=first_key))
 
 
 # 変更点uchida
