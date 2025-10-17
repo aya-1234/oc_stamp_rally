@@ -210,13 +210,13 @@ print(len(hash_keys))
 
 @app.route("/")
 def index():
-    first_key = hash_keys[0]  # 先頭のキーへ誘導
-    try:
-        # 例: /handle_checkpoint/<hash_key>
-        return redirect(url_for("handle_checkpoint", hash_key=first_key))
-    except BuildError:
-        # 例: /handle_checkpoint/<key>
-        return redirect(url_for("handle_checkpoint", key=first_key))
+    keys = globals().get("hash_keys") or []
+    if isinstance(keys, (list, tuple)) and keys:
+        first_key = keys[0]
+        # ← ここを唯一・正しい引数名に
+        return redirect(url_for("handle_checkpoint", checkpoint_id_hash=first_key))
+    # キーがない場合に 500 にならないよう安全に返す
+    return ("Entry route is not ready. Try /handle_checkpoint/<checkpoint_id_hash>.", 404)
 
 
 # 変更点uchida
