@@ -216,7 +216,7 @@ def hello():
     output=f'''
 <h1>Hello World</h1>
 <ul>
-<li><a href="/handle_checkpoint/{hash_keys[0]}">スタートログイン</a></li>
+<li><a href="/handle_checkpoint/{hash_keys[0]}">参加登録ログイン</a></li>
 <li><a href="/handle_checkpoint/{hash_keys[1]}">経営学部ブース</a></li>
 <li><a href="/handle_checkpoint/{hash_keys[2]}">国際観光学部ブース</a></li>
 <li><a href="/handle_checkpoint/{hash_keys[3]}">経済学部ブース</a></li>
@@ -1585,7 +1585,7 @@ def handle_checkpoint(checkpoint_id_hash):
     
     #return redirect(url_for('main_menu'))アンケートが設定されていない場合だが、今回の件ではそんな状況は起きないはずだ。
 
-# スタートポイントのログイン画面のルート
+# 参加登録ポイントのログイン画面のルート
 def login(checkpoint):  # checkpoint_idの代わりにcheckpointオブジェクトを受け取る
     if request.method == 'POST':
         account = request.form['account']
@@ -1634,15 +1634,15 @@ def checkpoint_login(checkpoint):
         session['user_id'] = user.id
         
         if not user.is_used:#多重エラー対応。前のルーティングで突破してたらほぼいらない。
-            flash('はじめにスタート地点にログインしてから、スタンプラリーを始めてください。', 'error')
+            flash('はじめに参加登録地点にログインしてから、スタンプラリーを始めてください。', 'error')
             return redirect(url_for('handle_checkpoint', checkpoint_id_hash=hash_keys[0]))
 
         if not user.is_agree:
-            flash('スタートポイントでの同意を完了し、アンケートに答えてからチェックポイントにアクセスしてください。', 'error')
+            flash('参加登録ポイントでの同意を完了し、アンケートに答えてからチェックポイントにアクセスしてください。', 'error')
             return redirect(url_for('handle_checkpoint', checkpoint_id_hash=hash_keys[0])) 
 
         if not user.is_loggedin:
-            flash('はじめにスタート地点にログインしてから、スタンプラリーを始めてください。', 'error')
+            flash('はじめに参加登録地点にログインしてから、スタンプラリーを始めてください。', 'error')
             return redirect(url_for('handle_checkpoint', checkpoint_id_hash=hash_keys[0]))
 
         if user.is_ended:
@@ -1694,17 +1694,17 @@ def goal_login(checkpoint):
             return redirect(url_for('ended'))  # 修正: render_template から redirect に変更
 
         if not user.is_used:
-            flash('はじめにスタート地点にログインしてから、スタンプラリーを始めてください。', 'error')
+            flash('はじめに参加登録地点にログインしてから、スタンプラリーを始めてください。', 'error')
             return redirect(url_for('handle_checkpoint', checkpoint_id_hash=hash_keys[0])) 
 
         #user = Login.query.get_or_404(user_id)
 
         if not user.is_agree:
-            flash('スタートポイントでの同意を完了し、アンケートに答えてからチェックポイントにアクセスしてください。', 'error')
+            flash('参加登録ポイントでの同意を完了し、アンケートに答えてからチェックポイントにアクセスしてください。', 'error')
             return redirect(url_for('handle_checkpoint', checkpoint_id_hash=hash_keys[0])) 
 
         if not user.is_loggedin:
-            flash('はじめにスタート地点にログインしてから、スタンプラリーを始めてください。', 'error')
+            flash('はじめに参加登録地点にログインしてから、スタンプラリーを始めてください。', 'error')
             return redirect(url_for('handle_checkpoint', checkpoint_id_hash=hash_keys[0])) 
 
         # ログイン状態確認
@@ -1736,8 +1736,8 @@ def ended():
 # チェックポイントの種類に応じたデフォルトメッセージを定義
 DEFAULT_MESSAGES = {
     'start': {
-        "title": "スタート時アンケート調査",
-        "message": "スタートポイントのアンケートにご協力ください。"
+        "title": "参加登録時アンケート調査",
+        "message": "参加登録ポイントのアンケートにご協力ください。"
     },
     'normal': {
         "title": "チェックポイント時アンケート調査",
@@ -2091,11 +2091,11 @@ def validate_survey_responses(user, questions, request_form):
 
     return responses, unanswered_questions, form_data
 
-# スタートポイントのアンケート画面
+# 参加登録ポイントのアンケート画面
 def start_survey(checkpoint_id):
     user_id = session.get('user_id')
     if not user_id:
-        flash('セッションが切れました。<br>スタートポイントで再度ログインしてください。', 'error')
+        flash('セッションが切れました。<br>参加登録ポイントで再度ログインしてください。', 'error')
         return redirect(url_for('handle_checkpoint', checkpoint_id_hash=hash_keys[0]))
 
     user = Login.query.get_or_404(user_id)
@@ -2369,7 +2369,7 @@ def goal_survey(user_id, checkpoint_id):
 def main_menu():
     user_id = session.get('user_id')
     if not user_id:
-        flash('セッションが切れました。スタートポイントで再度ログインしてください。', 'error')
+        flash('セッションが切れました。参加登録ポイントで再度ログインしてください。', 'error')
         return redirect(url_for('handle_checkpoint', checkpoint_id_hash=hash_keys[0]))
     user = Login.query.get_or_404(user_id)
     return render_template('main_menu.html', title="メインメニュー", user=user)
@@ -2386,7 +2386,7 @@ def app_usage():
 
 
 
-####スタート画面:ビジネスロジック
+####参加登録画面:ビジネスロジック
 
 
 #同意画面
@@ -2411,7 +2411,7 @@ def agreement(login_id):
 def view_stamps():
     user_id = session.get('user_id')
     if not user_id:
-        flash('セッションが切れました。<br>スタートポイントで再度ログインしてください。', 'error')
+        flash('セッションが切れました。<br>参加登録ポイントで再度ログインしてください。', 'error')
         return redirect(url_for('handle_checkpoint', checkpoint_id_hash=hash_keys[0]))
     
         # スタンプ取得時のメッセージを改行付きで表示
@@ -2473,11 +2473,11 @@ def checkpoint(checkpoint_id):
    user = Login.query.get_or_404(user_id)
 
    if not user.is_used:#多重エラー対応。前のルーティングで突破してたらほぼいらない。
-       flash('はじめにスタート地点にログインしてから、スタンプラリーを始めてください。', 'error')
+       flash('はじめに参加登録地点にログインしてから、スタンプラリーを始めてください。', 'error')
        return redirect(url_for('handle_checkpoint', checkpoint_id_hash=hash_keys[0])) 
 
    if not user.is_loggedin:
-       flash('はじめにスタート地点にログインしてから、スタンプラリーを始めてください。', 'error')
+       flash('はじめに参加登録地点にログインしてから、スタンプラリーを始めてください。', 'error')
        return redirect(url_for('handle_checkpoint', checkpoint_id_hash=hash_keys[0]))
 
    checkpoint = Checkpoint.query.get_or_404(checkpoint_id)
@@ -2506,11 +2506,11 @@ def quiz(checkpoint_id):
 
     # ユーザーの状態チェック
     if not user.is_used:#多重エラー対応。前のルーティングで突破してたらほぼいらない。
-        flash('はじめにスタート地点にログインしてから、スタンプラリーを始めてください。', 'error')
+        flash('はじめに参加登録地点にログインしてから、スタンプラリーを始めてください。', 'error')
         return redirect(url_for('handle_checkpoint', checkpoint_id_hash=hash_keys[0]))
 
     if not user.is_loggedin:
-        flash('はじめにスタート地点にログインしてから、スタンプラリーを始めてください。', 'error')
+        flash('はじめに参加登録地点にログインしてから、スタンプラリーを始めてください。', 'error')
         return redirect(url_for('handle_checkpoint', checkpoint_id_hash=hash_keys[0]))
 
     if user.is_ended:
