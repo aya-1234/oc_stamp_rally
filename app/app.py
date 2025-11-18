@@ -134,8 +134,8 @@ checkpoint_hash_dic = {'ajrwkhlkafsddfd': 1,
                        'syflwdehkejhrsd': 2, 
                        'hgosmcbgdirmagf': 3, 
                        'hocnhsmtgdobmjg': 4, 
-                       'bhgfkdehdikvgfh': 5, #管理画面
-                       'vgkfeawigeaoggk': 6,#ゴール地点
+                       'bhgfkdehdikvgfh': 5,#ゴール地点
+                       'vgkfeawigeaoggk': 6,#管理画面
                        }
 hash_keys = list(checkpoint_hash_dic.keys())
 print("len(hash_keys):", len(hash_keys))
@@ -158,7 +158,7 @@ def hello():
 <li><a href="/handle_checkpoint/{hash_keys[1]}">経営学部ブース</a></li>
 <li><a href="/handle_checkpoint/{hash_keys[2]}">国際観光学部ブース</a></li>
 <li><a href="/handle_checkpoint/{hash_keys[3]}">経済学部ブース</a></li>
-<li><a href="/handle_checkpoint/{hash_keys[4]}">教育学部ブース</a></li>
+<li><a href="/handle_checkpoint/{hash_keys[4]}">ゴール</a></li>
 <li><a href="/{hash_keys[5]}">管理画面</a></li>
 </ul>
 '''
@@ -1454,9 +1454,9 @@ def handle_checkpoint(checkpoint_id_hash):
     
     if checkpoint_id == 1:
         return login(checkpoint)  # チェックポイントオブジェクトを渡す
-    elif 2 <= checkpoint_id <= 68:  #変更点　cp数に応じて変更
+    elif 2 <= checkpoint_id <= 4:  #変更点　cp数に応じて変更
         return checkpoint_login(checkpoint)
-    elif checkpoint_id == 14:
+    elif checkpoint_id == 5:
         return goal_login(checkpoint)
     
     #return redirect(url_for('main_menu'))アンケートが設定されていない場合だが、今回の件ではそんな状況は起きないはずだ。
@@ -2560,26 +2560,27 @@ def quiz(checkpoint_id):
 ####ゴール画面:ビジネスロジック
 
 
-
-# スタンプ一覧の表示
 @app.route("/show_stamps/<int:user_id>")
 def show_stamps(user_id):
     checkpoints = Checkpoint.query.order_by(Checkpoint.checkpoint_order).all()
-    user_stamps = set(stamp.checkpoint_id for stamp in Stamp.query.filter_by(login_id=user_id).all())
-
-    # 必要なチェックポイントのIDセットを修正 (2から12まで)
-    required_checkpoint_ids = set(range(2, 12))  # 2から12までに修正
     
+    # user_stamps を整数型で取得
+    user_stamps = set(int(stamp.checkpoint_id) for stamp in Stamp.query.filter_by(login_id=user_id).all())
+
+    # 必要な CP は start と goal を除く
+    required_checkpoints = Checkpoint.query.filter(Checkpoint.checkpoint_type=="normal").all()
+    required_checkpoint_ids = set(cp.id for cp in required_checkpoints)
+
     collected_stamps = len(required_checkpoint_ids.intersection(user_stamps))
-    total_required = len(required_checkpoint_ids)  # 6個になります
+    total_required = len(required_checkpoint_ids)
 
-    goal_checkpoint = Checkpoint.query.filter_by(id=13).first()
+    # ゴール CP
+    goal_checkpoint = Checkpoint.query.filter_by(checkpoint_type="goal").first()
     
-    # ゴールアンケートのアクティブ化条件を厳密化
     active_survey = (collected_stamps >= total_required and 
-                    goal_checkpoint and 
-                    goal_checkpoint.id not in user_stamps and
-                    all(cp_id in user_stamps for cp_id in required_checkpoint_ids))  # すべての必要なチェックポイントを確認
+                     goal_checkpoint and 
+                     goal_checkpoint.id not in user_stamps and
+                     all(cp_id in user_stamps for cp_id in required_checkpoint_ids))
 
     survey_checkpoints = [goal_checkpoint] if active_survey and goal_checkpoint else []
 
@@ -2593,6 +2594,50 @@ def show_stamps(user_id):
         collected_stamps=collected_stamps,
         total_required=total_required
     )
+
+# スタンプ一覧の表示
+# @app.route("/show_stamps/<int:user_id>")
+# def show_stamps(user_id):
+#     checkpoints = Checkpoint.query.order_by(Checkpoint.checkpoint_order).all()
+#     user_stamps = set(stamp.checkpoint_id for stamp in Stamp.query.filter_by(login_id=user_id).all())
+
+#     # DB から必要なチェックポイントを取得（スタート・ゴールを除く）
+#     required_checkpoints = Checkpoint.query.filter(
+#         Checkpoint.id != 1,  # スタートCPを除く
+#         Checkpoint.id != 13  # ゴールCPを除く
+#     ).all()
+
+#     required_checkpoint_ids = set(cp.id for cp in required_checkpoints)
+#     collected_stamps = len(required_checkpoint_ids.intersection(user_stamps))
+#     total_required = len(required_checkpoint_ids)  # 自動計算
+
+
+#     # 必要なチェックポイントのIDセットを修正 (2から12まで)
+#     #required_checkpoint_ids = set(range(2, 12))  # 2から12までに修正
+    
+#     #collected_stamps = len(required_checkpoint_ids.intersection(user_stamps))
+#     #total_required = len(required_checkpoint_ids)  # 6個になります
+
+#     #goal_checkpoint = Checkpoint.query.filter_by(id=13).first()
+    
+#     # ゴールアンケートのアクティブ化条件を厳密化
+#     active_survey = (collected_stamps >= total_required and 
+#                     goal_checkpoint and 
+#                     goal_checkpoint.id not in user_stamps and
+#                     all(cp_id in user_stamps for cp_id in required_checkpoint_ids))  # すべての必要なチェックポイントを確認
+
+#     survey_checkpoints = [goal_checkpoint] if active_survey and goal_checkpoint else []
+
+#     return render_template(
+#         "stamps.html",
+#         checkpoints=checkpoints,
+#         user_stamps=user_stamps,
+#         active_survey=active_survey,
+#         survey_checkpoints=survey_checkpoints,
+#         user_id=user_id,
+#         collected_stamps=collected_stamps,
+#         total_required=total_required
+#     )
 
 # ゴール画面
 @app.route("/goal")
