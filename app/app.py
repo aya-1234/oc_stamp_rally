@@ -134,70 +134,8 @@ checkpoint_hash_dic = {'ajrwkhlkafsddfd': 1,
                        'syflwdehkejhrsd': 2, 
                        'hgosmcbgdirmagf': 3, 
                        'hocnhsmtgdobmjg': 4, 
-                       'bginchrfmhodhlk': 5, 
-                       'nhkbhditmfobhhj': 6, 
-                       'gkfcnshvmfjhpdj': 7, 
-                       'afsjfnvidngmcjx': 8, 
-                       'hhkncfouvmiwoxz': 9,
-                       'hsadhfuoewhfowo': 10,
-                       'njrghoiernvhewo': 11,
-                       'vbgfksghdjfjdkg': 12,
-                       'bhgfkdehdikvgfh': 13, #管理画面
-                       'vgkfeawigeaoggk': 14,#ゴール地点
-                       'sflasajdfoiahks': 15, 
-                       'dsasdfasdgxccva': 16, 
-                       'ahgjdjegndsrths': 17, 
-                       'kiurdshfgfhjesr': 18,
-                       'ryukdmghdnsfdae': 19,
-                       'naeyrhnghmgjtye': 20,
-                       'ryuitukydsawqsg': 21,
-                       'dsafgahtndaasdf': 22, 
-                       'dsghsrhn5racfdg': 23, 
-                       'ahrsaewehrsbaab': 24, 
-                       'adfghakljmgegfx': 25,
-                       'rategaehrj6hnra': 26,
-                       'sadghrjemnsneag': 27,
-                       'sagehjdnsegaarg': 28,
-                       'adsfasljadsfjow': 29, 
-                       'safdahjsfjgcstg': 30, 
-                       'afgdhfsjkf4hxys': 31, 
-                       'utyliugddsrreaz': 32,
-                       'warteytsurydknc': 33,
-                       '45srxcgssxfhjmh': 34,
-                       'ystdk7cgndtkbnx': 35,
-                       'se4rdcjtkvhfniu': 36, 
-                       'lf8trdxgxnymtcx': 37, 
-                       'zgdhfxfjkfl7fyc': 38, 
-                       'vcmhbvtjhulygfd': 39,
-                       '4erxcgkbnvczdhj': 40,
-                       'ghmdfhsjsdxfaah': 41,
-                       'kufdtrhdfghkycf': 42,
-                       'seryrkvbnvcwzex': 43, 
-                       'rdturikfcgfxezz': 44, 
-                       'wzexklikjnmvcxx': 45, 
-                       'dfjgkfvgcxgrxdh': 46,
-                       'mnvvmdtrxdfhzha': 47,
-                       'waesrgvkhjbnvxd': 48,
-                       'hjkvhlbcnvxexdz': 49,
-                       'bnvtredseryhgah': 50, 
-                       'gfjdrxtfhvcudcr': 51, 
-                       'iuslhkdafnauilw': 52, 
-                       'pulisjagghfnwui': 53,
-                       'laiuhkjnfmassdf': 54,
-                       'liajkfhfadsfhkz': 55,
-                       'ladhhtafodipgzp': 56,
-                       'gulaeirhsjkgpaw': 57, 
-                       'ouilaluehzhlfia': 58, 
-                       'ouasilfhfazsfuz': 59, 
-                       'pawehfmjxzhiuyw': 60,
-                       'osfyauipwzhsdfy': 61,
-                       'woituxzjlwemaop': 62,
-                       'paurexuffgaelek': 63,
-                       'puesljxkzufieow': 64, 
-                       'ouidaaolwszjfue': 65, 
-                       'pfaiuwezsozixld': 66,
-                       'zseurlezsjdfoww': 67,
-                       'fdsatgaetgfjydt': 68,  
+                       'bhgfkdehdikvgfh': 5, #管理画面
+                       'vgkfeawigeaoggk': 6,#ゴール地点
                        }
 hash_keys = list(checkpoint_hash_dic.keys())
 print("len(hash_keys):", len(hash_keys))
@@ -221,69 +159,7 @@ def hello():
 <li><a href="/handle_checkpoint/{hash_keys[2]}">国際観光学部ブース</a></li>
 <li><a href="/handle_checkpoint/{hash_keys[3]}">経済学部ブース</a></li>
 <li><a href="/handle_checkpoint/{hash_keys[4]}">教育学部ブース</a></li>
-<li><a href="/handle_checkpoint/{hash_keys[5]}">芸術学部ブース</a></li>
-<li><a href="/handle_checkpoint/{hash_keys[6]}">データサイエンス学部ブース</a></li>
-<li><a href="/handle_checkpoint/{hash_keys[7]}">芸術学部ブース</a></li> 
-<li><a href="/handle_checkpoint/{hash_keys[8]}">短大-幼児教育学科ブース</a></li>
-<li><a href="/handle_checkpoint/{hash_keys[9]}">短大-調理コースブース</a></li>
-<li><a href="/handle_checkpoint/{hash_keys[10]}">短大-製菓コースブース</a></li>
-<li><a href="/handle_checkpoint/{hash_keys[11]}">短大-栄養学科ブース</a></li>
-<li><a href="/handle_checkpoint/{hash_keys[12]}">短大-生活デザイン学科ブース</a></li>
-<li><a href="/handle_checkpoint/{hash_keys[13]}">10/18 大学を知ろう</a></li>
-<li><a href="/handle_checkpoint/{hash_keys[14]}">10/18 経営学部食ビジネスコース</a></li>
-<li><a href="/handle_checkpoint/{hash_keys[15]}">10/18 学生トーク1</a></li>
-<li><a href="/handle_checkpoint/{hash_keys[16]}">10/18 フットサル部</a></li>
-<li><a href="/handle_checkpoint/{hash_keys[17]}">10/18 学生トーク2</a></li>
-<li><a href="/handle_checkpoint/{hash_keys[18]}">10/18 eスポーツ</a></li>
-<li><a href="/handle_checkpoint/{hash_keys[19]}">10/18 学生トーク3</a></li>
-<li><a href="/handle_checkpoint/{hash_keys[20]}">10/18 ストリートダンスサークル</a></li> 
-<li><a href="/handle_checkpoint/{hash_keys[21]}">10/18 将来構想について</a></li>
-<li><a href="/handle_checkpoint/{hash_keys[22]}">10/18 チアダンス部</a></li>
-<li><a href="/handle_checkpoint/{hash_keys[23]}">10/18 学生トーク4</a></li>
-<li><a href="/handle_checkpoint/{hash_keys[24]}">10/18 芸術学部有志</a></li>
-<li><a href="/handle_checkpoint/{hash_keys[25]}">10/18 入試制度について</a></li>
-<li><a href="/handle_checkpoint/{hash_keys[26]}">10/18 データサイエンス学部学生起業</a></li>
-<li><a href="/handle_checkpoint/{hash_keys[27]}">10/18 大学を知ろう</a></li>
-<li><a href="/handle_checkpoint/{hash_keys[28]}">10/18 吹奏楽部</a></li>
-<li><a href="/handle_checkpoint/{hash_keys[29]}">10/18 学生トーク1</a></li>
-<li><a href="/handle_checkpoint/{hash_keys[30]}">10/18 せいけいデジタルサークル</a></li>
-<li><a href="/handle_checkpoint/{hash_keys[31]}">10/18 学生トーク2</a></li>
-<li><a href="/handle_checkpoint/{hash_keys[32]}">10/18 芸術学部有志</a></li>
-<li><a href="/handle_checkpoint/{hash_keys[33]}">10/18 学生トーク3</a></li> 
-<li><a href="/handle_checkpoint/{hash_keys[34]}">10/18 k-pop</a></li>
-<li><a href="/handle_checkpoint/{hash_keys[35]}">10/18 将来構想について</a></li>
-<li><a href="/handle_checkpoint/{hash_keys[36]}">10/18 コーラス部</a></li>
-<li><a href="/handle_checkpoint/{hash_keys[37]}">10/18 学生トーク4</a></li>
-<li><a href="/handle_checkpoint/{hash_keys[38]}">10/18 チアダンス部</a></li>
-<li><a href="/handle_checkpoint/{hash_keys[39]}">10/18 入試制度について</a></li>
-<li><a href="/handle_checkpoint/{hash_keys[40]}">10/19 大学を知ろう</a></li>
-<li><a href="/handle_checkpoint/{hash_keys[41]}">10/19 軽音楽部</a></li>
-<li><a href="/handle_checkpoint/{hash_keys[42]}">10/19 学生トーク1</a></li>
-<li><a href="/handle_checkpoint/{hash_keys[43]}">10/19 ギター</a></li>
-<li><a href="/handle_checkpoint/{hash_keys[44]}">10/19 学生トーク2</a></li>
-<li><a href="/handle_checkpoint/{hash_keys[45]}">10/19 サッカー部</a></li>
-<li><a href="/handle_checkpoint/{hash_keys[46]}">10/19 学生トーク3</a></li> 
-<li><a href="/handle_checkpoint/{hash_keys[47]}">10/19 アニメ製作サークル</a></li>
-<li><a href="/handle_checkpoint/{hash_keys[48]}">10/19 将来構想について</a></li>
-<li><a href="/handle_checkpoint/{hash_keys[49]}">10/19 ストリートダンス</a></li>
-<li><a href="/handle_checkpoint/{hash_keys[50]}">10/19 学生トーク4</a></li>
-<li><a href="/handle_checkpoint/{hash_keys[51]}">10/19 チアダンス部</a></li>
-<li><a href="/handle_checkpoint/{hash_keys[52]}">10/19 入試制度について</a></li>
-<li><a href="/handle_checkpoint/{hash_keys[53]}">10/19 データサイエンス学部学生起業</a></li>
-<li><a href="/handle_checkpoint/{hash_keys[54]}">10/19 大学を知ろう</a></li>
-<li><a href="/handle_checkpoint/{hash_keys[55]}">10/19 芸術学部有志</a></li>
-<li><a href="/handle_checkpoint/{hash_keys[56]}">10/19 学生トーク1</a></li>
-<li><a href="/handle_checkpoint/{hash_keys[57]}">10/19 アニメ制作サークル</a></li>
-<li><a href="/handle_checkpoint/{hash_keys[58]}">10/19 学生トーク2</a></li>
-<li><a href="/handle_checkpoint/{hash_keys[59]}">10/19 準硬式野球部</a></li> 
-<li><a href="/handle_checkpoint/{hash_keys[60]}">10/19 学生トーク3</a></li>
-<li><a href="/handle_checkpoint/{hash_keys[61]}">10/19 チアダンス部</a></li>
-<li><a href="/handle_checkpoint/{hash_keys[62]}">10/19 将来構想について</a></li>
-<li><a href="/handle_checkpoint/{hash_keys[63]}">10/19 せいけいデジタルサークル</a></li>
-<li><a href="/handle_checkpoint/{hash_keys[64]}">10/19 学生トーク4</a></li>
-<li><a href="/handle_checkpoint/{hash_keys[65]}">10/19 お琴サークル</a></li>
-<li><a href="/handle_checkpoint/{hash_keys[66]}">10/19 入試制度について</a></li>
-<li><a href="/{hash_keys[13]}">管理画面</a></li>
+<li><a href="/{hash_keys[5]}">管理画面</a></li>
 </ul>
 '''
     return output
@@ -345,7 +221,7 @@ def remove_resolved_checkpoint(user_id, checkpoint_name):
 
 # 管理画面
 # 管理画面のメインページ
-@app.route(f'/{hash_keys[13]}')
+@app.route(f'/{hash_keys[5]}')
 def admin_panel():
     #ログイン管理
     # ページネーションのパラメータを取得
@@ -645,7 +521,7 @@ def admin_panel():
         surveys_pagination=surveys_pagination,  # surveysをsurveys_paginationに変更
         survey_choices=survey_choices,
         quizzes=quizzes,
-        admin_hash=hash_keys[13],
+        admin_hash=hash_keys[5],
         search_query=search_query,
         stamps=formatted_stamps,
         stamps_pagination=stamps_pagination,
@@ -663,7 +539,7 @@ def admin_panel():
     )
 
 # クイズ追加のAPI
-@app.route(f'/{hash_keys[13]}/add_quiz', methods=['POST'])
+@app.route(f'/{hash_keys[5]}/add_quiz', methods=['POST'])
 def add_quiz():
     try:
         checkpoint_id = request.form.get('checkpoint_id')
@@ -712,7 +588,7 @@ def add_quiz():
         return jsonify({'error': str(e)}), 500
 
 # クイズ削除のAPI
-@app.route(f'/{hash_keys[13]}/delete_quiz/<int:quiz_id>', methods=['POST'])
+@app.route(f'/{hash_keys[5]}/delete_quiz/<int:quiz_id>', methods=['POST'])
 def delete_quiz(quiz_id):
     try:
         # まず対象のクイズが存在するか確認
@@ -756,7 +632,7 @@ def delete_quiz(quiz_id):
         }), 500
 
 # ログインフラグの更新API
-@app.route(f'/{hash_keys[13]}/update_login', methods=['POST'])
+@app.route(f'/{hash_keys[5]}/update_login', methods=['POST'])
 def update_login_flag():
     login_id = request.form.get('login_id')
     flag_name = request.form.get('flag')
@@ -779,7 +655,7 @@ def update_login_flag():
     })
 
 # チェックポイントタイプの更新API
-@app.route(f'/{hash_keys[13]}/update_checkpoint', methods=['POST'])
+@app.route(f'/{hash_keys[5]}/update_checkpoint', methods=['POST'])
 def update_checkpoint_type():
     checkpoint_id = request.form.get('checkpoint_id')
     new_type = request.form.get('type')
@@ -801,7 +677,7 @@ def update_checkpoint_type():
     })
 
 # アンケート追加のAPIを修正
-@app.route(f'/{hash_keys[13]}/add_survey', methods=['POST'])
+@app.route(f'/{hash_keys[5]}/add_survey', methods=['POST'])
 def add_survey():
     try:
         checkpoint_id = request.form.get('checkpoint_id')
@@ -850,7 +726,7 @@ def add_survey():
         return jsonify({'error': str(e)}), 500
 
 # アンケート削除のAPI
-@app.route(f'/{hash_keys[13]}/delete_survey/<int:survey_id>', methods=['POST'])
+@app.route(f'/{hash_keys[5]}/delete_survey/<int:survey_id>', methods=['POST'])
 def delete_survey(survey_id):
     try:
         # まず関連する回答を削除
@@ -877,7 +753,7 @@ def delete_survey(survey_id):
 # スタンプ管理のための追加ルート
 
 # ユーザー検索API
-@app.route(f'/{hash_keys[13]}/search_users', methods=['GET'])
+@app.route(f'/{hash_keys[5]}/search_users', methods=['GET'])
 def search_users():
     search_query = request.args.get('query', '')
     if not search_query:
@@ -902,7 +778,7 @@ def search_users():
     
 
 # スタンプ記録の取得API
-@app.route(f'/{hash_keys[13]}/get_stamps', methods=['GET'])
+@app.route(f'/{hash_keys[5]}/get_stamps', methods=['GET'])
 def get_stamps():
     user_id = request.args.get('user_id')
     if not user_id:
@@ -935,7 +811,7 @@ def get_stamps():
         return jsonify({'error': str(e)}), 500
 
 # スタンプ追加API
-@app.route(f'/{hash_keys[13]}/add_stamp', methods=['POST'])
+@app.route(f'/{hash_keys[5]}/add_stamp', methods=['POST'])
 def add_stamp():
     try:
         login_id = request.form.get('login_id')
@@ -973,7 +849,7 @@ def add_stamp():
         return jsonify({'error': str(e)}), 500
 
 # スタンプ削除API
-@app.route(f'/{hash_keys[13]}/delete_stamp/<int:stamp_id>', methods=['POST'])
+@app.route(f'/{hash_keys[5]}/delete_stamp/<int:stamp_id>', methods=['POST'])
 def delete_stamp(stamp_id):
     try:
         stamp = Stamp.query.get_or_404(stamp_id)
@@ -990,7 +866,7 @@ def delete_stamp(stamp_id):
         return jsonify({'error': str(e)}), 500
     
 # app.pyに追加する関数
-@app.route(f'/{hash_keys[13]}/error_resolution_stamps')
+@app.route(f'/{hash_keys[5]}/error_resolution_stamps')
 def get_error_resolution_stamps(page=1, search_query='', mismatch_data=None): 
     per_page = 10
   
@@ -1050,7 +926,7 @@ def get_error_resolution_stamps(page=1, search_query='', mismatch_data=None):
     )
 
 # CSVエクスポート用の関数を追加
-@app.route(f'/{hash_keys[13]}/export/<table_name>')
+@app.route(f'/{hash_keys[5]}/export/<table_name>')
 def export_csv(table_name):
     try:
         si = StringIO()
@@ -1338,7 +1214,7 @@ def export_csv(table_name):
 
 
 
-@app.route(f'/{hash_keys[13]}/statistics', methods=['GET'])
+@app.route(f'/{hash_keys[5]}/statistics', methods=['GET'])
 def stamp_statistics():
     page = request.args.get('page', 1, type=int)
     per_page = 10
@@ -1424,7 +1300,7 @@ def stamp_statistics():
         search_query=search_query,
         stats_filter=stats_filter,
         sort_order=sort_order,
-        admin_hash=hash_keys[13],
+        admin_hash=hash_keys[5],
         total_stats=total_stats,
         current_page=page,
         debug=app.debug
@@ -2271,7 +2147,7 @@ def goal_survey(user_id, checkpoint_id):
         user_id = session.get('user_id')
         if not user_id:
             flash('セッションが切れました。<br>ゴールポイントで再度ログインしてください。', 'error')
-            return redirect(url_for('handle_checkpoint', checkpoint_id_hash=hash_keys[13]))
+            return redirect(url_for('handle_checkpoint', checkpoint_id_hash=hash_keys[5]))
 
     user = Login.query.get_or_404(user_id)
     checkpoint, message_info = get_checkpoint_info(checkpoint_id)
