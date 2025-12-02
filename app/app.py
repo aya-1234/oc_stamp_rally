@@ -126,7 +126,7 @@ def shutdown_session(exception=None):
     # hash化
     # /admin　link
     # admin関連のroute hash
-    # 
+    # goal関連のcp計算
 
 
 # 変更点uchida
@@ -2577,8 +2577,8 @@ def show_stamps(user_id):
     # ゴール CP
     goal_checkpoint = Checkpoint.query.filter_by(checkpoint_type="goal").first()
     
-    active_survey = (collected_stamps >= total_required and 
-                     goal_checkpoint and 
+    active_survey = (collected_stamps >= total_required and
+                     goal_checkpoint and
                      goal_checkpoint.id not in user_stamps and
                      all(cp_id in user_stamps for cp_id in required_checkpoint_ids))
 

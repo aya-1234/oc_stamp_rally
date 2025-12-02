@@ -190,9 +190,24 @@
           padding: 10px;
         }
       }
+      /* ===== クリスマス背景レイヤー ===== */
+      .christmas-bg {
+        position: fixed;
+        inset: 0;
+        z-index: -1; /* UIより後ろに配置 */
+        overflow: hidden;
+        background: linear-gradient(#05203e, #0b3a65);
+      }
+      
     </style>
   </head>
   <body>
+    <div class="christmas-bg">
+      <div class="tree"></div>
+      <div class="presents"></div>
+      <div class="snow"></div>
+    </div>
+    
     <div class="container">
       {% with messages = get_flashed_messages(with_categories=true) %} {% if
       messages %}
