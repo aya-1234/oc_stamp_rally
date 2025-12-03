@@ -174,7 +174,8 @@
     {% else %}
         {% if collected_stamps < total_required %}
             <p class="remaining-checkpoints">
-                ゴールするには、あと <span class="remaining-number">{{ total_required - collected_stamps }}</span> ヶ所のチェックポイントでスタンプを獲得する必要があります。
+                2ヶ所回っているとプレゼントゲット！<br><br>
+                もう <span class="remaining-number">{{ total_required - collected_stamps }}</span> ヶ所まわれば豪華プレゼントゲット！。
             </p>
         {% endif %}
     {% endif %}
