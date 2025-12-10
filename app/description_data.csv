@@ -1,6 +1,7 @@
 ﻿checkpoint_order,name,description,checkpoint_type
 1,参加登録,参加登録・メインメニューです。,start
-2,経営学部,経営学部のブースです。,normal
-3,国際観光学部,国際観光学部のブースです。,normal
-4,経済学部,経済学部のブースです。,normal
+2,経営学部,経営学部のブースにようこそ！,normal
+3,国際観光学部,国際観光学部のブースにようこそ！,normal
+4,経済学部,経済学部のブースにようこそ！,normal
 5,ゴール,ゴール,goal
+
