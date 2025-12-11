@@ -129,7 +129,7 @@ def shutdown_session(exception=None):
     # goal関連のcp計算
 
 
-# 変更点uchida
+# 変更点uchida->revised by unno 20251211
 checkpoint_hash_dic = {'asjofunemwfoget': 1,
                        'dioiaurenogaoud': 2, 
                        'vjouaeinaouogga': 3, 
