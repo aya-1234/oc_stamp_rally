@@ -130,12 +130,12 @@ def shutdown_session(exception=None):
 
 
 # 変更点uchida
-checkpoint_hash_dic = {'ajrwkhlkafsddfd': 1,
-                       'syflwdehkejhrsd': 2, 
-                       'hgosmcbgdirmagf': 3, 
-                       'hocnhsmtgdobmjg': 4, 
-                       'bhgfkdehdikvgfh': 5,#ゴール地点
-                       'vgkfeawigeaoggk': 6,#管理画面
+checkpoint_hash_dic = {'asjofunemwfoget': 1,
+                       'dioiaurenogaoud': 2, 
+                       'vjouaeinaouogga': 3, 
+                       'douamdoucedogiv': 4, 
+                       'ewfoukfvneoudek': 5,#ゴール地点
+                       'couenagfouddeej': 6,#管理画面
                        }
 hash_keys = list(checkpoint_hash_dic.keys())
 print("len(hash_keys):", len(hash_keys))
